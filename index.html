@@ -72,13 +72,14 @@
       justify-content: space-between;
       align-items: center;
       box-shadow: 0 1px 3px rgba(0,0,0,0.02);
-      transition: background-color 0.3s ease, border-color 0.3s ease;
+      transition: background-color 0.3s ease, border-color 0.3s ease, padding 0.3s ease;
     }
     .glass-header h3 {
       margin: 0;
       font-weight: 600;
       font-size: 1.3rem;
       letter-spacing: -0.02em;
+      transition: font-size 0.3s ease;
     }
     .header-actions {
       display: flex;
@@ -136,6 +137,61 @@
     }
     .theme-toggle:hover {
       transform: scale(1.05);
+    }
+
+    /* Consultas de Medios para adaptar a Celulares de manera sutil */
+    @media (max-width: 768px) {
+      .glass-header {
+        padding: 8px 12px;
+        margin-bottom: 15px;
+      }
+      .glass-header h3 {
+        font-size: 0.9rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 35%;
+      }
+      .btn-apple, .btn-apple-danger {
+        padding: 6px 10px;
+        font-size: 0.75rem;
+      }
+      .theme-toggle {
+        width: 30px;
+        height: 30px;
+      }
+      .theme-toggle svg {
+        width: 14px;
+        height: 14px;
+      }
+      .header-actions {
+        gap: 6px;
+      }
+      .accordion-button {
+        padding: 15px 18px;
+        font-size: 0.95rem;
+      }
+      .card-header-custom {
+        padding: 15px 18px 10px;
+        font-size: 1rem;
+      }
+      .accordion-body {
+        padding: 0 18px 18px;
+      }
+      /* Reduce un poco la fuente de los labels en celular para que quepa en 1 linea */
+      label {
+        font-size: 0.75rem;
+      }
+    }
+
+    @media (max-width: 400px) {
+      .glass-header h3 {
+        display: none;
+      }
+      .header-actions {
+        width: 100%;
+        justify-content: space-between;
+      }
     }
 
     .card, .accordion-item {
@@ -386,31 +442,35 @@
               <option value="" selected disabled>Seleccione primero una Institución...</option>
             </select>
           </div>
-          <div class="col-md-4">
+          
+          <!-- Provincia, Cantón y Parroquia en una sola línea en celular (col-4 cada uno) -->
+          <div class="col-4 col-md-4">
             <label>Provincia Est.:</label>
             <input type="text" id="prov_establecimiento" class="form-control" readonly>
           </div>
-          <div class="col-md-4">
+          <div class="col-4 col-md-4">
             <label>Cantón Est.:</label>
             <input type="text" id="canton_establecimiento" class="form-control" readonly>
           </div>
-          <div class="col-md-4">
+          <div class="col-4 col-md-4">
             <label>Parroquia Est.:</label>
             <input type="text" id="parroquia_establecimiento" class="form-control" readonly>
           </div>
-          <div class="col-md-3">
+
+          <!-- Fechas en una sola línea en celular (col-4 cada uno) -->
+          <div class="col-4 col-md-3">
             <label>Fecha Atención:</label>
             <input type="date" id="fecha_atencion" class="form-control save-state">
           </div>
-          <div class="col-md-3">
-            <label>Fecha inicio de síntomas:</label>
+          <div class="col-4 col-md-3">
+            <label>F. inicio síntomas:</label>
             <input type="date" id="fecha_inicio_sintomas" class="form-control save-state">
           </div>
-          <div class="col-md-3">
-            <label>Fecha inicio síntoma relevante:</label>
+          <div class="col-4 col-md-3">
+            <label>F. sínt. relevante:</label>
             <input type="date" id="fecha_sintoma_relevante" class="form-control save-state">
           </div>
-          <div class="col-md-3">
+          <div class="col-12 col-md-3">
             <label>¿Cuál síntoma relevante fue?:</label>
             <input type="text" id="cual_sintoma" class="form-control save-state">
           </div>
@@ -429,35 +489,42 @@
         <div id="sec1" class="accordion-collapse collapse show" data-bs-parent="#accordionFicha">
           <div class="accordion-body">
             <div class="row g-3 align-items-end">
-              <div class="col-md-3">
+              <!-- Cedula, HC en una sola línea -->
+              <div class="col-6 col-md-3">
                 <label>Cédula:</label>
                 <input type="text" id="cedula" class="form-control save-state" maxlength="10">
               </div>
-              <div class="col-md-3">
+              <div class="col-6 col-md-3">
                 <label>Historia Clínica:</label>
                 <input type="text" id="historia_clinica" class="form-control save-state">
               </div>
-              <div class="col-md-3">
+
+              <!-- Primer apellido, segundo apellido -->
+              <div class="col-6 col-md-3">
                 <label>Primer Apellido:</label>
                 <input type="text" id="primer_apellido" class="form-control save-state">
               </div>
-              <div class="col-md-3">
+              <div class="col-6 col-md-3">
                 <label>Segundo Apellido:</label>
                 <input type="text" id="segundo_apellido" class="form-control save-state">
               </div>
-              <div class="col-md-3">
+
+              <!-- Primer nombre, segundo nombre -->
+              <div class="col-6 col-md-3">
                 <label>Primer Nombre:</label>
                 <input type="text" id="primer_nombre" class="form-control save-state">
               </div>
-              <div class="col-md-3">
+              <div class="col-6 col-md-3">
                 <label>Segundo Nombre:</label>
                 <input type="text" id="segundo_nombre" class="form-control save-state">
               </div>
-              <div class="col-md-3">
+
+              <!-- Fecha de nacimiento, sexo -->
+              <div class="col-6 col-md-3">
                 <label>Fecha Nacimiento:</label>
                 <input type="date" id="fecha_nacimiento" class="form-control save-state">
               </div>
-              <div class="col-md-3">
+              <div class="col-6 col-md-3">
                 <label>Sexo:</label>
                 <select id="sexo" class="form-select save-state">
                   <option value="" selected disabled>Seleccione...</option>
@@ -465,52 +532,60 @@
                   <option value="FEMENINO">FEMENINO</option>
                 </select>
               </div>
-              <div class="col-md-3">
+
+              <!-- Telefono, nacionalidad -->
+              <div class="col-6 col-md-3">
                 <label>Teléfono/Celular:</label>
                 <input type="text" id="telefono" class="form-control save-state">
               </div>
-              <div class="col-md-3">
+              <div class="col-6 col-md-3">
                 <label>Nacionalidad:</label>
                 <input type="text" id="nacionalidad" class="form-control save-state" value="ECUATORIANA">
               </div>
-              <div class="col-md-3">
-                <label>Provincia de Residencia:</label>
+
+              <!-- Provincia, cantón, parroquia en una sola linea en celular (col-4) -->
+              <div class="col-4 col-md-3">
+                <label>Prov. Residencia:</label>
                 <select id="prov_residencia" class="form-select save-state">
-                  <option value="" selected disabled>Seleccione Provincia...</option>
+                  <option value="" selected disabled>Sel...</option>
                 </select>
               </div>
-              <div class="col-md-3">
-                <label>Cantón de Residencia:</label>
+              <div class="col-4 col-md-3">
+                <label>Cantón Residencia:</label>
                 <select id="canton_residencia" class="form-select save-state">
-                  <option value="" selected disabled>Seleccione Cantón...</option>
+                  <option value="" selected disabled>Sel...</option>
                 </select>
               </div>
-              <div class="col-md-4">
-                <label>Parroquia de Residencia:</label>
+              <div class="col-4 col-md-4">
+                <label>Parr. Residencia:</label>
                 <select id="parroquia_residencia" class="form-select save-state">
-                  <option value="" selected disabled>Seleccione Parroquia...</option>
+                  <option value="" selected disabled>Sel...</option>
                 </select>
               </div>
-              <div class="col-md-8">
+              
+              <!-- Direccion domiciliaria -->
+              <div class="col-12 col-md-8">
                 <label>Dirección Domiciliaria:</label>
                 <input type="text" id="direccion" class="form-control save-state">
               </div>
-              <div class="col-md-3">
-                <label>Estado Civil:</label>
+
+              <!-- Estado civil, etnia, escolaridad en una sola linea -->
+              <div class="col-4 col-md-3">
+                <label>Est. Civil:</label>
                 <select id="estado_civil" class="form-select save-state">
-                  <option value="" selected disabled>Seleccione Sexo primero...</option>
+                  <option value="" selected disabled>Sel...</option>
                 </select>
               </div>
-              <div class="col-md-3">
+              <div class="col-4 col-md-3">
                 <label>Etnia:</label>
                 <select id="etnia" class="form-select save-state">
-                  <option value="" selected disabled>Seleccione Sexo primero...</option>
+                  <option value="" selected disabled>Sel...</option>
                 </select>
               </div>
-              <div class="col-md-3">
+              <div class="col-4 col-md-3">
                 <label>Escolaridad:</label>
                 <select id="escolaridad" class="form-select save-state">
-                  <option value="" selected disabled>Seleccione...</option>
+                  <option value="" selected disabled>Sel...</option>
                   <option value="NINGUNA">NINGUNA</option>
                   <option value="PRIMARIA">PRIMARIA</option>
                   <option value="SECUNDARIA">SECUNDARIA</option>
@@ -518,31 +593,37 @@
                   <option value="POSTGRADO">POSTGRADO</option>
                 </select>
               </div>
-              <div class="col-md-3">
+
+              <!-- Ocupación, Madre en una linea -->
+              <div class="col-6 col-md-3">
                 <label>Ocupación:</label>
                 <input type="text" id="ocupacion" class="form-control save-state">
               </div>
-              <div class="col-md-3">
+              <div class="col-6 col-md-3">
                 <label>Madre o Responsable:</label>
                 <input type="text" id="nombre_madre" class="form-control save-state">
               </div>
-              <div class="col-md-3">
+
+              <!-- Médico tratante, Diagnóstico -->
+              <div class="col-6 col-md-3">
                 <label>Médico Tratante:</label>
                 <input type="text" id="medico_tratante" class="form-control save-state">
               </div>
-              <div class="col-md-4">
+              <div class="col-6 col-md-4">
                 <label>Diagnóstico CIE-10:</label>
                 <input list="listaCie10" id="diagnostico_cie10" class="form-control save-state">
                 <datalist id="listaCie10"></datalist>
               </div>
-              <div class="col-md-2">
+
+              <!-- Embarazada, Semanas -->
+              <div class="col-6 col-md-2">
                 <label>¿Embarazada?:</label>
                 <select id="embarazada" class="form-select save-state">
                   <option value="NO">NO</option>
                   <option value="SI">SI</option>
                 </select>
               </div>
-              <div class="col-md-2">
+              <div class="col-6 col-md-2">
                 <label>Sem. Gestación:</label>
                 <input type="number" id="semanas_gestacion" class="form-control save-state" min="1" max="45" disabled>
               </div>
@@ -561,20 +642,21 @@
         <div id="sec3" class="accordion-collapse collapse" data-bs-parent="#accordionFicha">
           <div class="accordion-body">
             <div class="row mb-4">
-              <div class="col-md-3">
-                <h6>Respiratorios y Digestivos</h6>
+              <!-- Cambiado a col-6 para mostrar en 2 columnas en teléfonos -->
+              <div class="col-6 col-md-3">
+                <h6>Respiratorios/Dig.</h6>
                 <div class="form-check"><input class="form-check-input chk-sin save-state" type="checkbox" id="tos"><label class="form-check-label" for="tos">Tos</label></div>
                 <div class="form-check"><input class="form-check-input chk-sin save-state" type="checkbox" id="dolor_garganta"><label class="form-check-label" for="dolor_garganta">Dolor garganta</label></div>
                 <div class="form-check"><input class="form-check-input chk-sin save-state" type="checkbox" id="dif_respiratoria"><label class="form-check-label" for="dif_respiratoria">Dif. respiratoria</label></div>
                 <div class="form-check"><input class="form-check-input chk-sin save-state" type="checkbox" id="cianosis"><label class="form-check-label" for="cianosis">Cianosis</label></div>
                 <div class="form-check"><input class="form-check-input chk-sin save-state" type="checkbox" id="diarrea"><label class="form-check-label" for="diarrea">Diarrea</label></div>
-                <div class="form-check"><input class="form-check-input chk-sin save-state" type="checkbox" id="nauseas"><label class="form-check-label" for="nauseas">Náusea / Vómitos</label></div>
+                <div class="form-check"><input class="form-check-input chk-sin save-state" type="checkbox" id="nauseas"><label class="form-check-label" for="nauseas">Náusea/Vómitos</label></div>
                 <div class="form-check"><input class="form-check-input chk-sin save-state" type="checkbox" id="dolor_abdominal"><label class="form-check-label" for="dolor_abdominal">Dolor abdominal</label></div>
                 <div class="form-check"><input class="form-check-input chk-sin save-state" type="checkbox" id="deshidratacion"><label class="form-check-label" for="deshidratacion">Deshidratación</label></div>
                 <div class="form-check"><input class="form-check-input chk-sin save-state" type="checkbox" id="ictericia"><label class="form-check-label" for="ictericia">Ictericia</label></div>
                 <div class="form-check"><input class="form-check-input chk-sin save-state" type="checkbox" id="anorexia"><label class="form-check-label" for="anorexia">Anorexia</label></div>
               </div>
-              <div class="col-md-3">
+              <div class="col-6 col-md-3">
                 <h6>Generales y Cutáneos</h6>
                 <div class="form-check"><input class="form-check-input chk-sin save-state" type="checkbox" id="fiebre"><label class="form-check-label" for="fiebre">Fiebre</label></div>
                 <div class="form-check"><input class="form-check-input chk-sin save-state" type="checkbox" id="cefalea"><label class="form-check-label" for="cefalea">Cefalea</label></div>
@@ -583,20 +665,20 @@
                 <div class="form-check"><input class="form-check-input chk-sin save-state" type="checkbox" id="artralgia"><label class="form-check-label" for="artralgia">Artralgia</label></div>
                 <div class="form-check"><input class="form-check-input chk-sin save-state" type="checkbox" id="sudoracion"><label class="form-check-label" for="sudoracion">Sudoración noc.</label></div>
                 <div class="form-check"><input class="form-check-input chk-sin save-state" type="checkbox" id="sangrados"><label class="form-check-label" for="sangrados">Sangrados</label></div>
-                <div class="form-check"><input class="form-check-input chk-sin save-state" type="checkbox" id="erupcion"><label class="form-check-label" for="erupcion">Erupción / Exan.</label></div>
+                <div class="form-check"><input class="form-check-input chk-sin save-state" type="checkbox" id="erupcion"><label class="form-check-label" for="erupcion">Erupción/Exan.</label></div>
                 <div class="form-check"><input class="form-check-input chk-sin save-state" type="checkbox" id="prurito"><label class="form-check-label" for="prurito">Prurito</label></div>
                 <div class="form-check"><input class="form-check-input chk-sin save-state" type="checkbox" id="adenopatias"><label class="form-check-label" for="adenopatias">Adenopatías</label></div>
               </div>
-              <div class="col-md-3">
-                <h6>Neurológicos y Musculares</h6>
+              <div class="col-6 col-md-3 mt-3 mt-md-0">
+                <h6>Neurológicos y Musc.</h6>
                 <div class="form-check"><input class="form-check-input chk-sin save-state" type="checkbox" id="convulsiones"><label class="form-check-label" for="convulsiones">Convulsiones</label></div>
                 <div class="form-check"><input class="form-check-input chk-sin save-state" type="checkbox" id="alt_neuro_central"><label class="form-check-label" for="alt_neuro_central">Alt. Neuro Central</label></div>
                 <div class="form-check"><input class="form-check-input chk-sin save-state" type="checkbox" id="alt_neuro_periferico"><label class="form-check-label" for="alt_neuro_periferico">Alt. Neuro Periférica</label></div>
                 <div class="form-check"><input class="form-check-input chk-sin save-state" type="checkbox" id="vision_borrosa"><label class="form-check-label" for="vision_borrosa">Visión borrosa</label></div>
-                <div class="form-check"><input class="form-check-input chk-sin save-state" type="checkbox" id="rigidez"><label class="form-check-label" for="rigidez">Rigidez muscular</label></div>
-                <div class="form-check"><input class="form-check-input chk-sin save-state" type="checkbox" id="espasmo"><label class="form-check-label" for="espasmo">Espasmo muscular</label></div>
+                <div class="form-check"><input class="form-check-input chk-sin save-state" type="checkbox" id="rigidez"><label class="form-check-label" for="rigidez">Rigidez musc.</label></div>
+                <div class="form-check"><input class="form-check-input chk-sin save-state" type="checkbox" id="espasmo"><label class="form-check-label" for="espasmo">Espasmo musc.</label></div>
               </div>
-              <div class="col-md-3">
+              <div class="col-6 col-md-3 mt-3 mt-md-0">
                 <h6>Baja Frecuencia</h6>
                 <div class="form-check"><input class="form-check-input chk-sin save-state" type="checkbox" id="apnea"><label class="form-check-label" for="apnea">Apnea</label></div>
                 <div class="form-check"><input class="form-check-input chk-sin save-state" type="checkbox" id="ascitis"><label class="form-check-label" for="ascitis">Ascitis</label></div>
@@ -608,11 +690,11 @@
             </div>
 
             <div class="row g-3 mb-4 align-items-end">
-              <div class="col-md-8">
+              <div class="col-12 col-md-8">
                 <label>Otros signos/síntomas (Texto libre):</label>
                 <input type="text" id="otros_signos" class="form-control save-state" placeholder="Especifique otros signos o síntomas...">
               </div>
-              <div class="col-md-4">
+              <div class="col-12 col-md-4">
                 <label>N° Días con Síntomas (Calc/Edit):</label>
                 <input type="number" id="num_dias_sintomas" class="form-control save-state" min="0">
               </div>
@@ -620,14 +702,14 @@
 
             <div class="p-4 bg-light">
               <div class="row g-3 align-items-center">
-                <div class="col-md-4">
+                <div class="col-12 col-md-4">
                   <label>15. ¿Caracterizar signos relevantes?:</label>
                   <select id="aplica_caracterizar_signos" class="form-select save-state">
                     <option value="NO" selected>NO</option>
                     <option value="SI">SI</option>
                   </select>
                 </div>
-                <div class="col-md-8">
+                <div class="col-12 col-md-8">
                   <label>Descripción / Detalle:</label>
                   <input type="text" id="caracterizar_signos" class="form-control save-state" placeholder="Especifique los hallazgos relevantes..." disabled>
                 </div>
@@ -647,42 +729,46 @@
         <div id="secTratamiento" class="accordion-collapse collapse" data-bs-parent="#accordionFicha">
           <div class="accordion-body">
             <div class="row g-3 align-items-end">
-              <div class="col-md-4">
-                <label>¿Recibió tratamiento?:</label>
+              <!-- Tratamiento y Evolucion -->
+              <div class="col-6 col-md-4">
+                <label>¿Recibió tratam.?:</label>
                 <select id="recibio_tratamiento" class="form-select save-state" onchange="toggleTratamientoCampos()">
-                  <option value="" selected>-- Seleccione --</option>
+                  <option value="" selected>Sel...</option>
                   <option value="SI">SI</option>
                   <option value="NO">NO</option>
                 </select>
               </div>
-              <div class="col-md-8">
-                <label>Especifique cuál (tratamiento):</label>
-                <input type="text" id="especificar_tratamiento" class="form-control save-state" placeholder="Especifique medicamento o medida..." disabled>
-              </div>
-              <div class="col-md-4">
-                <label>Evolución del paciente:</label>
+              <div class="col-6 col-md-4">
+                <label>Evolución:</label>
                 <select id="evolucion" class="form-select save-state" disabled>
-                  <option value="" selected>-- Seleccione --</option>
+                  <option value="" selected>Sel...</option>
                   <option value="Mejoró">Mejoró</option>
-                  <option value="Iguales condiciones">Iguales condiciones</option>
+                  <option value="Iguales condiciones">Iguales</option>
                   <option value="Empeoró">Empeoró</option>
                 </select>
               </div>
-              <div class="col-md-4">
-                <label>Lugar donde recibió tratamiento:</label>
+              
+              <div class="col-12 col-md-8">
+                <label>Especifique cuál (tratamiento):</label>
+                <input type="text" id="especificar_tratamiento" class="form-control save-state" placeholder="Especifique medicamento o medida..." disabled>
+              </div>
+
+              <!-- Lugar y Controles -->
+              <div class="col-6 col-md-4">
+                <label>Lugar de tratamiento:</label>
                 <select id="lugar_tratamiento" class="form-select save-state" disabled>
-                  <option value="" selected>-- Seleccione --</option>
+                  <option value="" selected>Sel...</option>
                 </select>
               </div>
-              <div class="col-md-2">
-                <label>¿Asistió a controles?:</label>
+              <div class="col-3 col-md-2">
+                <label>¿Controles?:</label>
                 <select id="asistio_controles" class="form-select save-state" onchange="toggleControlesCampos()" disabled>
-                  <option value="" selected>-- Seleccione --</option>
+                  <option value="" selected>Sel...</option>
                   <option value="SI">SI</option>
                   <option value="NO">NO</option>
                 </select>
               </div>
-              <div class="col-md-2">
+              <div class="col-3 col-md-2">
                 <label>¿Cuántos?:</label>
                 <input type="number" id="cuantos_controles" class="form-control save-state" min="0" placeholder="0" disabled>
               </div>
@@ -701,39 +787,47 @@
         <div id="sec4" class="accordion-collapse collapse" data-bs-parent="#accordionFicha">
           <div class="accordion-body">
             <div class="row g-3 align-items-end">
-              <div class="col-md-2">
-                <label>¿Fue Hospitalizado?:</label>
+              <!-- Hosp y Fecha -->
+              <div class="col-6 col-md-2">
+                <label>¿Hospitalizado?:</label>
                 <select id="hospitalizado" class="form-select save-state">
-                  <option value="" selected>-- Seleccione --</option>
+                  <option value="" selected>Sel...</option>
                   <option value="SI">SI</option>
                   <option value="NO">NO</option>
                 </select>
               </div>
-              <div class="col-md-3">
-                <label>Fecha Hospitalización:</label>
+              <div class="col-6 col-md-3">
+                <label>Fecha Hospitaliz.:</label>
                 <input type="date" id="fecha_hosp" class="form-control save-state" disabled>
               </div>
-              <div class="col-md-3">
-                <label>N° H.C. Hospitalaria:</label>
+
+              <!-- HC y UCI -->
+              <div class="col-6 col-md-3">
+                <label>N° H.C. Hosp.:</label>
                 <input type="text" id="hc_hosp" class="form-control save-state" disabled>
               </div>
-              <div class="col-md-4">
-                <label>Nombre del Hospital:</label>
-                <input type="text" id="nombre_hospital" class="form-control save-state" disabled>
-              </div>
-              <div class="col-md-4">
-                <label>Servicio Hospitalario:</label>
-                <input type="text" id="servicio_hosp" class="form-control save-state" disabled>
-              </div>
-              <div class="col-md-2">
+              <div class="col-6 col-md-2">
                 <label>¿Ingreso a UCI?:</label>
                 <select id="ingreso_uci" class="form-select save-state" disabled>
                   <option value="NO">NO</option>
                   <option value="SI">SI</option>
                 </select>
               </div>
+
+              <!-- Nombre Hosp y Servicio -->
+              <div class="col-6 col-md-4">
+                <label>Nombre del Hospital:</label>
+                <input type="text" id="nombre_hospital" class="form-control save-state" disabled>
+              </div>
+              <div class="col-6 col-md-4">
+                <label>Servicio Hospitalario:</label>
+                <input type="text" id="servicio_hosp" class="form-control save-state" disabled>
+              </div>
+
               <div class="col-12"><hr class="my-2" style="border-color: var(--apple-border);"></div>
-              <div class="col-md-4">
+              
+              <!-- Condicion y fecha -->
+              <div class="col-6 col-md-4">
                 <label>Condición al Egreso:</label>
                 <div class="d-flex gap-4 mt-2">
                   <div class="form-check">
@@ -746,8 +840,8 @@
                   </div>
                 </div>
               </div>
-              <div class="col-md-4">
-                <label>Fecha de Fallecimiento:</label>
+              <div class="col-6 col-md-4">
+                <label>Fecha Fallecimiento:</label>
                 <input type="date" id="fecha_fallecimiento" class="form-control save-state" disabled>
               </div>
             </div>
@@ -768,14 +862,15 @@
               <div class="col-md-12 mb-1">
                 <h6>25. Antecedente de contacto con (Marque casillas):</h6>
               </div>
-              <div class="col-md-3"><div class="form-check"><input class="form-check-input chk-exp save-state" type="checkbox" id="exp_animal_vivo"><label class="form-check-label" for="exp_animal_vivo">Animal vivo</label></div></div>
-              <div class="col-md-3"><div class="form-check"><input class="form-check-input chk-exp save-state" type="checkbox" id="exp_animal_muerto"><label class="form-check-label" for="exp_animal_muerto">Animal muerto</label></div></div>
-              <div class="col-md-3"><div class="form-check"><input class="form-check-input chk-exp save-state" type="checkbox" id="exp_persona_sint"><label class="form-check-label" for="exp_persona_sint">Persona sintomática</label></div></div>
-              <div class="col-md-3"><div class="form-check"><input class="form-check-input chk-exp save-state" type="checkbox" id="exp_agua_suelo"><label class="form-check-label" for="exp_agua_suelo">Agua / Suelos</label></div></div>
-              <div class="col-md-3"><div class="form-check"><input class="form-check-input chk-exp save-state" type="checkbox" id="exp_alimentos"><label class="form-check-label" for="exp_alimentos">Alimentos</label></div></div>
-              <div class="col-md-3"><div class="form-check"><input class="form-check-input chk-exp save-state" type="checkbox" id="exp_basurales"><label class="form-check-label" for="exp_basurales">Basurales</label></div></div>
-              <div class="col-md-3"><div class="form-check"><input class="form-check-input chk-exp save-state" type="checkbox" id="exp_plaguicidas"><label class="form-check-label" for="exp_plaguicidas">Plaguicidas</label></div></div>
-              <div class="col-md-3"><div class="form-check"><input class="form-check-input chk-exp save-state" type="checkbox" id="exp_metanol"><label class="form-check-label" for="exp_metanol">Metanol</label></div></div>
+              <!-- Ajustado a col-6 para celulares -->
+              <div class="col-6 col-md-3"><div class="form-check"><input class="form-check-input chk-exp save-state" type="checkbox" id="exp_animal_vivo"><label class="form-check-label" for="exp_animal_vivo">Animal vivo</label></div></div>
+              <div class="col-6 col-md-3"><div class="form-check"><input class="form-check-input chk-exp save-state" type="checkbox" id="exp_animal_muerto"><label class="form-check-label" for="exp_animal_muerto">Animal muerto</label></div></div>
+              <div class="col-6 col-md-3"><div class="form-check"><input class="form-check-input chk-exp save-state" type="checkbox" id="exp_persona_sint"><label class="form-check-label" for="exp_persona_sint">Persona sint.</label></div></div>
+              <div class="col-6 col-md-3"><div class="form-check"><input class="form-check-input chk-exp save-state" type="checkbox" id="exp_agua_suelo"><label class="form-check-label" for="exp_agua_suelo">Agua / Suelos</label></div></div>
+              <div class="col-6 col-md-3"><div class="form-check"><input class="form-check-input chk-exp save-state" type="checkbox" id="exp_alimentos"><label class="form-check-label" for="exp_alimentos">Alimentos</label></div></div>
+              <div class="col-6 col-md-3"><div class="form-check"><input class="form-check-input chk-exp save-state" type="checkbox" id="exp_basurales"><label class="form-check-label" for="exp_basurales">Basurales</label></div></div>
+              <div class="col-6 col-md-3"><div class="form-check"><input class="form-check-input chk-exp save-state" type="checkbox" id="exp_plaguicidas"><label class="form-check-label" for="exp_plaguicidas">Plaguicidas</label></div></div>
+              <div class="col-6 col-md-3"><div class="form-check"><input class="form-check-input chk-exp save-state" type="checkbox" id="exp_metanol"><label class="form-check-label" for="exp_metanol">Metanol</label></div></div>
               <div class="col-md-3">
                 <div class="form-check mt-2">
                   <input class="form-check-input save-state" type="checkbox" id="exp_ninguno" checked onchange="toggleExposicion(this.checked)">
@@ -787,30 +882,30 @@
               </div>
               <div class="col-12"><hr class="my-2" style="border-color: var(--apple-border);"></div>
 
-              <div class="col-md-4">
+              <div class="col-6 col-md-4">
                 <label>26. Lugar de contacto:</label>
                 <input type="text" id="lugar_contacto" class="form-control d-exp save-state" disabled>
               </div>
-              <div class="col-md-4">
+              <div class="col-6 col-md-4">
                 <label>Forma de contacto:</label>
                 <input type="text" id="forma_contacto" class="form-control d-exp save-state" disabled>
               </div>
-              <div class="col-md-4">
+              <div class="col-12 col-md-4">
                 <label>Origen / Tipo / Objeto:</label>
                 <input type="text" id="origen_objeto" class="form-control d-exp save-state" disabled>
               </div>
-              <div class="col-md-6">
+              <div class="col-6 col-md-6">
                 <label>27. Fecha de contacto:</label>
                 <input type="date" id="fecha_contacto" class="form-control d-exp save-state" disabled>
               </div>
-              <div class="col-md-6">
+              <div class="col-6 col-md-6">
                 <label>Hora de contacto:</label>
                 <input type="time" id="hora_contacto" class="form-control d-exp save-state" disabled>
               </div>
 
               <!-- APARTADO 28 -->
               <div class="col-md-12 p-4 bg-light" id="box_procedencia_agua">
-                <label class="mb-3">28. En caso de contacto con agua/alimentos (Procedencia):</label>
+                <label class="mb-3">28. Procedencia de agua/alimentos:</label>
                 <div class="d-flex flex-wrap gap-4 align-items-center mb-3">
                   <div class="form-check"><input class="form-check-input rad-proc save-state" type="radio" name="rad_procedencia" id="proc_casa" value="Casa" disabled><label class="form-check-label" for="proc_casa">Casa</label></div>
                   <div class="form-check"><input class="form-check-input rad-proc save-state" type="radio" name="rad_procedencia" id="proc_restaurante" value="Restaurante" disabled><label class="form-check-label" for="proc_restaurante">Restaurante</label></div>
@@ -818,7 +913,7 @@
                   <div class="form-check"><input class="form-check-input rad-proc save-state" type="radio" name="rad_procedencia" id="proc_reunion" value="Reunión social" disabled><label class="form-check-label" for="proc_reunion">Reunión social</label></div>
                   <div class="form-check"><input class="form-check-input rad-proc save-state" type="radio" name="rad_procedencia" id="proc_otro" value="Otro" disabled><label class="form-check-label" for="proc_otro">Otro:</label></div>
                 </div>
-                <div class="col-md-6">
+                <div class="col-12 col-md-6">
                   <input type="text" id="procedencia_agua_otro" class="form-control save-state" placeholder="Especifique otro lugar..." disabled>
                 </div>
               </div>
@@ -830,26 +925,26 @@
                   <div class="form-check"><input class="form-check-input rad-tipo-exp d-exp save-state" type="radio" name="rad_tipo_exp" id="tipo_ocupacional" value="Ocupacional" disabled><label class="form-check-label" for="tipo_ocupacional">Ocupacional</label></div>
                   <div class="form-check"><input class="form-check-input rad-tipo-exp d-exp save-state" type="radio" name="rad_tipo_exp" id="tipo_desconocida" value="Desconocida" disabled><label class="form-check-label" for="tipo_desconocida">Desconocida</label></div>
                   <div class="form-check"><input class="form-check-input rad-tipo-exp d-exp save-state" type="radio" name="rad_tipo_exp" id="tipo_accidental" value="Accidental" disabled><label class="form-check-label" for="tipo_accidental">Accidental</label></div>
-                  <div class="form-check"><input class="form-check-input rad-tipo-exp d-exp save-state" type="radio" name="rad_tipo_exp" id="tipo_otras" value="Otras" disabled><label class="form-check-label" for="tipo_otras">Otras (Especificar):</label></div>
+                  <div class="form-check"><input class="form-check-input rad-tipo-exp d-exp save-state" type="radio" name="rad_tipo_exp" id="tipo_otras" value="Otras" disabled><label class="form-check-label" for="tipo_otras">Otras:</label></div>
                 </div>
-                <div class="col-md-6">
+                <div class="col-12 col-md-6">
                   <input type="text" id="tipo_exposicion_otro" class="form-control save-state" placeholder="Especifique exposición..." disabled>
                 </div>
               </div>
 
               <div class="col-12"><hr class="my-2" style="border-color: var(--apple-border);"></div>
-              <div class="col-md-6">
-                <label>30. Antecedente Transfusión:</label>
+              <div class="col-6 col-md-6">
+                <label>30. Ant. Transfusión:</label>
                 <select id="transfusion" class="form-select save-state">
-                  <option value="" selected>-- Seleccione --</option>
+                  <option value="" selected>Sel...</option>
                   <option value="SI">SI</option>
                   <option value="NO">NO</option>
                 </select>
               </div>
-              <div class="col-md-6">
-                <label>32. Antecedente Quimioterapia:</label>
+              <div class="col-6 col-md-6">
+                <label>32. Ant. Quimioterapia:</label>
                 <select id="quimioterapia" class="form-select save-state">
-                  <option value="" selected>-- Seleccione --</option>
+                  <option value="" selected>Sel...</option>
                   <option value="SI">SI</option>
                   <option value="NO">NO</option>
                 </select>
@@ -869,70 +964,71 @@
         <div id="sec6" class="accordion-collapse collapse" data-bs-parent="#accordionFicha">
           <div class="accordion-body">
             <div class="row g-3 align-items-end">
-              <div class="col-md-3">
-                <label>¿Antecedente Vacunal?:</label>
+              <div class="col-6 col-md-3">
+                <label>¿Ant. Vacunal?:</label>
                 <select id="antecedente_vacunal" class="form-select save-state">
-                  <option value="" selected>-- Seleccione --</option>
+                  <option value="" selected>Sel...</option>
                   <option value="SI">SI</option>
                   <option value="NO">NO</option>
                 </select>
               </div>
-              <div class="col-md-3">
-                <label>Fecha Última Dosis:</label>
-                <input type="date" id="fecha_ultima_dosis" class="form-control vac-f save-state" disabled>
-              </div>
-              <div class="col-md-3">
+              <div class="col-6 col-md-3">
                 <label>N° de Dosis:</label>
                 <input type="number" id="num_dosis" class="form-control vac-f save-state" disabled>
               </div>
-              <div class="col-md-3">
+              <div class="col-6 col-md-3">
+                <label>Fecha Última Dosis:</label>
+                <input type="date" id="fecha_ultima_dosis" class="form-control vac-f save-state" disabled>
+              </div>
+              <div class="col-6 col-md-3">
                 <label>Fuente Información:</label>
                 <select id="fuente_info" class="form-select vac-f save-state" disabled>
                   <option value="Verbal" selected>Verbal</option>
-                  <option value="Tarjeta vacunación">Tarjeta vacunación</option>
-                  <option value="Registro servicio de salud">Registro servicio de salud</option>
+                  <option value="Tarjeta vacunación">Tarjeta</option>
+                  <option value="Registro servicio de salud">Registro de salud</option>
                 </select>
               </div>
               <div class="col-md-12 mt-4">
                 <h6>Vacunas Aplicadas</h6>
               </div>
-              <div class="col-md-2"><div class="form-check"><input class="form-check-input chk-vac save-state" type="checkbox" id="bcg" disabled><label class="form-check-label" for="bcg">BCG</label></div></div>
-              <div class="col-md-2"><div class="form-check"><input class="form-check-input chk-vac save-state" type="checkbox" id="hb" disabled><label class="form-check-label" for="hb">HB</label></div></div>
-              <div class="col-md-2"><div class="form-check"><input class="form-check-input chk-vac save-state" type="checkbox" id="rota" disabled><label class="form-check-label" for="rota">Rota</label></div></div>
-              <div class="col-md-2"><div class="form-check"><input class="form-check-input chk-vac save-state" type="checkbox" id="opv" disabled><label class="form-check-label" for="opv">OPV</label></div></div>
-              <div class="col-md-2"><div class="form-check"><input class="form-check-input chk-vac save-state" type="checkbox" id="penta" disabled><label class="form-check-label" for="penta">Penta</label></div></div>
-              <div class="col-md-2"><div class="form-check"><input class="form-check-input chk-vac save-state" type="checkbox" id="influenza" disabled><label class="form-check-label" for="influenza">Influenza</label></div></div>
-              <div class="col-md-2"><div class="form-check"><input class="form-check-input chk-vac save-state" type="checkbox" id="neumococo_conj" disabled><label class="form-check-label" for="neumococo_conj">Neumo. Conj.</label></div></div>
-              <div class="col-md-2"><div class="form-check"><input class="form-check-input chk-vac save-state" type="checkbox" id="sr" disabled><label class="form-check-label" for="sr">SR</label></div></div>
-              <div class="col-md-2"><div class="form-check"><input class="form-check-input chk-vac save-state" type="checkbox" id="fa" disabled><label class="form-check-label" for="fa">FA</label></div></div>
-              <div class="col-md-2"><div class="form-check"><input class="form-check-input chk-vac save-state" type="checkbox" id="dt" disabled><label class="form-check-label" for="dt">DT</label></div></div>
-              <div class="col-md-2"><div class="form-check"><input class="form-check-input chk-vac save-state" type="checkbox" id="dpt" disabled><label class="form-check-label" for="dpt">DPT</label></div></div>
-              <div class="col-md-2"><div class="form-check"><input class="form-check-input chk-vac save-state" type="checkbox" id="dt_adulto" disabled><label class="form-check-label" for="dt_adulto">dT</label></div></div>
-              <div class="col-md-2"><div class="form-check"><input class="form-check-input chk-vac save-state" type="checkbox" id="srp" disabled><label class="form-check-label" for="srp">SRP</label></div></div>
-              <div class="col-md-2"><div class="form-check"><input class="form-check-input chk-vac save-state" type="checkbox" id="varicela" disabled><label class="form-check-label" for="varicela">Varicela</label></div></div>
-              <div class="col-md-2"><div class="form-check"><input class="form-check-input chk-vac save-state" type="checkbox" id="neumococo_poli" disabled><label class="form-check-label" for="neumococo_poli">Neumo. Poli.</label></div></div>
-              <div class="col-md-6 mt-3">
+              <!-- Ajustado a col-6 para mostrar de a 2 en teléfonos en vez de 1 gigante -->
+              <div class="col-6 col-md-2"><div class="form-check"><input class="form-check-input chk-vac save-state" type="checkbox" id="bcg" disabled><label class="form-check-label" for="bcg">BCG</label></div></div>
+              <div class="col-6 col-md-2"><div class="form-check"><input class="form-check-input chk-vac save-state" type="checkbox" id="hb" disabled><label class="form-check-label" for="hb">HB</label></div></div>
+              <div class="col-6 col-md-2"><div class="form-check"><input class="form-check-input chk-vac save-state" type="checkbox" id="rota" disabled><label class="form-check-label" for="rota">Rota</label></div></div>
+              <div class="col-6 col-md-2"><div class="form-check"><input class="form-check-input chk-vac save-state" type="checkbox" id="opv" disabled><label class="form-check-label" for="opv">OPV</label></div></div>
+              <div class="col-6 col-md-2"><div class="form-check"><input class="form-check-input chk-vac save-state" type="checkbox" id="penta" disabled><label class="form-check-label" for="penta">Penta</label></div></div>
+              <div class="col-6 col-md-2"><div class="form-check"><input class="form-check-input chk-vac save-state" type="checkbox" id="influenza" disabled><label class="form-check-label" for="influenza">Influenza</label></div></div>
+              <div class="col-6 col-md-2"><div class="form-check"><input class="form-check-input chk-vac save-state" type="checkbox" id="neumococo_conj" disabled><label class="form-check-label" for="neumococo_conj">Neumo. Conj.</label></div></div>
+              <div class="col-6 col-md-2"><div class="form-check"><input class="form-check-input chk-vac save-state" type="checkbox" id="sr" disabled><label class="form-check-label" for="sr">SR</label></div></div>
+              <div class="col-6 col-md-2"><div class="form-check"><input class="form-check-input chk-vac save-state" type="checkbox" id="fa" disabled><label class="form-check-label" for="fa">FA</label></div></div>
+              <div class="col-6 col-md-2"><div class="form-check"><input class="form-check-input chk-vac save-state" type="checkbox" id="dt" disabled><label class="form-check-label" for="dt">DT</label></div></div>
+              <div class="col-6 col-md-2"><div class="form-check"><input class="form-check-input chk-vac save-state" type="checkbox" id="dpt" disabled><label class="form-check-label" for="dpt">DPT</label></div></div>
+              <div class="col-6 col-md-2"><div class="form-check"><input class="form-check-input chk-vac save-state" type="checkbox" id="dt_adulto" disabled><label class="form-check-label" for="dt_adulto">dT</label></div></div>
+              <div class="col-6 col-md-2"><div class="form-check"><input class="form-check-input chk-vac save-state" type="checkbox" id="srp" disabled><label class="form-check-label" for="srp">SRP</label></div></div>
+              <div class="col-6 col-md-2"><div class="form-check"><input class="form-check-input chk-vac save-state" type="checkbox" id="varicela" disabled><label class="form-check-label" for="varicela">Varicela</label></div></div>
+              <div class="col-6 col-md-2"><div class="form-check"><input class="form-check-input chk-vac save-state" type="checkbox" id="neumococo_poli" disabled><label class="form-check-label" for="neumococo_poli">Neumo. Poli.</label></div></div>
+              <div class="col-12 col-md-6 mt-3">
                 <label>Otras vacunas:</label>
                 <input type="text" id="otras_vacunas" class="form-control vac-f save-state" disabled>
               </div>
               <div class="col-12"><hr class="my-2" style="border-color: var(--apple-border);"></div>
-              <div class="col-md-3">
+              <div class="col-6 col-md-3">
                 <label>¿Realizó Viaje/Visitas?:</label>
                 <select id="realizo_viaje" class="form-select save-state">
-                  <option value="" selected>-- Seleccione --</option>
+                  <option value="" selected>Sel...</option>
                   <option value="SI">SI</option>
                   <option value="NO">NO</option>
                 </select>
               </div>
-              <div class="col-md-3">
+              <div class="col-6 col-md-3">
                 <label>Lugar Viaje:</label>
                 <input type="text" id="lugar_viaje" class="form-control save-state" disabled>
               </div>
-              <div class="col-md-3">
+              <div class="col-6 col-md-3">
                 <label>Desde:</label>
                 <input type="date" id="fecha_desde" class="form-control save-state" disabled>
               </div>
-              <div class="col-md-3">
+              <div class="col-6 col-md-3">
                 <label>Hasta:</label>
                 <input type="date" id="fecha_hasta" class="form-control save-state" disabled>
               </div>
@@ -981,14 +1077,23 @@
         <div id="sec7" class="accordion-collapse collapse" data-bs-parent="#accordionFicha">
           <div class="accordion-body">
             <div class="row g-3 align-items-end">
-              <div class="col-md-4">
-                <label>¿Otros enfermos iguales síntomas?:</label>
+              <div class="col-6 col-md-4">
+                <label>¿Otros enfermos igual sínt.?:</label>
                 <select id="otros_enfermos" class="form-select save-state" onchange="toggleDondeEnfermos(this.value)">
                   <option value="NO" selected>NO</option>
                   <option value="SI">SI</option>
                 </select>
               </div>
-              <div class="col-md-8 pt-1">
+              <div class="col-6 col-md-4">
+                <label>Se trata de un caso:</label>
+                <select id="tipo_caso" class="form-select save-state">
+                  <option value="Autóctono">Autóctono</option>
+                  <option value="Importado">Importado</option>
+                  <option value="Introducido">Introducido</option>
+                </select>
+              </div>
+              
+              <div class="col-12 col-md-8 pt-1">
                 <label class="d-block mb-2">¿Dónde? (Seleccione uno):</label>
                 <div class="form-check form-check-inline mt-1">
                   <input class="form-check-input rad-donde save-state" type="radio" name="rad_donde" value="Casa" id="donde_casa" disabled>
@@ -1004,23 +1109,15 @@
                 </div>
               </div>
 
-              <div class="col-md-4">
-                <label>Se trata de un caso:</label>
-                <select id="tipo_caso" class="form-select save-state">
-                  <option value="Autóctono">Autóctono</option>
-                  <option value="Importado">Importado</option>
-                  <option value="Introducido">Introducido</option>
-                </select>
-              </div>
-              <div class="col-md-3">
+              <div class="col-12 col-md-3">
                 <label>¿Comorbilidades?:</label>
                 <select id="comorbilidades" class="form-select save-state">
-                  <option value="" selected>-- Seleccione --</option>
+                  <option value="" selected>Sel...</option>
                   <option value="NO">NO</option>
                   <option value="SI">SI</option>
                 </select>
               </div>
-              <div class="col-md-5">
+              <div class="col-12 col-md-9">
                 <label>Especificar Comorbilidad:</label>
                 <input type="text" id="especificar_comor" class="form-control save-state" disabled>
               </div>
@@ -1047,79 +1144,81 @@
         <div id="sec8" class="accordion-collapse collapse" data-bs-parent="#accordionFicha">
           <div class="accordion-body">
             <div class="row g-3 align-items-end">
-              <div class="col-md-3">
+              <div class="col-6 col-md-3">
                 <label>¿Se tomó Muestra?:</label>
                 <select id="muestra" class="form-select save-state">
-                  <option value="" selected>Opcional / No aplica</option>
+                  <option value="" selected>No aplica</option>
                   <option value="SI">SI</option>
                   <option value="NO">NO</option>
                 </select>
               </div>
-              <div class="col-md-3">
-                <label>Fecha Toma/Recep.:</label>
-                <input type="date" id="fecha_muestra" class="form-control lab-f save-state">
-              </div>
-              <div class="col-md-3">
+              <div class="col-6 col-md-3">
                 <label>¿Muestra Adecuada?:</label>
                 <select id="muestra_adecuada" class="form-select lab-f save-state">
-                  <option value="" selected>Opcional / No aplica</option>
+                  <option value="" selected>No aplica</option>
                   <option value="SI">SI</option>
                   <option value="NO">NO</option>
                 </select>
               </div>
-              <div class="col-md-3">
-                <label>Tipo Muestra:</label>
-                <input type="text" id="tipo_muestra" class="form-control lab-f save-state">
-              </div>
-              <div class="col-md-3">
-                <label>Técnica:</label>
-                <input type="text" id="tecnica" class="form-control lab-f save-state">
-              </div>
-              <div class="col-md-3">
+              <div class="col-6 col-md-3">
                 <label>¿Antes Tratam.?:</label>
                 <select id="antes_tratamiento" class="form-select lab-f save-state">
-                  <option value="" selected>Opcional / No aplica</option>
+                  <option value="" selected>No aplica</option>
                   <option value="SI">SI</option>
                   <option value="NO">NO</option>
                 </select>
               </div>
-              <div class="col-md-3">
+              <div class="col-6 col-md-3">
                 <label>Resultado:</label>
                 <select id="resultado" class="form-select lab-f save-state">
-                  <option value="" selected>Opcional / No aplica</option>
+                  <option value="" selected>No aplica</option>
                   <option value="POSITIVO">POSITIVO</option>
                   <option value="NEGATIVO">NEGATIVO</option>
                   <option value="DUDOSO">DUDOSO</option>
                 </select>
               </div>
-              <div class="col-md-3">
+              <div class="col-6 col-md-4">
+                <label>Fecha Toma/Recep.:</label>
+                <input type="date" id="fecha_muestra" class="form-control lab-f save-state">
+              </div>
+              <div class="col-6 col-md-4">
+                <label>Tipo Muestra:</label>
+                <input type="text" id="tipo_muestra" class="form-control lab-f save-state">
+              </div>
+              <div class="col-6 col-md-4">
+                <label>Técnica:</label>
+                <input type="text" id="tecnica" class="form-control lab-f save-state">
+              </div>
+              <div class="col-6 col-md-4">
                 <label>Agente Identificado:</label>
                 <input type="text" id="agente" class="form-control lab-f save-state">
               </div>
+              
               <div class="col-12"><hr class="my-2" style="border-color: var(--apple-border);"></div>
-              <div class="col-md-4">
+              
+              <div class="col-6 col-md-3">
                 <label>Diagnóstico Definitivo:</label>
                 <input type="text" id="diagnostico_def" class="form-control save-state">
               </div>
-              <div class="col-md-4">
+              <div class="col-6 col-md-3">
                 <label>Confirmado por:</label>
                 <select id="confirmado_por" class="form-select save-state">
-                  <option value="" selected>Opcional / No aplica</option>
+                  <option value="" selected>No aplica</option>
                   <option value="LABORATORIO">LABORATORIO</option>
                   <option value="CLÍNICA">CLÍNICA</option>
-                  <option value="NEXO">NEXO EPIDEMIOLÓGICO</option>
+                  <option value="NEXO">NEXO EPIDEM.</option>
                 </select>
               </div>
-              <div class="col-md-4">
+              <div class="col-6 col-md-3">
                 <label>Tipo de Caso (Brote):</label>
                 <select id="tipo_caso_brote" class="form-select save-state">
-                  <option value="" selected>Opcional / No aplica</option>
-                  <option value="CASO AISLADO">CASO AISLADO</option>
-                  <option value="BROTE O EPIDEMIA">BROTE O EPIDEMIA</option>
+                  <option value="" selected>No aplica</option>
+                  <option value="CASO AISLADO">AISLADO</option>
+                  <option value="BROTE O EPIDEMIA">BROTE/EPIDEMIA</option>
                 </select>
               </div>
-              <div class="col-md-4">
-                <label>Fecha Notificación/Cierre:</label>
+              <div class="col-6 col-md-3">
+                <label>Fecha Notif./Cierre:</label>
                 <input type="date" id="fecha_cierre" class="form-control save-state">
               </div>
             </div>
@@ -1241,8 +1340,10 @@ function saveFormData() {
 
 function loadFormData() {
   const savedData = localStorage.getItem('epiFormData');
+  
   if (!savedData) {
     for (let i = 0; i < 6; i++) agregarContacto();
+    setUnidadPredeterminada();
     return;
   }
 
@@ -1253,10 +1354,26 @@ function loadFormData() {
         if (data[el.id] !== undefined) el.checked = data[el.id];
       } else if (el.type === 'radio') {
         if (data[el.name] === el.value) el.checked = true;
-      } else if (el.id && data[el.id] !== undefined && el.id !== 'canton_residencia' && el.id !== 'parroquia_residencia') {
+      } else if (el.id && data[el.id] !== undefined && 
+                 el.id !== 'canton_residencia' && el.id !== 'parroquia_residencia' &&
+                 el.id !== 'institucion' && el.id !== 'establecimiento') { 
         el.value = data[el.id];
       }
     });
+
+    if (data.institucion) {
+      const instSelect = document.getElementById('institucion');
+      instSelect.value = data.institucion;
+      instSelect.dispatchEvent(new Event('change')); 
+
+      if (data.establecimiento) {
+        const estabSelect = document.getElementById('establecimiento');
+        estabSelect.value = data.establecimiento;
+        estabSelect.dispatchEvent(new Event('change'));
+      }
+    } else {
+      setUnidadPredeterminada();
+    }
 
     if (data.prov_residencia) {
       fillCantones(data.prov_residencia);
@@ -1316,42 +1433,47 @@ function loadFormData() {
   }
 }
 
-// --- FUNCIÓN PARA MANTENER UNIDAD PREDETERMINADA ---
 function setUnidadPredeterminada() {
   const instSelect = document.getElementById('institucion');
   const estabSelect = document.getElementById('establecimiento');
 
-  if (Array.from(instSelect.options).some(o => o.value === "Instituto Ecuatoriano de Seguridad Social")) {
-    instSelect.value = "Instituto Ecuatoriano de Seguridad Social";
-    instSelect.dispatchEvent(new Event('change'));
-    
-    setTimeout(() => {
-      Array.from(estabSelect.options).forEach((opt) => {
-        if (opt.text.includes("HOSPITAL GENERAL PORTOVIEJO - IESS") || opt.value.includes("HOSPITAL GENERAL PORTOVIEJO - IESS")) {
-          estabSelect.value = opt.value;
-        }
-      });
+  if (!instSelect || !estabSelect) return;
+
+  const instOpt = Array.from(instSelect.options).find(o => 
+    o.value.toUpperCase().includes("INSTITUTO ECUATORIANO DE SEGURIDAD SOCIAL") || 
+    o.value.toUpperCase() === "IESS"
+  );
+
+  if (instOpt) {
+    instSelect.value = instOpt.value;
+    instSelect.dispatchEvent(new Event('change')); 
+
+    const estabOpt = Array.from(estabSelect.options).find(o => {
+      const val = o.value.toUpperCase();
+      return val.includes("PORTOVIEJO") && 
+             val.includes("GENERAL") && 
+             !val.includes("CENTRO") && 
+             !val.includes("TIPO B");
+    });
+
+    if (estabOpt) {
+      estabSelect.value = estabOpt.value;
       estabSelect.dispatchEvent(new Event('change'));
-    }, 150);
+    }
   }
 }
 
-// --- FUNCIÓN MODIFICADA PARA EVITAR RECARGA DE PÁGINA ---
 function limpiarFormulario() {
   if (confirm("¿Estás seguro de que quieres limpiar toda la ficha? Esto borrará todos los datos ingresados.")) {
-    // 1. Borrar datos guardados en el navegador
     localStorage.removeItem('epiFormData');
-    
-    // 2. Limpiar el formulario principal
     document.getElementById('epiForm').reset();
     
-    // 3. Restaurar los selects dependientes a su estado inicial
     document.getElementById('canton_residencia').innerHTML = '<option value="" selected disabled>Seleccione Cantón...</option>';
     document.getElementById('parroquia_residencia').innerHTML = '<option value="" selected disabled>Seleccione Parroquia...</option>';
     document.getElementById('estado_civil').innerHTML = '<option value="" selected disabled>Seleccione Sexo primero...</option>';
     document.getElementById('etnia').innerHTML = '<option value="" selected disabled>Seleccione Sexo primero...</option>';
+    document.getElementById('establecimiento').innerHTML = '<option value="" selected disabled>Seleccione primero una Institución...</option>';
     
-    // 4. Forzar la actualización de los campos que bloquean/desbloquean otros inputs
     const selectsParaActualizar = [
       'sexo', 'embarazada', 'recibio_tratamiento', 'hospitalizado', 
       'antecedente_vacunal', 'realizo_viaje', 'comorbilidades', 
@@ -1362,18 +1484,15 @@ function limpiarFormulario() {
       if (el) el.dispatchEvent(new Event('change'));
     });
     
-    // 5. Restaurar el estado predeterminado del bloque de Exposición
     document.getElementById('exp_ninguno').checked = true;
     toggleExposicion(true);
     
-    // 6. Restaurar la tabla de contactos a las 6 filas vacías originales
     document.getElementById('contactsBody').innerHTML = '';
     for (let i = 0; i < 6; i++) agregarContacto();
     
-    // 7. Restaurar la preselección del IESS Portoviejo
     setUnidadPredeterminada();
+    saveFormData();
     
-    // 8. Desplazar la vista al inicio suavemente
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 }
@@ -1407,7 +1526,6 @@ function actualizarGeneroDropdowns() {
   etnia.innerHTML = '<option value="" selected disabled>Seleccione...</option>';
 
   if (sexo && civilOpciones[sexo]) {
-    // Optimización rápida
     const fragCivil = document.createDocumentFragment();
     civilOpciones[sexo].forEach(o => fragCivil.appendChild(new Option(o, o)));
     civil.appendChild(fragCivil);
@@ -1533,6 +1651,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
   setupAutoSave();
 
+  // --- LÓGICA DE AUTO-SCROLL PRECISA ---
+  const accordionContainer = document.getElementById('accordionFicha');
+  if (accordionContainer) {
+    // Usamos 'shown.bs.collapse' para calcular después de que se despliegue y use la altura final
+    accordionContainer.addEventListener('shown.bs.collapse', function (e) {
+      const header = document.querySelector('.glass-header');
+      const headerOffset = header ? header.offsetHeight : 0;
+      
+      const element = e.target.parentElement;
+      // getBoundingClientRect().top te da la posicion respecto a lo visible, window.scrollY suma lo que ya bajaste
+      const elementPosition = element.getBoundingClientRect().top + window.scrollY;
+      
+      window.scrollTo({
+        top: elementPosition - headerOffset - 15,
+        behavior: 'smooth'
+      });
+    });
+  }
+
   document.querySelectorAll('.chk-exp').forEach(chk => {
     chk.addEventListener('change', () => {
       if (chk.id === 'exp_agua_suelo' || chk.id === 'exp_alimentos') {
@@ -1632,7 +1769,6 @@ document.addEventListener('DOMContentLoaded', () => {
 function initData(dataStr) {
   catData = JSON.parse(dataStr);
 
-  // --- 🚀 OPTIMIZACIÓN EXTREMA 1: INSTITUCIONES ---
   const instSelect = document.getElementById('institucion');
   const fragInst = document.createDocumentFragment();
   const optBaseInst = document.createElement('option');
@@ -1687,10 +1823,6 @@ function initData(dataStr) {
     }
   });
 
-  // Ejecutamos la función para asegurar el predeterminado
-  setTimeout(setUnidadPredeterminada, 200);
-
-  // --- 🚀 OPTIMIZACIÓN EXTREMA 2: PROVINCIAS ---
   let provs = Object.keys(catData.ubicaciones);
   const topProvs = ["MANABI", "SANTO DOMINGO DE LOS TSÁCHILAS", "GUAYAS", "LOS RÍOS", "SANTA ELENA"];
   provs = provs.filter(p => !topProvs.includes(p)).sort();
@@ -1721,8 +1853,6 @@ function initData(dataStr) {
     });
   });
 
-  // --- 🚀 OPTIMIZACIÓN EXTREMA 3: DATALIST CIE-10 ---
-  // Inyectar miles de registros CIE-10 de golpe evita que el navegador se congele.
   const cieDataList = document.getElementById('listaCie10');
   const fragCie = document.createDocumentFragment();
   catData.cie10.sort().forEach(c => {
@@ -1733,7 +1863,6 @@ function initData(dataStr) {
   cieDataList.innerHTML = "";
   cieDataList.appendChild(fragCie);
 
-  // --- 🚀 OPTIMIZACIÓN EXTREMA 4: LUGARES DE TRATAMIENTO ---
   const lugSelect = document.getElementById('lugar_tratamiento');
   const fragLug = document.createDocumentFragment();
   let optLug = document.createElement('option');
@@ -1819,8 +1948,6 @@ function agregarContacto() {
   const defaultParr = document.getElementById('parroquia_residencia') ? document.getElementById('parroquia_residencia').value : '';
   const defVal = (defaultParr === 'Seleccione Parroquia...' || !defaultParr) ? '' : defaultParr;
 
-  // 🚀 OPTIMIZACIÓN EXTREMA 5: insertAdjacentHTML
-  // Es más rápido porque no destruye los nodos existentes en tbody para recrearlos, sólo añade al final.
   const rowHTML = `
     <tr>
       <td><input type="text" class="form-control c-nombre save-state" style="font-size:0.85rem"></td>
@@ -1898,7 +2025,6 @@ function agregarContactoRestaurado(c) {
   `;
   tbody.insertAdjacentHTML('beforeend', rowHTML);
 
-  // Configuramos los selects anidados en la última fila insertada
   const lastRow = tbody.lastElementChild;
   const selectSexo = lastRow.querySelector('.c-sexo');
   if (selectSexo.value) {
