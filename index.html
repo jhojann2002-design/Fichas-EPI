@@ -403,15 +403,15 @@
             <input type="date" id="fecha_atencion" class="form-control save-state">
           </div>
           <div class="col-md-3">
-            <label>Inicio Síntomas:</label>
+            <label>Fecha inicio de síntomas:</label>
             <input type="date" id="fecha_inicio_sintomas" class="form-control save-state">
           </div>
           <div class="col-md-3">
-            <label>Síntoma Relevante:</label>
+            <label>Fecha inicio síntoma relevante:</label>
             <input type="date" id="fecha_sintoma_relevante" class="form-control save-state">
           </div>
           <div class="col-md-3">
-            <label>¿Cuál síntoma fue?:</label>
+            <label>¿Cuál síntoma relevante fue?:</label>
             <input type="text" id="cual_sintoma" class="form-control save-state">
           </div>
         </div>
@@ -737,7 +737,7 @@
                 <label>Condición al Egreso:</label>
                 <div class="d-flex gap-4 mt-2">
                   <div class="form-check">
-                    <input class="form-check-input save-state" type="radio" name="cond_egreso" id="egreso_vivo" value="VIVO" checked>
+                    <input class="form-check-input save-state" type="radio" name="cond_egreso" id="egreso_vivo" value="VIVO">
                     <label class="form-check-label" for="egreso_vivo">Vivo</label>
                   </div>
                   <div class="form-check">
@@ -1015,6 +1015,7 @@
               <div class="col-md-3">
                 <label>¿Comorbilidades?:</label>
                 <select id="comorbilidades" class="form-select save-state">
+                  <option value="" selected>-- Seleccione --</option>
                   <option value="NO">NO</option>
                   <option value="SI">SI</option>
                 </select>
@@ -1298,7 +1299,7 @@ function loadFormData() {
       document.getElementById(id).disabled = !isViajeSi;
     });
 
-    document.getElementById('especificar_comor').disabled = (document.getElementById('comorbilidades').value === 'NO');
+    document.getElementById('especificar_comor').disabled = (document.getElementById('comorbilidades').value !== 'SI');
 
     const tbody = document.getElementById('contactsBody');
     tbody.innerHTML = '';
@@ -1315,6 +1316,26 @@ function loadFormData() {
   }
 }
 
+// --- FUNCIÓN PARA MANTENER UNIDAD PREDETERMINADA ---
+function setUnidadPredeterminada() {
+  const instSelect = document.getElementById('institucion');
+  const estabSelect = document.getElementById('establecimiento');
+
+  if (Array.from(instSelect.options).some(o => o.value === "Instituto Ecuatoriano de Seguridad Social")) {
+    instSelect.value = "Instituto Ecuatoriano de Seguridad Social";
+    instSelect.dispatchEvent(new Event('change'));
+    
+    setTimeout(() => {
+      Array.from(estabSelect.options).forEach((opt) => {
+        if (opt.text.includes("HOSPITAL GENERAL PORTOVIEJO - IESS") || opt.value.includes("HOSPITAL GENERAL PORTOVIEJO - IESS")) {
+          estabSelect.value = opt.value;
+        }
+      });
+      estabSelect.dispatchEvent(new Event('change'));
+    }, 150);
+  }
+}
+
 // --- FUNCIÓN MODIFICADA PARA EVITAR RECARGA DE PÁGINA ---
 function limpiarFormulario() {
   if (confirm("¿Estás seguro de que quieres limpiar toda la ficha? Esto borrará todos los datos ingresados.")) {
@@ -1327,7 +1348,6 @@ function limpiarFormulario() {
     // 3. Restaurar los selects dependientes a su estado inicial
     document.getElementById('canton_residencia').innerHTML = '<option value="" selected disabled>Seleccione Cantón...</option>';
     document.getElementById('parroquia_residencia').innerHTML = '<option value="" selected disabled>Seleccione Parroquia...</option>';
-    document.getElementById('establecimiento').innerHTML = '<option value="" selected disabled>Seleccione primero una Institución...</option>';
     document.getElementById('estado_civil').innerHTML = '<option value="" selected disabled>Seleccione Sexo primero...</option>';
     document.getElementById('etnia').innerHTML = '<option value="" selected disabled>Seleccione Sexo primero...</option>';
     
@@ -1350,7 +1370,10 @@ function limpiarFormulario() {
     document.getElementById('contactsBody').innerHTML = '';
     for (let i = 0; i < 6; i++) agregarContacto();
     
-    // 7. Desplazar la vista al inicio suavemente
+    // 7. Restaurar la preselección del IESS Portoviejo
+    setUnidadPredeterminada();
+    
+    // 8. Desplazar la vista al inicio suavemente
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 }
@@ -1601,8 +1624,8 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   document.getElementById('comorbilidades').addEventListener('change', e => {
-    document.getElementById('especificar_comor').disabled = (e.target.value === 'NO');
-    if (e.target.value === 'NO') document.getElementById('especificar_comor').value = '';
+    document.getElementById('especificar_comor').disabled = (e.target.value !== 'SI');
+    if (e.target.value !== 'SI') document.getElementById('especificar_comor').value = '';
   });
 });
 
@@ -1664,19 +1687,8 @@ function initData(dataStr) {
     }
   });
 
-  setTimeout(() => {
-    if (Array.from(instSelect.options).some(o => o.value === "Instituto Ecuatoriano de Seguridad Social")) {
-      instSelect.value = "Instituto Ecuatoriano de Seguridad Social";
-      instSelect.dispatchEvent(new Event('change'));
-      setTimeout(() => {
-        const estabSelect = document.getElementById('establecimiento');
-        Array.from(estabSelect.options).forEach((opt) => {
-          if (opt.text === "HOSPITAL GENERAL PORTOVIEJO - IESS") estabSelect.value = opt.value;
-        });
-        estabSelect.dispatchEvent(new Event('change'));
-      }, 150);
-    }
-  }, 200);
+  // Ejecutamos la función para asegurar el predeterminado
+  setTimeout(setUnidadPredeterminada, 200);
 
   // --- 🚀 OPTIMIZACIÓN EXTREMA 2: PROVINCIAS ---
   let provs = Object.keys(catData.ubicaciones);
@@ -1952,7 +1964,7 @@ function getChk(id) {
 }
 
 function recopilarDatos() {
-  const condEgreso = document.querySelector('input[name="cond_egreso"]:checked')?.value || "VIVO";
+  const condEgreso = document.querySelector('input[name="cond_egreso"]:checked')?.value || "";
   const radProc = document.querySelector('input[name="rad_procedencia"]:checked')?.value || "";
   const procOtro = getVal('procedencia_agua_otro');
   const radTipoExp = document.querySelector('input[name="rad_tipo_exp"]:checked')?.value || "";
