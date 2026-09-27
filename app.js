@@ -192,11 +192,13 @@ document.querySelectorAll('#contactsBody tr').forEach(tr => {
   });
 });
 data.contactos = contacts;
-sessionStorage.setItem('epiFormData', JSON.stringify(data));
+// CAMBIO A LOCALSTORAGE
+localStorage.setItem('epiFormData', JSON.stringify(data));
 }
 
 function loadFormData() {
-const savedData = sessionStorage.getItem('epiFormData');
+// CAMBIO A LOCALSTORAGE
+const savedData = localStorage.getItem('epiFormData');
 if (!savedData) {
   for (let i = 0; i < 1; i++) agregarContacto();
   setUnidadPredeterminada();
@@ -309,7 +311,8 @@ Swal.fire({
   confirmButtonColor: 'var(--apple-red)', cancelButtonColor: 'var(--apple-text-muted)', confirmButtonText: 'Sí, limpiar', cancelButtonText: 'Cancelar'
 }).then((result) => {
   if (result.isConfirmed) {
-    sessionStorage.removeItem('epiFormData');
+    // CAMBIO A LOCALSTORAGE
+    localStorage.removeItem('epiFormData');
     document.getElementById('epiForm').reset();
     
     const provSelect = document.getElementById('prov_residencia');
@@ -598,8 +601,14 @@ document.getElementById('aplica_caracterizar_signos').addEventListener('change',
 
 document.getElementById('sexo').addEventListener('change', () => { actualizarGeneroDropdowns(); actualizarEstadoEmbarazo(); });
 document.getElementById('embarazada').addEventListener('change', () => actualizarEstadoEmbarazo());
+
+// EVENTOS DE CÁLCULO DE DÍAS (Se agregó 'input' para mejorar la respuesta en tiempo real)
 ['fecha_inicio_sintomas', 'fecha_sintoma_relevante', 'fecha_atencion'].forEach(id => {
-  document.getElementById(id).addEventListener('change', calcDiasSintomas);
+  const element = document.getElementById(id);
+  if (element) {
+      element.addEventListener('change', calcDiasSintomas);
+      element.addEventListener('input', calcDiasSintomas);
+  }
 });
 
 document.getElementById('hospitalizado').addEventListener('change', e => {
@@ -779,13 +788,30 @@ catData.ubicaciones[prov][canton].sort().forEach(p => { let opt = document.creat
 parrSelect.innerHTML = ""; parrSelect.appendChild(fragParr);
 }
 
+// ==========================================
+// FIX: CÁLCULO DE DÍAS DE SÍNTOMAS ROBUSTO
+// ==========================================
 function calcDiasSintomas() {
-const ini = document.getElementById('fecha_inicio_sintomas').value || document.getElementById('fecha_sintoma_relevante').value;
-const ate = document.getElementById('fecha_atencion').value;
-if (ini && ate) {
-  const diff = new Date(ate) - new Date(ini);
-  document.getElementById('num_dias_sintomas').value = Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
-}
+  const ini = document.getElementById('fecha_inicio_sintomas').value || document.getElementById('fecha_sintoma_relevante').value;
+  const ate = document.getElementById('fecha_atencion').value;
+  const diasInput = document.getElementById('num_dias_sintomas');
+
+  if (ini && ate) {
+    // Evitar problemas de zonas horarias construyendo la fecha local separando YYYY-MM-DD
+    const [y1, m1, d1] = ini.split('-');
+    const [y2, m2, d2] = ate.split('-');
+    const dateIni = new Date(y1, m1 - 1, d1);
+    const dateAte = new Date(y2, m2 - 1, d2);
+    
+    // Calcular diferencia en milisegundos y redondear al día más cercano
+    const diff = dateAte - dateIni;
+    const dias = Math.max(0, Math.round(diff / (1000 * 60 * 60 * 24)));
+    
+    diasInput.value = dias;
+    
+    // Forzar el evento de cambio para que el autoguardado lo detecte inmediatamente
+    diasInput.dispatchEvent(new Event('input', { bubbles: true }));
+  }
 }
 
 function toggleContactoRow(trElement) {
