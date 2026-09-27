@@ -192,12 +192,10 @@ document.querySelectorAll('#contactsBody tr').forEach(tr => {
   });
 });
 data.contactos = contacts;
-// CAMBIO A LOCALSTORAGE
 localStorage.setItem('epiFormData', JSON.stringify(data));
 }
 
 function loadFormData() {
-// CAMBIO A LOCALSTORAGE
 const savedData = localStorage.getItem('epiFormData');
 if (!savedData) {
   for (let i = 0; i < 1; i++) agregarContacto();
@@ -311,7 +309,6 @@ Swal.fire({
   confirmButtonColor: 'var(--apple-red)', cancelButtonColor: 'var(--apple-text-muted)', confirmButtonText: 'Sí, limpiar', cancelButtonText: 'Cancelar'
 }).then((result) => {
   if (result.isConfirmed) {
-    // CAMBIO A LOCALSTORAGE
     localStorage.removeItem('epiFormData');
     document.getElementById('epiForm').reset();
     
@@ -360,7 +357,6 @@ if (e.target.tagName === 'INPUT' && (e.target.type === 'text' || e.target.type =
       try { e.target.setSelectionRange(start, end); } catch(err) {}
   }
 }
-// Evitar limpiar puntos y comas si la clase es decimal-input
 if ((e.target.type === 'tel' || e.target.classList.contains('numeric-input')) && !e.target.classList.contains('decimal-input')) {
   let val = e.target.value;
   if (/\D/.test(val)) e.target.value = val.replace(/\D/g, '');
@@ -484,8 +480,14 @@ toggleExposicion(document.getElementById('exp_ninguno').checked);
 
 mostrarLoader("Cargando base de datos del hospital...");
 
-  fetch(API_URL)
-  .then(response => response.text())
+  const controllerInit = new AbortController();
+  const timeoutInit = setTimeout(() => controllerInit.abort(), 15000); 
+
+  fetch(API_URL, { signal: controllerInit.signal })
+  .then(response => {
+    clearTimeout(timeoutInit);
+    return response.text();
+  })
   .then(dataStr => {
     try { initData(dataStr); } catch (err) {
       ocultarLoader();
@@ -494,7 +496,11 @@ mostrarLoader("Cargando base de datos del hospital...");
   })
   .catch(err => {
     ocultarLoader();
-    Swal.fire('Error', 'Error de red: ' + err, 'error');
+    if (err.name === 'AbortError') {
+      Swal.fire('Conexión lenta', 'La base de datos del hospital tardó demasiado en cargar. Recarga la página por favor.', 'error');
+    } else {
+      Swal.fire('Error', 'Error de red: ' + err, 'error');
+    }
   });
 
 setupAutoSave();
@@ -602,7 +608,6 @@ document.getElementById('aplica_caracterizar_signos').addEventListener('change',
 document.getElementById('sexo').addEventListener('change', () => { actualizarGeneroDropdowns(); actualizarEstadoEmbarazo(); });
 document.getElementById('embarazada').addEventListener('change', () => actualizarEstadoEmbarazo());
 
-// EVENTOS DE CÁLCULO DE DÍAS (Se agregó 'input' para mejorar la respuesta en tiempo real)
 ['fecha_inicio_sintomas', 'fecha_sintoma_relevante', 'fecha_atencion'].forEach(id => {
   const element = document.getElementById(id);
   if (element) {
@@ -788,28 +793,21 @@ catData.ubicaciones[prov][canton].sort().forEach(p => { let opt = document.creat
 parrSelect.innerHTML = ""; parrSelect.appendChild(fragParr);
 }
 
-// ==========================================
-// FIX: CÁLCULO DE DÍAS DE SÍNTOMAS ROBUSTO
-// ==========================================
 function calcDiasSintomas() {
   const ini = document.getElementById('fecha_inicio_sintomas').value || document.getElementById('fecha_sintoma_relevante').value;
   const ate = document.getElementById('fecha_atencion').value;
   const diasInput = document.getElementById('num_dias_sintomas');
 
   if (ini && ate) {
-    // Evitar problemas de zonas horarias construyendo la fecha local separando YYYY-MM-DD
     const [y1, m1, d1] = ini.split('-');
     const [y2, m2, d2] = ate.split('-');
     const dateIni = new Date(y1, m1 - 1, d1);
     const dateAte = new Date(y2, m2 - 1, d2);
     
-    // Calcular diferencia en milisegundos y redondear al día más cercano
     const diff = dateAte - dateIni;
     const dias = Math.max(0, Math.round(diff / (1000 * 60 * 60 * 24)));
     
     diasInput.value = dias;
-    
-    // Forzar el evento de cambio para que el autoguardado lo detecte inmediatamente
     diasInput.dispatchEvent(new Event('input', { bubbles: true }));
   }
 }
@@ -1076,8 +1074,18 @@ const aApe = getVal('primer_apellido').trim().toUpperCase();
 const aNom = getVal('primer_nombre').trim().toUpperCase();
 const nFinal = `FichasEPI_${aCed}_${aApe}_${aNom}.pdf`;
 
-fetch(API_URL, { method: 'POST', body: recopilarDatos() })
-.then(response => response.json())
+const controllerPDF = new AbortController();
+const timeoutPDF = setTimeout(() => controllerPDF.abort(), 30000); 
+
+fetch(API_URL, { 
+  method: 'POST', 
+  body: recopilarDatos(),
+  signal: controllerPDF.signal
+})
+.then(response => {
+  clearTimeout(timeoutPDF);
+  return response.json();
+})
 .then(res => {
   ocultarLoader();
   if (res && res.success) {
@@ -1089,8 +1097,15 @@ fetch(API_URL, { method: 'POST', body: recopilarDatos() })
     a.click(); 
     document.body.removeChild(a);
     Swal.fire({ icon: 'success', title: '¡Ficha Generada!', text: 'La descarga ha comenzado correctamente.', timer: 3000, showConfirmButton: false });
-  } else { Swal.fire('Error de PDF', (res ? res.error : 'Respuesta desconocida'), 'error'); }
+  } else { 
+    Swal.fire('Error de PDF', (res ? res.error : 'Respuesta desconocida'), 'error'); 
+  }
 }).catch(err => {
-  ocultarLoader(); Swal.fire('Error de conexión', 'No se pudo conectar con el servidor.', 'error');
+  ocultarLoader(); 
+  if (err.name === 'AbortError') {
+    Swal.fire('Servidor Saturado', 'El sistema está procesando demasiadas peticiones a la vez. Por favor, espera 10 segundos y vuelve a darle a exportar.', 'warning');
+  } else {
+    Swal.fire('Error de conexión', 'No se pudo conectar con el servidor.', 'error');
+  }
 });
 }
