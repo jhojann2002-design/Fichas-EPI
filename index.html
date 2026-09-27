@@ -1445,11 +1445,11 @@ function actualizarEstadoEmbarazo() {
 function saveFormData() {
   const data = {};
   document.querySelectorAll('.save-state').forEach(el => {
-    if (el.type === 'checkbox' || el.type === 'radio') {
-      if (el.checked) {
-        if (el.type === 'radio') data[el.name] = el.value;
-        else data[el.id] = el.checked;
-      }
+    // CORRECCIÓN: Separar la lógica para guardar explícitamente los false de los checkboxes
+    if (el.type === 'checkbox') {
+      data[el.id] = el.checked; 
+    } else if (el.type === 'radio') {
+      if (el.checked) data[el.name] = el.value;
     } else if (el.id) {
       data[el.id] = el.value;
     }
@@ -1470,11 +1470,14 @@ function saveFormData() {
     });
   });
   data.contactos = contacts;
-  sessionStorage.setItem('epiFormData', JSON.stringify(data));
+  
+  // CORRECCIÓN: Usar localStorage en lugar de sessionStorage
+  localStorage.setItem('epiFormData', JSON.stringify(data));
 }
 
 function loadFormData() {
-  const savedData = sessionStorage.getItem('epiFormData');
+  // CORRECCIÓN: Cargar desde localStorage
+  const savedData = localStorage.getItem('epiFormData');
   if (!savedData) {
     for (let i = 0; i < 1; i++) agregarContacto();
     setUnidadPredeterminada();
@@ -1587,7 +1590,8 @@ function limpiarFormulario() {
     confirmButtonColor: 'var(--apple-red)', cancelButtonColor: 'var(--apple-text-muted)', confirmButtonText: 'Sí, limpiar', cancelButtonText: 'Cancelar'
   }).then((result) => {
     if (result.isConfirmed) {
-      sessionStorage.removeItem('epiFormData');
+      // CORRECCIÓN: Eliminar la memoria de localStorage
+      localStorage.removeItem('epiFormData');
       document.getElementById('epiForm').reset();
       
       const provSelect = document.getElementById('prov_residencia');
