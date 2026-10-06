@@ -229,11 +229,17 @@
             <div class="row g-4 mb-2 align-items-end pt-2">
               <div class="col-6 col-md-4">
                 <label>F. inicio síntomas:</label>
-                <input type="date" id="fecha_inicio_sintomas" class="form-control save-state">
+                <div class="d-flex gap-2">
+                    <input type="date" id="fecha_inicio_sintomas" class="form-control save-state">
+                    <input type="time" id="hora_inicio_sintomas" class="form-control save-state" style="width: auto;" title="Hora de inicio de síntomas">
+                </div>
               </div>
               <div class="col-6 col-md-4">
                 <label>F. sínt. relevante:</label>
-                <input type="date" id="fecha_sintoma_relevante" class="form-control save-state">
+                <div class="d-flex gap-2">
+                    <input type="date" id="fecha_sintoma_relevante" class="form-control save-state">
+                    <input type="time" id="hora_sintoma_relevante" class="form-control save-state" style="width: auto;" title="Hora de inicio de síntoma relevante">
+                </div>
               </div>
               <div class="col-12 col-md-4">
                 <label>¿Cuál síntoma relevante fue?:</label>
