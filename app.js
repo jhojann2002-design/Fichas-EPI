@@ -271,6 +271,13 @@ try {
   toggleElementos([document.getElementById('lugar_viaje'), document.getElementById('fecha_desde'), document.getElementById('fecha_hasta')], isViajeSi);
 
   toggleElementos([document.getElementById('especificar_comor')], document.getElementById('comorbilidades').value === 'SI');
+  
+  // Validar campos de laboratorio
+  if (data.muestra === 'NO') {
+      toggleLaboratorio(false);
+  } else {
+      toggleLaboratorio(true);
+  }
 
   const tbody = document.getElementById('contactsBody');
   tbody.innerHTML = '';
@@ -475,6 +482,27 @@ toggleElementos(document.querySelectorAll('.rad-donde'), isSi);
 if (!isSi) document.querySelectorAll('.rad-donde').forEach(r => r.checked = false);
 }
 
+// Nueva función para deshabilitar campos de laboratorio
+function toggleLaboratorio(habilitar) {
+  const camposLab = [
+    document.getElementById('fecha_muestra'),
+    document.getElementById('muestra_adecuada'),
+    document.getElementById('tipo_muestra'),
+    document.getElementById('tecnica'),
+    document.getElementById('antes_tratamiento'),
+    document.getElementById('resultado'),
+    document.getElementById('agente')
+  ];
+  
+  toggleElementos(camposLab, habilitar);
+  
+  if (!habilitar) {
+      camposLab.forEach(campo => {
+          if (campo) campo.value = '';
+      });
+  }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
 toggleExposicion(document.getElementById('exp_ninguno').checked);
 
@@ -656,6 +684,15 @@ document.getElementById('comorbilidades').addEventListener('change', e => {
   toggleElementos([document.getElementById('especificar_comor')], isSi);
   if (!isSi) document.getElementById('especificar_comor').value = '';
 });
+
+// Event listener para el campo 'muestra' (Laboratorio)
+const selectMuestra = document.getElementById('muestra');
+if (selectMuestra) {
+    selectMuestra.addEventListener('change', e => {
+        const isNO = e.target.value === 'NO';
+        toggleLaboratorio(!isNO);
+    });
+}
 });
 
 function initData(dataStr) {
@@ -985,7 +1022,11 @@ const d = {
   ocupacion: getVal('ocupacion'), nombre_madre: getVal('nombre_madre'), medico_tratante: getVal('medico_tratante'), diagnostico_cie10: getVal('diagnostico_cie10'),
   embarazada: embarazadaVal, semanas_gestacion: semanasVal, institucion: getVal('institucion'), establecimiento: getVal('establecimiento'),
   prov_establecimiento: getVal('prov_establecimiento'), canton_establecimiento: getVal('canton_establecimiento'), parroquia_establecimiento: getVal('parroquia_establecimiento'),
-  fecha_atencion: getVal('fecha_atencion'), fecha_inicio_sintomas: getVal('fecha_inicio_sintomas'), fecha_sintoma_relevante: getVal('fecha_sintoma_relevante'),
+  fecha_atencion: getVal('fecha_atencion'), 
+  fecha_inicio_sintomas: getVal('fecha_inicio_sintomas'), 
+  hora_inicio_sintomas: getVal('hora_inicio_sintomas'), // Nuevo campo
+  fecha_sintoma_relevante: getVal('fecha_sintoma_relevante'),
+  hora_sintoma_relevante: getVal('hora_sintoma_relevante'), // Nuevo campo
   cual_sintoma: getVal('cual_sintoma'),
   tos: getChk('tos'), dolor_garganta: getChk('dolor_garganta'), dif_respiratoria: getChk('dif_respiratoria'), cianosis: getChk('cianosis'),
   diarrea: getChk('diarrea'), nauseas: getChk('nauseas'), dolor_abdominal: getChk('dolor_abdominal'), deshidratacion: getChk('deshidratacion'),
