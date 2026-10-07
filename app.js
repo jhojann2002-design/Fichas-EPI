@@ -562,30 +562,22 @@ function toggleLaboratorio(habilitar) {
 document.addEventListener('DOMContentLoaded', () => {
 toggleExposicion(document.getElementById('exp_ninguno').checked);
 
-mostrarLoader("Cargando base de datos del hospital...");
+mostrarLoader("Cargando base de datos local...");
 
-  const controllerInit = new AbortController();
-  // 🚀 CAMBIO: Ampliado a 30 segundos (30000ms) para evitar errores por cargas pesadas.
-  const timeoutInit = setTimeout(() => controllerInit.abort(), 30000); 
-
-  fetch(API_URL, { signal: controllerInit.signal })
+  // Hacemos el fetch al archivo local ultrarrápido en lugar de a Apps Script
+  fetch('catalogos.json')
   .then(response => {
-    clearTimeout(timeoutInit);
     return response.text();
   })
   .then(dataStr => {
     try { initData(dataStr); } catch (err) {
       ocultarLoader();
-      document.body.innerHTML = `<div class="container mt-5 text-center"><h3 class="text-danger">⚠️ Error de comunicación</h3><textarea class="form-control" style="height: 300px; font-size: 12px;">${dataStr}</textarea></div>`;
+      document.body.innerHTML = `<div class="container mt-5 text-center"><h3 class="text-danger">⚠️ Error de formato</h3><textarea class="form-control" style="height: 300px; font-size: 12px;">${err.toString()}</textarea></div>`;
     }
   })
   .catch(err => {
     ocultarLoader();
-    if (err.name === 'AbortError') {
-      Swal.fire('Conexión lenta', 'La base de datos del hospital tardó demasiado en cargar. Recarga la página por favor.', 'error');
-    } else {
-      Swal.fire('Error', 'Error de red: ' + err, 'error');
-    }
+    Swal.fire('Error', 'No se pudo cargar el archivo de catálogos local.', 'error');
   });
 
 setupAutoSave();
