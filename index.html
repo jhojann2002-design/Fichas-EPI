@@ -226,19 +226,21 @@
         <div id="sec3" class="accordion-collapse collapse" data-bs-parent="#accordionFicha">
           <div class="accordion-body">
             
-            <div class="row g-4 mb-2 align-items-end pt-2">
-              <div class="col-6 col-md-4">
+                      <div class="row g-4 mb-2 align-items-end pt-2">
+              <!-- Cambiado a col-12 en celular -->
+              <div class="col-12 col-md-4">
                 <label>F. inicio síntomas:</label>
                 <div class="d-flex gap-2">
-                    <input type="date" id="fecha_inicio_sintomas" class="form-control save-state">
-                    <input type="time" id="hora_inicio_sintomas" class="form-control save-state" style="width: auto;" title="Hora de inicio de síntomas">
+                    <input type="date" id="fecha_inicio_sintomas" class="form-control save-state" style="flex: 1 1 60%;">
+                    <input type="time" id="hora_inicio_sintomas" class="form-control save-state" style="flex: 1 1 40%;" title="Hora de inicio de síntomas">
                 </div>
               </div>
-              <div class="col-6 col-md-4">
+              <!-- Cambiado a col-12 en celular -->
+              <div class="col-12 col-md-4">
                 <label>F. sínt. relevante:</label>
                 <div class="d-flex gap-2">
-                    <input type="date" id="fecha_sintoma_relevante" class="form-control save-state">
-                    <input type="time" id="hora_sintoma_relevante" class="form-control save-state" style="width: auto;" title="Hora de inicio de síntoma relevante">
+                    <input type="date" id="fecha_sintoma_relevante" class="form-control save-state" style="flex: 1 1 60%;">
+                    <input type="time" id="hora_sintoma_relevante" class="form-control save-state" style="flex: 1 1 40%;" title="Hora de inicio de síntoma relevante">
                 </div>
               </div>
               <div class="col-12 col-md-4">
@@ -798,6 +800,6 @@
 <!-- Tom Select JS -->
 <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
 <!-- Tu lógica separada -->
-<script src="app.js?v=1.2"></script>
+<script src="app.js?v=1.22"></script>
 </body>
 </html>
