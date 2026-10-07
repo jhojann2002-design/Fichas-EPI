@@ -201,6 +201,22 @@ input[readonly], select[disabled], input[disabled] {
     transform: translateX(20px) !important;
   }
 
+  /* --- NUEVAS REGLAS PARA INPUTS DE FECHA Y HORA EN MÓVIL --- */
+  input[type="date"], 
+  input[type="time"] {
+    min-width: 0 !important; 
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+    font-size: 0.9rem !important;
+    box-sizing: border-box !important;
+  }
+  
+  /* Asegurar que el contenedor flex que agrupa fecha y hora se comporte bien */
+  .d-flex.gap-2 {
+    gap: 0.5rem !important;
+  }
+  /* ------------------------------------------------------------ */
+
   #tablaContactos thead { display: none; }
   #tablaContactos tbody tr {
     display: flex;
