@@ -338,6 +338,10 @@ try {
   } else {
     for (let i = 0; i < 1; i++) agregarContacto();
   }
+
+  // --- CÁLCULO DE DÍAS AL CARGAR LA PÁGINA ---
+  calcDiasSintomas();
+
 } catch(e) {
   for (let i = 0; i < 1; i++) agregarContacto();
 }
@@ -882,22 +886,32 @@ catData.ubicaciones[prov][canton].sort().forEach(p => { let opt = document.creat
 parrSelect.innerHTML = ""; parrSelect.appendChild(fragParr);
 }
 
+// --- VERSIÓN REPARADA CON T00:00:00 ---
 function calcDiasSintomas() {
-  const ini = document.getElementById('fecha_inicio_sintomas').value || document.getElementById('fecha_sintoma_relevante').value;
-  const ate = document.getElementById('fecha_atencion').value;
+  const iniStr = document.getElementById('fecha_inicio_sintomas').value || document.getElementById('fecha_sintoma_relevante').value;
+  const ateStr = document.getElementById('fecha_atencion').value;
   const diasInput = document.getElementById('num_dias_sintomas');
 
-  if (ini && ate) {
-    const [y1, m1, d1] = ini.split('-');
-    const [y2, m2, d2] = ate.split('-');
-    const dateIni = new Date(y1, m1 - 1, d1);
-    const dateAte = new Date(y2, m2 - 1, d2);
+  if (!diasInput) return;
+
+  // Solo calcula si existen ambas fechas (la de atención y al menos una de inicio)
+  if (iniStr && ateStr) {
+    // Forzamos T00:00:00 para evitar desfases de zona horaria
+    const dateIni = new Date(iniStr + "T00:00:00");
+    const dateAte = new Date(ateStr + "T00:00:00");
     
-    const diff = dateAte - dateIni;
-    const dias = Math.max(0, Math.round(diff / (1000 * 60 * 60 * 24)));
-    
-    diasInput.value = dias;
-    diasInput.dispatchEvent(new Event('input', { bubbles: true }));
+    // Verificamos que las fechas sean válidas
+    if (!isNaN(dateIni.getTime()) && !isNaN(dateAte.getTime())) {
+      const diffTime = dateAte - dateIni;
+      // Math.floor garantiza días exactos
+      const dias = Math.max(0, Math.floor(diffTime / (1000 * 60 * 60 * 24)));
+      
+      diasInput.value = dias;
+      diasInput.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+  } else {
+    // Si falta una fecha, limpiamos el campo de días para evitar errores
+    diasInput.value = '';
   }
 }
 
