@@ -1261,3 +1261,56 @@ function descargarFichaSegura(formato = 'pdf') {
     }
   });
 }
+// ====================================================================
+// SOLUCIÓN DIRECTA: CÁLCULO AUTOMÁTICO DE DÍAS CON SÍNTOMAS
+// ====================================================================
+function forzarCalculoDias() {
+  try {
+    const elIni = document.getElementById('fecha_inicio_sintomas');
+    const elRel = document.getElementById('fecha_sintoma_relevante');
+    const elAte = document.getElementById('fecha_atencion');
+    const elDias = document.getElementById('num_dias_sintomas');
+
+    if (!elDias || !elAte) return;
+
+    const strIni = (elIni && elIni.value) ? elIni.value : ((elRel && elRel.value) ? elRel.value : '');
+    const strAte = elAte.value || '';
+
+    if (!strIni || !strAte) {
+      if (elDias.value !== '') elDias.value = '';
+      return;
+    }
+
+    const pIni = strIni.split('-').map(Number);
+    const pAte = strAte.split('-').map(Number);
+
+    if (pIni.length === 3 && pAte.length === 3) {
+      const msIni = Date.UTC(pIni[0], pIni[1] - 1, pIni[2]);
+      const msAte = Date.UTC(pAte[0], pAte[1] - 1, pAte[2]);
+      
+      const totalDias = Math.max(0, Math.round((msAte - msIni) / 86400000));
+      
+      if (elDias.value !== String(totalDias)) {
+        elDias.value = totalDias;
+      }
+    }
+  } catch (err) {
+    console.error("Error en cálculo de días:", err);
+  }
+}
+
+// Escucha en todo el documento cuando se elija cualquier fecha
+document.addEventListener('input', function(e) {
+  if (['fecha_inicio_sintomas', 'fecha_sintoma_relevante', 'fecha_atencion'].includes(e.target.id)) {
+    forzarCalculoDias();
+  }
+});
+
+document.addEventListener('change', function(e) {
+  if (['fecha_inicio_sintomas', 'fecha_sintoma_relevante', 'fecha_atencion'].includes(e.target.id)) {
+    forzarCalculoDias();
+  }
+});
+
+// Reemplaza la función antigua para compatibilidad con el resto del script
+window.calcDiasSintomas = forzarCalculoDias;
