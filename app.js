@@ -113,11 +113,41 @@ MASCULINO: ["SOLTERO", "CASADO", "UNIÓN LIBRE", "DIVORCIADO", "VIUDO"],
 FEMENINO: ["SOLTERA", "CASADA", "UNIÓN LIBRE", "DIVORCIADA", "VIUDA"]
 };
 
-document.getElementById('devSignature').addEventListener('dblclick', () => {
-fetch(counterUrl).then(res => res.json()).then(data => {
-  if(data && data.count !== undefined) Swal.fire('📊 Estadística Privada', `Se han generado un total de ${data.count} fichas.`, 'info');
-  else Swal.fire('📊 Sin datos', 'Aún no hay fichas registradas.', 'info');
-}).catch(err => Swal.fire('Error', 'Error al consultar el contador.', 'error'));
+document.getElementById('devSignature').addEventListener('dblclick', async () => {
+  try {
+    mostrarLoader("Consultando estadísticas...");
+    
+    // 1. Consultar conteo global
+    const resGlobal = await fetch(counterUrl);
+    const dataGlobal = await resGlobal.json();
+    const totalGlobal = dataGlobal.count || 0;
+    
+    // 2. Consultar conteo del establecimiento seleccionado (si hay uno)
+    let htmlExtra = "";
+    const estab = document.getElementById('establecimiento').value;
+    if (estab) {
+      // Limpiar el nombre para usarlo como ID en la API (sin espacios ni tildes)
+      const estabID = estab.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
+      const resEstab = await fetch(`https://api.counterapi.dev/v1/fichasepi_jhojann_v1/est_${estabID}`);
+      const dataEstab = await resEstab.json();
+      const totalEstab = dataEstab.count || 0;
+      
+      htmlExtra = `<br><br>📍 En <b>${estab}</b>:<br><span style="font-size: 1.5rem; color: var(--apple-blue);"><b>${totalEstab}</b></span> fichas generadas.`;
+    } else {
+      htmlExtra = `<br><br><small style="color: gray;">(Seleccione un establecimiento arriba para ver su conteo específico)</small>`;
+    }
+
+    ocultarLoader();
+    Swal.fire({
+      title: '📊 Estadísticas de Uso', 
+      html: `Total Global (Todos los establecimientos): <b>${totalGlobal}</b>${htmlExtra}`, 
+      icon: 'info',
+      confirmButtonColor: 'var(--apple-blue)'
+    });
+  } catch(err) {
+    ocultarLoader();
+    Swal.fire('Error', 'Error al consultar los contadores.', 'error');
+  }
 });
 
 // --- MODO OSCURO ---
@@ -1130,7 +1160,16 @@ fetch(API_URL, {
 .then(res => {
   ocultarLoader();
   if (res && res.success) {
-    fetch(counterUrl + '/up').catch(e => console.log('Error contador:', e));
+        // Incrementar contador global
+    fetch(counterUrl + '/up').catch(e => console.log('Error contador global:', e));
+    
+    // Incrementar contador específico del establecimiento
+    const nombreEstab = getVal('establecimiento');
+    if (nombreEstab) {
+      const estabID = nombreEstab.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
+      fetch(`https://api.counterapi.dev/v1/fichasepi_jhojann_v1/est_${estabID}/up`).catch(e => console.log('Error contador local:', e));
+    }
+
     const a = document.createElement('a'); 
     a.href = 'data:application/pdf;base64,' + res.base64; 
     a.download = res.fileName || nFinal;
