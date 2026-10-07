@@ -98,7 +98,7 @@ document.getElementById('cont-vacunas').insertAdjacentHTML('beforeend', generarH
 }
 inicializarCheckboxes();
 
-const API_URL = "https://script.google.com/macros/s/AKfycbykyWqKfYdxTPitPbhTk2yxfNqgUN0bjHZbJ2CZfqlJp5fDhgFm5yTIbQvoTYDRfpW5xA/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbyIai7A64P_OkaWXO1Pw-xedd6OXtcvt7DadkePJ5Ja5VdBB6clxUEmg0UDzHoqSW9EPA/exec";
 const counterUrl = 'https://api.counterapi.dev/v1/fichasepi_jhojann_v1/generadas'; 
 let catData = null;
 let saveTimeout;
