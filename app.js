@@ -339,7 +339,7 @@ try {
     for (let i = 0; i < 1; i++) agregarContacto();
   }
 
-  // --- CÁLCULO DE DÍAS AL CARGAR LA PÁGINA ---
+  // --- 🚀 FUERZA EL CÁLCULO DE DÍAS AL RESTAURAR LOS DATOS ---
   calcDiasSintomas();
 
 } catch(e) {
@@ -886,34 +886,67 @@ catData.ubicaciones[prov][canton].sort().forEach(p => { let opt = document.creat
 parrSelect.innerHTML = ""; parrSelect.appendChild(fragParr);
 }
 
-// --- VERSIÓN REPARADA CON T00:00:00 ---
+// ====================================================================
+// 🚀 VERSIÓN DEFINITIVA A PRUEBA DE APPLE / SAFARI / IOS
+// ====================================================================
 function calcDiasSintomas() {
-  const iniStr = document.getElementById('fecha_inicio_sintomas').value || document.getElementById('fecha_sintoma_relevante').value;
-  const ateStr = document.getElementById('fecha_atencion').value;
-  const diasInput = document.getElementById('num_dias_sintomas');
+  try {
+    const elIni = document.getElementById('fecha_inicio_sintomas');
+    const elRel = document.getElementById('fecha_sintoma_relevante');
+    const elAte = document.getElementById('fecha_atencion');
+    const diasInput = document.getElementById('num_dias_sintomas');
 
-  if (!diasInput) return;
+    if (!diasInput) return;
 
-  // Solo calcula si existen ambas fechas (la de atención y al menos una de inicio)
-  if (iniStr && ateStr) {
-    // Forzamos T00:00:00 para evitar desfases de zona horaria
-    const dateIni = new Date(iniStr + "T00:00:00");
-    const dateAte = new Date(ateStr + "T00:00:00");
-    
-    // Verificamos que las fechas sean válidas
-    if (!isNaN(dateIni.getTime()) && !isNaN(dateAte.getTime())) {
-      const diffTime = dateAte - dateIni;
-      // Math.floor garantiza días exactos
-      const dias = Math.max(0, Math.floor(diffTime / (1000 * 60 * 60 * 24)));
-      
-      diasInput.value = dias;
-      diasInput.dispatchEvent(new Event('input', { bubbles: true }));
+    let dateIni = null;
+    let dateAte = null;
+
+    // Función segura para parsear "YYYY-MM-DD" en cualquier dispositivo Apple/Android/Windows
+    // Evita los errores "Invalid Date" que causa Safari
+    const parseDateSafely = (str) => {
+      if (!str || typeof str !== 'string' || !str.includes('-')) return null;
+      const parts = str.split('-');
+      if (parts.length === 3) {
+        // new Date(Año, Mes (0-11), Día)
+        return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+      }
+      return null;
+    };
+
+    // 1. Obtener la fecha de inicio (Prioridad 1: Inicio de síntomas. Prioridad 2: Síntoma relevante)
+    if (elIni && elIni.value) {
+        dateIni = parseDateSafely(elIni.value);
+    } else if (elRel && elRel.value) {
+        dateIni = parseDateSafely(elRel.value);
     }
-  } else {
-    // Si falta una fecha, limpiamos el campo de días para evitar errores
-    diasInput.value = '';
+
+    // 2. Obtener fecha de atención
+    if (elAte && elAte.value) {
+        dateAte = parseDateSafely(elAte.value);
+    }
+
+    // 3. Calcular la diferencia si ambas fechas son válidas
+    if (dateIni && dateAte && !isNaN(dateIni.getTime()) && !isNaN(dateAte.getTime())) {
+      const diffTime = dateAte.getTime() - dateIni.getTime();
+      const dias = Math.max(0, Math.round(diffTime / (1000 * 60 * 60 * 24)));
+      
+      if (diasInput.value !== String(dias)) {
+          diasInput.value = dias;
+          // Forzar que el sistema de autoguardado lo detecte automáticamente
+          diasInput.dispatchEvent(new Event('input', { bubbles: true }));
+          diasInput.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+    } else {
+      // Si falta alguna fecha, limpiar la celda
+      if (diasInput.value !== "") {
+          diasInput.value = "";
+      }
+    }
+  } catch(e) {
+     console.error("Error calculando los días de síntomas:", e);
   }
 }
+// ====================================================================
 
 function toggleContactoRow(trElement) {
 if (window.innerWidth <= 768) {
