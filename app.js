@@ -98,7 +98,7 @@ document.getElementById('cont-vacunas').insertAdjacentHTML('beforeend', generarH
 }
 inicializarCheckboxes();
 
-const API_URL = "https://script.google.com/macros/s/AKfycbx0ky3sXHGIjeQ0glhQ7ugldUXZVxfdtYH_gdFPMN0p2MsN37OXQa_EH03vgTdj04C32g/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbxT7ozOahA31entb9M017m8Z9nKFfnmsR1HhHmPHzYKsNj5lQv-4HBWnEP65LA2g_Owqw/exec";
 const counterUrl = 'https://api.counterapi.dev/v1/fichasepi_jhojann_v1/generadas'; 
 let catData = null;
 let saveTimeout;
@@ -115,53 +115,37 @@ FEMENINO: ["SOLTERA", "CASADA", "UNIÓN LIBRE", "DIVORCIADA", "VIUDA"]
 
 document.getElementById('devSignature').addEventListener('dblclick', async () => {
   try {
-    mostrarLoader("Consultando estadísticas...");
+    mostrarLoader("Consultando base de datos...");
     
-    // 1. Consultar conteo global
-    let totalGlobal = 0;
-    try {
-      const resGlobal = await fetch(counterUrl);
-      if (resGlobal.ok) {
-        const dataGlobal = await resGlobal.json();
-        totalGlobal = dataGlobal.count || 0;
-      }
-    } catch (e) {
-      console.log("Aún no hay registros globales");
-    }
+    // Consultamos DIRECTAMENTE a tu Google Apps Script
+    const urlStats = API_URL + "?action=stats";
+    const res = await fetch(urlStats);
+    const data = await res.json();
     
-    // 2. Consultar conteo del establecimiento seleccionado (si hay uno)
+    if (data.error) throw new Error(data.error);
+
+    const totalGlobal = data.totalGlobal || 0;
+    const estabActual = document.getElementById('establecimiento').value;
     let htmlExtra = "";
-    const estab = document.getElementById('establecimiento').value;
-    if (estab) {
-      // Limpiar el nombre para usarlo como ID en la API (sin espacios ni tildes)
-      const estabID = estab.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
-      let totalEstab = 0;
-      
-      try {
-        const resEstab = await fetch(`https://api.counterapi.dev/v1/fichasepi_jhojann_v1/est_${estabID}`);
-        if (resEstab.ok) {
-          const dataEstab = await resEstab.json();
-          totalEstab = dataEstab.count || 0;
-        }
-      } catch (e) {
-        console.log("Aún no hay registros para este establecimiento");
-      }
-      
-      htmlExtra = `<br><br>📍 En <b>${estab}</b>:<br><span style="font-size: 1.5rem; color: var(--apple-blue);"><b>${totalEstab}</b></span> fichas generadas.`;
+    
+    if (estabActual) {
+      // Busca si hay conteo para el establecimiento seleccionado
+      const totalEstab = (data.porEstablecimiento && data.porEstablecimiento[estabActual]) ? data.porEstablecimiento[estabActual] : 0;
+      htmlExtra = `<br><br>📍 En <b>${estabActual}</b>:<br><span style="font-size: 1.5rem; color: var(--apple-blue);"><b>${totalEstab}</b></span> fichas generadas.`;
     } else {
       htmlExtra = `<br><br><small style="color: gray;">(Seleccione un establecimiento arriba para ver su conteo específico)</small>`;
     }
 
     ocultarLoader();
     Swal.fire({
-      title: '📊 Estadísticas de Uso', 
-      html: `Total Global (Todos los establecimientos): <b>${totalGlobal}</b>${htmlExtra}`, 
+      title: '📊 Estadísticas Reales', 
+      html: `Total Global (Todas las unidades): <b>${totalGlobal}</b>${htmlExtra}`, 
       icon: 'info',
       confirmButtonColor: 'var(--apple-blue)'
     });
   } catch(err) {
     ocultarLoader();
-    Swal.fire('Error', 'Hubo un problema de conexión.', 'error');
+    Swal.fire('Error', 'Hubo un problema consultando el registro de Google Sheets.', 'error');
   }
 });
 
@@ -1178,22 +1162,8 @@ fetch(API_URL, {
 .then(res => {
   ocultarLoader();
   if (res && res.success) {
-    
-    // --- NUEVO CÓDIGO DE CONTADORES CON ESPERA (await) ---
-    // Hacemos que se sume de forma segura
-    try {
-        // 1. Sumar al Global
-        fetch(counterUrl + '/up', { method: 'GET', mode: 'no-cors' }).catch(() => {});
-        
-        // 2. Sumar al Local (Establecimiento)
-        if (nombreEstabSeleccionado) {
-            const estabID = nombreEstabSeleccionado.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
-            fetch(`https://api.counterapi.dev/v1/fichasepi_jhojann_v1/est_${estabID}/up`, { method: 'GET', mode: 'no-cors' }).catch(() => {});
-        }
-    } catch(err) {
-        console.log("Error al sumar contadores silenciosamente");
-    }
-    // -----------------------------------------------------
+
+    // (SE BORRÓ EL BLOQUE DEL CONTADOR EXTERNO)
 
     const a = document.createElement('a'); 
     a.href = 'data:application/pdf;base64,' + res.base64; 
