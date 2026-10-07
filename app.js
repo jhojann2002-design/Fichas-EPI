@@ -1163,6 +1163,9 @@ const nFinal = `FichasEPI_${aCed}_${aApe}_${aNom}.pdf`;
 const controllerPDF = new AbortController();
 const timeoutPDF = setTimeout(() => controllerPDF.abort(), 30000); 
 
+// GUARDAMOS EL ESTABLECIMIENTO ANTES DE ENVIAR (Para el contador)
+const nombreEstabSeleccionado = getVal('establecimiento');
+
 fetch(API_URL, { 
   method: 'POST', 
   body: recopilarDatos(),
@@ -1175,15 +1178,22 @@ fetch(API_URL, {
 .then(res => {
   ocultarLoader();
   if (res && res.success) {
-        // Incrementar contador global
-    fetch(counterUrl + '/up').catch(e => console.log('Error contador global:', e));
     
-    // Incrementar contador específico del establecimiento
-    const nombreEstab = getVal('establecimiento');
-    if (nombreEstab) {
-      const estabID = nombreEstab.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
-      fetch(`https://api.counterapi.dev/v1/fichasepi_jhojann_v1/est_${estabID}/up`).catch(e => console.log('Error contador local:', e));
+    // --- NUEVO CÓDIGO DE CONTADORES CON ESPERA (await) ---
+    // Hacemos que se sume de forma segura
+    try {
+        // 1. Sumar al Global
+        fetch(counterUrl + '/up', { method: 'GET', mode: 'no-cors' }).catch(() => {});
+        
+        // 2. Sumar al Local (Establecimiento)
+        if (nombreEstabSeleccionado) {
+            const estabID = nombreEstabSeleccionado.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
+            fetch(`https://api.counterapi.dev/v1/fichasepi_jhojann_v1/est_${estabID}/up`, { method: 'GET', mode: 'no-cors' }).catch(() => {});
+        }
+    } catch(err) {
+        console.log("Error al sumar contadores silenciosamente");
     }
+    // -----------------------------------------------------
 
     const a = document.createElement('a'); 
     a.href = 'data:application/pdf;base64,' + res.base64; 
