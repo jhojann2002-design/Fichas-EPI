@@ -1168,7 +1168,7 @@ const aNom = getVal('primer_nombre').trim().toUpperCase();
 const nFinal = `FichasEPI_${aCed}_${aApe}_${aNom}.pdf`;
 
 const controllerPDF = new AbortController();
-const timeoutPDF = setTimeout(() => controllerPDF.abort(), 30000); 
+const timeoutPDF = setTimeout(() => controllerPDF.abort(), 45000); 
 
 // GUARDAMOS EL ESTABLECIMIENTO ANTES DE ENVIAR (Para el contador)
 const nombreEstabSeleccionado = getVal('establecimiento');
