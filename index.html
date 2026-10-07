@@ -226,27 +226,42 @@
         <div id="sec3" class="accordion-collapse collapse" data-bs-parent="#accordionFicha">
           <div class="accordion-body">
             
-                      <div class="row g-4 mb-2 align-items-end pt-2">
-              <!-- Cambiado a col-12 en celular -->
+                                  <div class="row g-4 mb-2 align-items-end pt-2">
+              
+              <!-- Bloque 1: Inicio de síntomas (Fecha y Hora) -->
               <div class="col-12 col-md-4">
-                <label>F. inicio síntomas:</label>
                 <div class="d-flex gap-2">
-                    <input type="date" id="fecha_inicio_sintomas" class="form-control save-state" style="flex: 1 1 60%;">
-                    <input type="time" id="hora_inicio_sintomas" class="form-control save-state" style="flex: 1 1 40%;" title="Hora de inicio de síntomas">
+                    <div style="flex: 1 1 60%;">
+                        <label>F. inicio síntomas:</label>
+                        <input type="date" id="fecha_inicio_sintomas" class="form-control save-state" style="width: 100%;">
+                    </div>
+                    <div style="flex: 1 1 40%;">
+                        <label>Hora:</label>
+                        <input type="time" id="hora_inicio_sintomas" class="form-control save-state" style="width: 100%;" title="Hora de inicio de síntomas">
+                    </div>
                 </div>
               </div>
-              <!-- Cambiado a col-12 en celular -->
+              
+              <!-- Bloque 2: Síntoma relevante (Fecha y Hora) -->
               <div class="col-12 col-md-4">
-                <label>F. sínt. relevante:</label>
                 <div class="d-flex gap-2">
-                    <input type="date" id="fecha_sintoma_relevante" class="form-control save-state" style="flex: 1 1 60%;">
-                    <input type="time" id="hora_sintoma_relevante" class="form-control save-state" style="flex: 1 1 40%;" title="Hora de inicio de síntoma relevante">
+                    <div style="flex: 1 1 60%;">
+                        <label>F. sínt. relevante:</label>
+                        <input type="date" id="fecha_sintoma_relevante" class="form-control save-state" style="width: 100%;">
+                    </div>
+                    <div style="flex: 1 1 40%;">
+                        <label>Hora:</label>
+                        <input type="time" id="hora_sintoma_relevante" class="form-control save-state" style="width: 100%;" title="Hora de inicio de síntoma relevante">
+                    </div>
                 </div>
               </div>
+              
+              <!-- Bloque 3: Cuál síntoma -->
               <div class="col-12 col-md-4">
                 <label>¿Cuál síntoma relevante fue?:</label>
                 <input type="text" id="cual_sintoma" class="form-control save-state">
               </div>
+
             </div>
             
             <div class="col-12"><hr class="my-1" style="border-color: var(--apple-border);"></div>
@@ -800,6 +815,6 @@
 <!-- Tom Select JS -->
 <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
 <!-- Tu lógica separada -->
-<script src="app.js?v=1.22"></script>
+<script src="app.js?v=1.23"></script>
 </body>
 </html>
