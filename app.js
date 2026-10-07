@@ -125,23 +125,46 @@ document.getElementById('devSignature').addEventListener('dblclick', async () =>
     if (data.error) throw new Error(data.error);
 
     const totalGlobal = data.totalGlobal || 0;
-    const estabActual = document.getElementById('establecimiento').value;
     let htmlExtra = "";
     
-    if (estabActual) {
-      // Busca si hay conteo para el establecimiento seleccionado
-      const totalEstab = (data.porEstablecimiento && data.porEstablecimiento[estabActual]) ? data.porEstablecimiento[estabActual] : 0;
-      htmlExtra = `<br><br>📍 En <b>${estabActual}</b>:<br><span style="font-size: 1.5rem; color: var(--apple-blue);"><b>${totalEstab}</b></span> fichas generadas.`;
+    // Si hay datos por establecimiento, creamos una lista detallada
+    if (data.porEstablecimiento && Object.keys(data.porEstablecimiento).length > 0) {
+      
+      // Convertir el objeto a array y ordenarlo de mayor a menor cantidad de fichas
+      const establecimientosArray = Object.entries(data.porEstablecimiento)
+                                        .sort((a, b) => b[1] - a[1]);
+      
+      htmlExtra = `
+        <div style="margin-top: 15px; max-height: 250px; overflow-y: auto; text-align: left; background: var(--apple-subcard-bg); border-radius: 12px; padding: 10px; border: 1px solid var(--apple-border);">
+          <table style="width: 100%; font-size: 0.9rem;">
+            <tbody>
+      `;
+      
+      establecimientosArray.forEach(([nombre, cantidad]) => {
+        htmlExtra += `
+              <tr style="border-bottom: 1px solid var(--apple-border);">
+                <td style="padding: 8px 4px; color: var(--apple-text);">${nombre}</td>
+                <td style="padding: 8px 4px; text-align: right; font-weight: bold; color: var(--apple-blue); white-space: nowrap;">${cantidad} fichas</td>
+              </tr>
+        `;
+      });
+      
+      htmlExtra += `
+            </tbody>
+          </table>
+        </div>
+      `;
     } else {
-      htmlExtra = `<br><br><small style="color: gray;">(Seleccione un establecimiento arriba para ver su conteo específico)</small>`;
+      htmlExtra = `<br><br><small style="color: gray;">Aún no hay registros detallados por establecimiento.</small>`;
     }
 
     ocultarLoader();
     Swal.fire({
       title: '📊 Estadísticas Reales', 
-      html: `Total Global (Todas las unidades): <b>${totalGlobal}</b>${htmlExtra}`, 
+      html: `Total Global (Todas las unidades): <b style="font-size: 1.2rem; color: var(--apple-blue);">${totalGlobal}</b>${htmlExtra}`, 
       icon: 'info',
-      confirmButtonColor: 'var(--apple-blue)'
+      confirmButtonColor: 'var(--apple-blue)',
+      width: '600px' // Hacemos la alerta un poco más ancha para que la tabla se vea bien
     });
   } catch(err) {
     ocultarLoader();
