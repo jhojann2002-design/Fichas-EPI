@@ -72,7 +72,7 @@
 
           <div class="col-12 col-md-4">
             <label>Fecha Atención:</label>
-            <input type="date" id="fecha_atencion" class="form-control save-state">
+            <input type="date" id="fecha_atencion" class="form-control save-state" onchange="calcDiasSintomas()" oninput="calcDiasSintomas()">
           </div>
         </div>
       </div>
@@ -227,14 +227,14 @@
         <div id="sec3" class="accordion-collapse collapse" data-bs-parent="#accordionFicha">
           <div class="accordion-body">
             
-                                  <div class="row g-4 mb-2 align-items-end pt-2">
+            <div class="row g-4 mb-2 align-items-end pt-2">
               
               <!-- Bloque 1: Inicio de síntomas (Fecha y Hora) -->
               <div class="col-12 col-md-4">
                 <div class="d-flex gap-2">
                     <div style="flex: 1 1 60%;">
                         <label>F. inicio síntomas:</label>
-                        <input type="date" id="fecha_inicio_sintomas" class="form-control save-state" style="width: 100%;">
+                        <input type="date" id="fecha_inicio_sintomas" class="form-control save-state" style="width: 100%;" onchange="calcDiasSintomas()" oninput="calcDiasSintomas()">
                     </div>
                     <div style="flex: 1 1 40%;">
                         <label>Hora:</label>
@@ -248,7 +248,7 @@
                 <div class="d-flex gap-2">
                     <div style="flex: 1 1 60%;">
                         <label>F. sínt. relevante:</label>
-                        <input type="date" id="fecha_sintoma_relevante" class="form-control save-state" style="width: 100%;">
+                        <input type="date" id="fecha_sintoma_relevante" class="form-control save-state" style="width: 100%;" onchange="calcDiasSintomas()" oninput="calcDiasSintomas()">
                     </div>
                     <div style="flex: 1 1 40%;">
                         <label>Hora:</label>
@@ -289,7 +289,7 @@
               </div>
               <div class="col-12 col-md-4">
                 <label>N° Días con Síntomas (Calc/Edit):</label>
-                <input type="number" id="num_dias_sintomas" class="form-control save-state numeric-input" min="0">
+                <input type="number" id="num_dias_sintomas" class="form-control save-state" min="0">
               </div>
             </div>
 
@@ -822,7 +822,7 @@
 <!-- Tom Select JS -->
 <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
 <!-- Tu lógica separada -->
-<script src="app.js?v=2.0"></script>
-<link rel="stylesheet" href="styles.css?v=2.0">
+<script src="app.js?v=2.1"></script>
+<link rel="stylesheet" href="styles.css?v=2.1">
 </body>
 </html>
