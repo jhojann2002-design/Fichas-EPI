@@ -118,9 +118,16 @@ document.getElementById('devSignature').addEventListener('dblclick', async () =>
     mostrarLoader("Consultando estadísticas...");
     
     // 1. Consultar conteo global
-    const resGlobal = await fetch(counterUrl);
-    const dataGlobal = await resGlobal.json();
-    const totalGlobal = dataGlobal.count || 0;
+    let totalGlobal = 0;
+    try {
+      const resGlobal = await fetch(counterUrl);
+      if (resGlobal.ok) {
+        const dataGlobal = await resGlobal.json();
+        totalGlobal = dataGlobal.count || 0;
+      }
+    } catch (e) {
+      console.log("Aún no hay registros globales");
+    }
     
     // 2. Consultar conteo del establecimiento seleccionado (si hay uno)
     let htmlExtra = "";
@@ -128,9 +135,17 @@ document.getElementById('devSignature').addEventListener('dblclick', async () =>
     if (estab) {
       // Limpiar el nombre para usarlo como ID en la API (sin espacios ni tildes)
       const estabID = estab.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
-      const resEstab = await fetch(`https://api.counterapi.dev/v1/fichasepi_jhojann_v1/est_${estabID}`);
-      const dataEstab = await resEstab.json();
-      const totalEstab = dataEstab.count || 0;
+      let totalEstab = 0;
+      
+      try {
+        const resEstab = await fetch(`https://api.counterapi.dev/v1/fichasepi_jhojann_v1/est_${estabID}`);
+        if (resEstab.ok) {
+          const dataEstab = await resEstab.json();
+          totalEstab = dataEstab.count || 0;
+        }
+      } catch (e) {
+        console.log("Aún no hay registros para este establecimiento");
+      }
       
       htmlExtra = `<br><br>📍 En <b>${estab}</b>:<br><span style="font-size: 1.5rem; color: var(--apple-blue);"><b>${totalEstab}</b></span> fichas generadas.`;
     } else {
@@ -146,7 +161,7 @@ document.getElementById('devSignature').addEventListener('dblclick', async () =>
     });
   } catch(err) {
     ocultarLoader();
-    Swal.fire('Error', 'Error al consultar los contadores.', 'error');
+    Swal.fire('Error', 'Hubo un problema de conexión.', 'error');
   }
 });
 
