@@ -905,26 +905,36 @@ function calcDiasSintomas() {
 
     // 2. Si ambas fechas existen, procedemos al cálculo
     if (fechaInicioVal && fechaAtencionVal) {
-      // 🚀 Forzamos la zona horaria a UTC añadiendo "T00:00:00Z" para evitar problemas en Safari/iOS
-      const fIni = new Date(fechaInicioVal + "T00:00:00Z");
-      const fAte = new Date(fechaAtencionVal + "T00:00:00Z");
+      
+      // REEMPLAZO CLAVE: Parsear manualmente la fecha (YYYY-MM-DD) para evitar 
+      // el bug de 'Invalid Date' que ocurre en Safari/iOS al armar fechas con strings
+      const partesIni = fechaInicioVal.split('-');
+      const partesAte = fechaAtencionVal.split('-');
 
-      // Verificamos que las fechas sean válidas
-      if (!isNaN(fIni.getTime()) && !isNaN(fAte.getTime())) {
-        const diffTime = fAte.getTime() - fIni.getTime();
-        // Usamos Math.floor para obtener días exactos y Math.max para evitar números negativos
-        const dias = Math.max(0, Math.floor(diffTime / (1000 * 60 * 60 * 24)));
+      // Verificamos que se dividió correctamente (Año, Mes, Día)
+      if (partesIni.length === 3 && partesAte.length === 3) {
         
-        // Solo actualizamos si el valor es diferente (evita bucles)
+        // Usar Date.UTC evita completamente los desfases por cambios de horario (DST)
+        // Nota: Los meses en JavaScript inician en 0 (Enero = 0), por eso restamos 1 al mes
+        const fIni = new Date(Date.UTC(partesIni[0], partesIni[1] - 1, partesIni[2]));
+        const fAte = new Date(Date.UTC(partesAte[0], partesAte[1] - 1, partesAte[2]));
+
+        const diffTime = fAte.getTime() - fIni.getTime();
+        
+        // Usamos Math.round en lugar de floor por seguridad frente a decimales .9999
+        // Math.max evita que si ponen la fecha de atención ANTES que la de síntomas, salgan números negativos
+        const dias = Math.max(0, Math.round(diffTime / (1000 * 60 * 60 * 24)));
+        
+        // Solo actualizamos si el valor es diferente (evita bucles infinitos en el DOM)
         if (diasInput.value !== String(dias)) {
             diasInput.value = dias;
-            // Disparamos los eventos para que el autoguardado lo detecte
+            // Disparamos los eventos para que tu autoguardado detecte el cambio
             diasInput.dispatchEvent(new Event('input', { bubbles: true }));
             diasInput.dispatchEvent(new Event('change', { bubbles: true }));
         }
       }
     } else {
-      // Si falta alguna de las dos fechas, limpiamos la celda de días
+      // Si falta alguna de las dos fechas (por ejemplo si el usuario borra una), limpiamos el input
       if (diasInput.value !== "") {
           diasInput.value = "";
           diasInput.dispatchEvent(new Event('input', { bubbles: true }));
@@ -936,7 +946,6 @@ function calcDiasSintomas() {
   }
 }
 // ====================================================================
-
 
 function toggleContactoRow(trElement) {
 if (window.innerWidth <= 768) {
