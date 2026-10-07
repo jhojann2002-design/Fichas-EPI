@@ -1218,12 +1218,22 @@ function descargarFichaSegura(formato = 'pdf') {
 
   fetch(API_URL, { 
     method: 'POST', 
+    headers: {
+      'Content-Type': 'text/plain;charset=utf-8' // Evita el bloqueo por CORS (preflight request)
+    },
     body: payloadFinal,
+    redirect: 'follow', // OBLIGATORIO para seguir la redirección 302 de Google
     signal: controllerPDF.signal
   })
-  .then(response => {
+  .then(async response => {
     clearTimeout(timeoutPDF);
-    return response.json();
+    const text = await response.text(); // Leemos como texto primero para evitar crashes
+    try {
+      return JSON.parse(text); // Intentamos convertir a JSON
+    } catch (e) {
+      console.error("Respuesta HTML del servidor (Posible error de permisos):", text);
+      throw new Error("El servidor no devolvió datos válidos. Revisa los permisos del script de Google.");
+    }
   })
   .then(res => {
     ocultarLoader();
@@ -1249,7 +1259,8 @@ function descargarFichaSegura(formato = 'pdf') {
     if (err.name === 'AbortError') {
       Swal.fire('Servidor Saturado', 'El sistema está procesando demasiadas peticiones. Por favor, espera 10 segundos y vuelve a intentar.', 'warning');
     } else {
-      Swal.fire('Error de conexión', 'No se pudo conectar con el servidor.', 'error');
+      // Ahora mostrará el error real si Google devuelve HTML
+      Swal.fire('Error de conexión', err.message || 'No se pudo conectar con el servidor.', 'error');
     }
   });
 }
