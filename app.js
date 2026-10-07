@@ -1186,71 +1186,79 @@ document.querySelectorAll('#contactsBody tr').forEach(tr => {
 return JSON.stringify(d);
 }
 
-function descargarFichaSegura() {
-if (!getVal('cedula')) { 
+// RECIBE EL FORMATO ('pdf' o 'excel')
+function descargarFichaSegura(formato = 'pdf') {
+  if (!getVal('cedula')) { 
     Swal.fire('Falta información', 'Por favor, ingrese la Cédula del paciente.', 'warning').then(() => enfocarElementoSeguro(document.getElementById('cedula'))); 
     document.getElementById('cedula').classList.add('input-error'); 
     return; 
-}
-if (!getVal('primer_apellido')) { 
+  }
+  if (!getVal('primer_apellido')) { 
     Swal.fire('Falta información', 'Por favor, ingrese el Primer Apellido.', 'warning').then(() => enfocarElementoSeguro(document.getElementById('primer_apellido'))); 
     document.getElementById('primer_apellido').classList.add('input-error'); 
     return; 
-}
-if (!getVal('primer_nombre')) { 
+  }
+  if (!getVal('primer_nombre')) { 
     Swal.fire('Falta información', 'Por favor, ingrese el Primer Nombre.', 'warning').then(() => enfocarElementoSeguro(document.getElementById('primer_nombre'))); 
     document.getElementById('primer_nombre').classList.add('input-error'); 
     return; 
-}
-if (!getVal('institucion') || !getVal('establecimiento')) { 
+  }
+  if (!getVal('institucion') || !getVal('establecimiento')) { 
     Swal.fire('Falta información', 'Por favor, seleccione la Institución y el Establecimiento de Salud.', 'warning').then(() => enfocarElementoSeguro(document.getElementById(!getVal('institucion') ? 'institucion' : 'establecimiento'))); 
     return; 
-}
-
-mostrarLoader("Generando PDF (aprox. 15-20 seg)...");
-
-const aCed = getVal('cedula').trim();
-const aApe = getVal('primer_apellido').trim().toUpperCase();
-const aNom = getVal('primer_nombre').trim().toUpperCase();
-const nFinal = `FichasEPI_${aCed}_${aApe}_${aNom}.pdf`;
-
-const controllerPDF = new AbortController();
-const timeoutPDF = setTimeout(() => controllerPDF.abort(), 45000); 
-
-// GUARDAMOS EL ESTABLECIMIENTO ANTES DE ENVIAR (Para el contador)
-const nombreEstabSeleccionado = getVal('establecimiento');
-
-fetch(API_URL, { 
-  method: 'POST', 
-  body: recopilarDatos(),
-  signal: controllerPDF.signal
-})
-.then(response => {
-  clearTimeout(timeoutPDF);
-  return response.json();
-})
-.then(res => {
-  ocultarLoader();
-  if (res && res.success) {
-
-    // (SE BORRÓ EL BLOQUE DEL CONTADOR EXTERNO)
-
-    const a = document.createElement('a'); 
-    a.href = 'data:application/pdf;base64,' + res.base64; 
-    a.download = res.fileName || nFinal;
-    document.body.appendChild(a); 
-    a.click(); 
-    document.body.removeChild(a);
-    Swal.fire({ icon: 'success', title: '¡Ficha Generada!', text: 'La descarga ha comenzado correctamente.', timer: 3000, showConfirmButton: false });
-  } else { 
-    Swal.fire('Error de PDF', (res ? res.error : 'Respuesta desconocida'), 'error'); 
   }
-}).catch(err => {
-  ocultarLoader(); 
-  if (err.name === 'AbortError') {
-    Swal.fire('Servidor Saturado', 'El sistema está procesando demasiadas peticiones a la vez. Por favor, espera 10 segundos y vuelve a darle a exportar.', 'warning');
-  } else {
-    Swal.fire('Error de conexión', 'No se pudo conectar con el servidor.', 'error');
-  }
-});
+
+  // Animación diferente según lo que el usuario pidió
+  mostrarLoader(formato === 'excel' ? "Generando Excel (aprox. 15-20 seg)..." : "Generando PDF (aprox. 15-20 seg)...");
+
+  const aCed = getVal('cedula').trim();
+  const aApe = getVal('primer_apellido').trim().toUpperCase();
+  const aNom = getVal('primer_nombre').trim().toUpperCase();
+  const nFinal = `FichasEPI_${aCed}_${aApe}_${aNom}.${formato === 'excel' ? 'xlsx' : 'pdf'}`;
+
+  const controllerPDF = new AbortController();
+  // AMPLIAMOS EL TIMEOUT A 90 SEGUNDOS (Soluciona el error por tráfico alto)
+  const timeoutPDF = setTimeout(() => controllerPDF.abort(), 90000); 
+
+  // --- SOLUCIÓN EXPORTACIÓN: Inyectamos el formato que pidió el botón ---
+  const datosObj = JSON.parse(recopilarDatos());
+  datosObj.formato = formato; // Aquí le decimos al backend si queremos pdf o excel
+  const payloadFinal = JSON.stringify(datosObj);
+
+  fetch(API_URL, { 
+    method: 'POST', 
+    body: payloadFinal,
+    signal: controllerPDF.signal
+  })
+  .then(response => {
+    clearTimeout(timeoutPDF);
+    return response.json();
+  })
+  .then(res => {
+    ocultarLoader();
+    if (res && res.success) {
+      const a = document.createElement('a'); 
+      
+      // Especificamos al navegador el MIME TYPE correcto para descargar
+      const mimeType = formato === 'excel' 
+          ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+          : 'application/pdf';
+          
+      a.href = `data:${mimeType};base64,${res.base64}`; 
+      a.download = res.fileName || nFinal;
+      document.body.appendChild(a); 
+      a.click(); 
+      document.body.removeChild(a);
+      Swal.fire({ icon: 'success', title: '¡Documento Generado!', text: 'La descarga ha comenzado correctamente.', timer: 3000, showConfirmButton: false });
+    } else { 
+      Swal.fire('Error de Exportación', (res ? res.error : 'Respuesta desconocida'), 'error'); 
+    }
+  }).catch(err => {
+    ocultarLoader(); 
+    if (err.name === 'AbortError') {
+      Swal.fire('Servidor Saturado', 'El sistema está procesando demasiadas peticiones. Por favor, espera 10 segundos y vuelve a intentar.', 'warning');
+    } else {
+      Swal.fire('Error de conexión', 'No se pudo conectar con el servidor.', 'error');
+    }
+  });
 }
