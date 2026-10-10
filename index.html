@@ -21,27 +21,83 @@
   <p id="loader-text">Procesando los datos clínicos de forma segura.</p>
 </div>
 
-<div class="glass-header">
-  <h3>Formulario Fichas EPI</h3>
-  <div class="header-actions">
-    <button class="theme-toggle" id="themeToggle" title="Alternar Modo Oscuro" type="button" aria-label="Alternar Modo Oscuro">
+<!-- ENCABEZADO SUPERIOR LIMPIO -->
+<div class="glass-header d-flex justify-content-between align-items-center">
+  
+  <!-- IZQUIERDA: Botón Hamburguesa y Título -->
+  <div class="d-flex align-items-center gap-3">
+    <button class="btn p-1 d-flex align-items-center gap-1" type="button" data-bs-toggle="offcanvas" data-bs-target="#menuOpciones" style="background: transparent; border: none; color: var(--apple-text); transition: opacity 0.2s;" onmouseover="this.style.opacity='0.7'" onmouseout="this.style.opacity='1'">
+      <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--apple-blue); margin-left: 2px;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+    </button>
+    <h3 class="m-0 d-none d-md-block" style="color: var(--apple-text); font-weight: 600;">Fichas EPI</h3>
+  </div>
+
+  <!-- DERECHA: Acciones Rápidas (Tema, Limpiar, Exportar) -->
+  <div class="d-flex align-items-center gap-2">
+    <!-- Tema Oscuro -->
+    <button class="theme-toggle flex-shrink-0" id="themeToggle" title="Alternar Modo Oscuro" type="button" aria-label="Alternar Modo Oscuro">
       <svg id="moonIcon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
       <svg id="sunIcon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
     </button>
-    <button type="button" class="btn-apple-danger" onclick="limpiarFormulario()">Limpiar Ficha</button>
-    <!-- Mantenemos solo el PDF arriba -->
-    <button type="button" class="btn-apple" onclick="descargarFichaSegura('pdf')">Exportar PDF</button>
+    
+    <!-- Limpiar (Solo icono en móvil, texto completo en PC) -->
+    <button type="button" class="btn-apple-danger d-none d-md-inline-flex align-items-center gap-2" onclick="limpiarFormulario()">Limpiar Ficha</button>
+    <button type="button" class="btn-apple-danger d-md-none p-2 d-flex align-items-center justify-content-center" onclick="limpiarFormulario()" title="Limpiar Ficha" style="width: 40px; height: 40px; border-radius: 50%;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+    </button>
+    
+    <!-- Exportar PDF -->
+    <button type="button" class="btn-apple d-flex align-items-center gap-2" onclick="descargarFichaSegura('pdf')">
+      <span class="d-none d-sm-inline">Exportar</span> PDF
+    </button>
+  </div>
+</div>
+
+<!-- MENÚ LATERAL (OFFCANVAS) PARA GESTIÓN DE NUBE -->
+<div class="offcanvas offcanvas-start" tabindex="-1" id="menuOpciones" style="background-color: var(--apple-bg); color: var(--apple-text); border-right: 1px solid var(--apple-border); width: 320px;">
+  <div class="offcanvas-header border-bottom" style="border-color: var(--apple-border) !important; padding: 20px 24px;">
+    <h5 class="offcanvas-title fw-bold" style="color: var(--apple-text); display: flex; align-items: center; gap: 10px;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--apple-blue);"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+      Gestión Médica
+    </h5>
+    <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close" style="filter: var(--select-arrow-filter);"></button>
+  </div>
+  
+  <div class="offcanvas-body d-flex flex-column gap-3 p-4">
+    <!-- Botón de Inicio de Sesión -->
+    <button type="button" id="btnGoogleLogin" class="btn-apple" style="background-color: var(--apple-card); color: var(--apple-text); border: 1px solid var(--apple-border); display: flex; align-items: center; justify-content: center; gap: 10px; padding: 14px 16px; width: 100%; box-shadow: 0 2px 8px rgba(0,0,0,0.04);" onclick="toggleLogin()">
+      <svg id="loginIcon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+      <span id="loginText" style="font-weight: 600; font-size: 1rem;">Iniciar sesión</span>
+    </button>
+
+    <!-- Botones Operativos de la Nube (Ocultos hasta iniciar sesión) -->
+    <button type="button" id="btnSaveCloud" class="btn-apple w-100" style="background-color: var(--apple-blue); display: none; padding: 14px 16px; align-items: center; justify-content: center; gap: 10px; font-weight: 500;" onclick="guardarFichaNube()">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 16.9A5 5 0 0 0 18 7h-1.26a8 8 0 1 0-11.62 9"></path><polyline points="16 12 12 8 8 12"></polyline><line x1="12" y1="8" x2="12" y2="21"></line></svg>
+      Guardar ficha en la nube
+    </button>
+    
+    <button type="button" id="btnLoadCloud" class="btn-apple w-100" style="background-color: var(--apple-input-bg); color: var(--apple-text); border: 1px solid var(--apple-border); display: none; padding: 14px 16px; align-items: center; justify-content: center; gap: 10px; font-weight: 500; box-shadow: none;" onclick="cargarFichaNube()">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+      Mis fichas guardadas
+    </button>
+
+    <hr id="menuDivider" style="border-color: var(--apple-border); display: none; margin: 10px 0;">
+
+    <!-- Cerrar Sesión -->
+    <button type="button" id="btnLogout" class="btn-apple-danger w-100" style="display: none; padding: 12px 16px; font-size: 0.95rem; align-items: center; justify-content: center; gap: 8px; border: none; background: rgba(255, 59, 48, 0.08);" onclick="confirmarCerrarSesion()">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+      Cerrar sesión
+    </button>
   </div>
 </div>
 
 <div class="container-fluid app-container py-2">
-  
   <h2 class="d-md-none text-center mb-4 fw-bold" style="color: var(--apple-blue); font-size: 1.55rem;">Formulario Fichas EPI</h2>
-
   <form id="epiForm">
     <!-- SECCIÓN UNIDAD NOTIFICADORA -->
     <div class="card">
-      <div class="card-header-custom">🏥 Unidad Notificadora</div>
+      <div class="card-header-custom"><svg class="me-2" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"></path><path d="M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16"></path><path d="M9 21v-4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v4"></path><path d="M10 9h4"></path><path d="M12 7v4"></path></svg>Unidad Notificadora</div>
       <div class="card-body pt-2">
         <div class="row g-4 align-items-end">
           <div class="col-md-6">
@@ -83,8 +139,8 @@
       <div class="accordion-item">
         <h2 class="accordion-header">
           <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#sec1">
-            👤 Identificación y Datos del Paciente
-          </button>
+  <svg class="me-2" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>Identificación y Datos del Paciente
+</button>
         </h2>
         <div id="sec1" class="accordion-collapse collapse show" data-bs-parent="#accordionFicha">
           <div class="accordion-body">
@@ -194,7 +250,7 @@
               </div>
               <div class="col-6 col-md-4">
                 <label>Médico Tratante:</label>
-                <input type="text" id="medico_tratante" class="form-control save-state">
+                <input type="text" id="medico_tratante" class="form-control save-state" oninput="const resp = document.getElementById('tb_responsable'); if(resp) { resp.value = this.value; resp.dispatchEvent(new Event('input', {bubbles:true})); }">
               </div>
               <div class="col-12 col-md-4">
                 <label>Diagnóstico CIE-10:</label>
@@ -221,8 +277,8 @@
       <div class="accordion-item">
         <h2 class="accordion-header">
           <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sec3">
-            🩺 Síntomas y Signos Clínicos
-          </button>
+  <svg class="me-2" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>Síntomas y Signos Clínicos
+</button>
         </h2>
         <div id="sec3" class="accordion-collapse collapse" data-bs-parent="#accordionFicha">
           <div class="accordion-body">
@@ -297,7 +353,7 @@
               <div class="row g-4 align-items-center">
                 <div class="col-12 col-md-4">
                   <label>¿Caracterizar signos relevantes?:</label>
-                  <select id="aplica_caracterizar_signos" class="form-select save-state">
+                  <select id="aplica_caracterizar_signos" class="form-select save-state" onchange="toggleCaracterizarSignos()">
                     <option value="NO" selected>NO</option>
                     <option value="SI">SI</option>
                   </select>
@@ -316,8 +372,8 @@
       <div class="accordion-item">
         <h2 class="accordion-header">
           <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#secContactos">
-            👥 Contactos en Período de Incubación
-          </button>
+  <svg class="me-2" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>Contactos en Período de Incubación
+</button>
         </h2>
         <div id="secContactos" class="accordion-collapse collapse" data-bs-parent="#accordionFicha">
           <div class="accordion-body table-responsive pt-2">
@@ -346,8 +402,8 @@
       <div class="accordion-item">
         <h2 class="accordion-header">
           <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sec6">
-            ✈️ Antecedentes Vacunales y Viajes
-          </button>
+  <svg class="me-2" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"></path></svg>Antecedentes Vacunales y Viajes
+</button>
         </h2>
         <div id="sec6" class="accordion-collapse collapse" data-bs-parent="#accordionFicha">
           <div class="accordion-body">
@@ -434,8 +490,8 @@
       <div class="accordion-item">
         <h2 class="accordion-header">
           <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#secTratamiento">
-            💊 Manejo Clínico y Tratamiento
-          </button>
+  <svg class="me-2" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 20.5l-6-6a4.95 4.95 0 1 1 7-7l6 6a4.95 4.95 0 1 1-7 7z"></path><line x1="8.5" y1="8.5" x2="15.5" y2="15.5"></line></svg>Manejo Clínico y Tratamiento
+</button>
         </h2>
         <div id="secTratamiento" class="accordion-collapse collapse" data-bs-parent="#accordionFicha">
           <div class="accordion-body">
@@ -490,8 +546,8 @@
       <div class="accordion-item">
         <h2 class="accordion-header">
           <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sec4">
-            🛏️ Hospitalización y Condición al Egreso
-          </button>
+  <svg class="me-2" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4v16"></path><path d="M2 8h18a2 2 0 0 1 2 2v10"></path><path d="M2 17h20"></path><path d="M6 8v9"></path></svg>Hospitalización y Condición al Egreso
+</button>
         </h2>
         <div id="sec4" class="accordion-collapse collapse" data-bs-parent="#accordionFicha">
           <div class="accordion-body">
@@ -558,8 +614,8 @@
       <div class="accordion-item">
         <h2 class="accordion-header">
           <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sec5">
-            ⚠️ Fuentes de Exposición y Factores Ambientales
-          </button>
+  <svg class="me-2" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>Fuentes de Exposición y Factores Ambientales
+</button>
         </h2>
         <div id="sec5" class="accordion-collapse collapse" data-bs-parent="#accordionFicha">
           <div class="accordion-body">
@@ -644,8 +700,8 @@
       <div class="accordion-item">
         <h2 class="accordion-header">
           <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sec7">
-            🦠 Otros Enfermos y Comorbilidades
-          </button>
+  <svg class="me-2" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>Otros Enfermos y Comorbilidades
+</button>
         </h2>
         <div id="sec7" class="accordion-collapse collapse" data-bs-parent="#accordionFicha">
           <div class="accordion-body">
@@ -711,8 +767,8 @@
       <div class="accordion-item">
         <h2 class="accordion-header">
           <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sec8">
-            🔬 Laboratorio y Clasificación Final
-          </button>
+  <svg class="me-2" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6M10 3v10l-4.7 6.4c-.6.9-.1 2.2 1 2.2h11.4c1.1 0 1.6-1.3 1-2.2L14 13V3"></path></svg>Laboratorio y Clasificación Final
+</button>
         </h2>
         <div id="sec8" class="accordion-collapse collapse" data-bs-parent="#accordionFicha">
           <div class="accordion-body">
@@ -799,7 +855,243 @@
         </div>
       </div>
     </div>
-  </form>
+    <!-- PREGUNTA OPCIONAL PARA TUBERCULOSIS -->
+      <div class="card mb-4" id="tb_pregunta_container" style="display: none; border: 2px solid var(--apple-red) !important; background-color: rgba(255, 59, 48, 0.03);">
+        <div class="card-body">
+          <div class="row align-items-center">
+            <div class="col-12 col-md-8">
+              <h6 class="text-danger mb-1"><svg class="me-2" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>Diagnóstico de Tuberculosis detectado</h6>
+              <p class="mb-0" style="color: var(--apple-text-muted); font-size: 0.85rem;">¿Desea llenar y adjuntar la Solicitud de Pruebas de Diagnóstico y Control de TB al PDF final?</p>
+            </div>
+            <div class="col-12 col-md-4 mt-3 mt-md-0">
+              <select id="tb_requiere_ficha" class="form-select save-state" onchange="toggleFormularioTB()" style="border-color: var(--apple-red); color: var(--apple-red); font-weight: bold;">
+                <option value="NO" selected>NO</option>
+                <option value="SI">SÍ, LLENAR FICHA TB</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+    <!-- SECCIÓN TUBERCULOSIS (Oculta por defecto) -->
+      <div class="accordion-item" id="secTuberculosisContainer" style="display: none;">
+        <h2 class="accordion-header">
+          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#secTuberculosis" style="background-color: rgba(255, 59, 48, 0.05); color: var(--apple-red);">
+  <svg class="me-2" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>Solicitud Pruebas TB (Diagnóstico y Control)
+</button>
+        </h2>
+        <div id="secTuberculosis" class="accordion-collapse collapse" data-bs-parent="#accordionFicha">
+          <div class="accordion-body pb-4">
+            
+            <!-- DATOS ADMINISTRATIVOS -->
+            <div class="row g-3 mt-1 align-items-end">
+              <div class="col-4 col-md-2"><label>Zona:</label><input type="text" id="tb_zona" class="form-control save-state"></div>
+              <div class="col-4 col-md-2"><label>Distrito:</label><input type="text" id="tb_distrito" class="form-control save-state"></div>
+              <div class="col-4 col-md-3"><label>F. Toma Muestra:</label><input type="date" id="tb_fecha_toma" class="form-control save-state"></div>
+              <div class="col-12 col-md-5">
+                <label>Tipo de Muestra:</label>
+                <select id="tb_tipo_muestra" class="form-select save-state">
+                  <option value="">Seleccione...</option>
+                  <option value="ESPUTO">ESPUTO</option>
+                  <option value="LAVADO BRONCOALVEOLAR">LAVADO BRONCOALVEOLAR</option>
+                  <option value="ASPIRADO GÁSTRICO">ASPIRADO GÁSTRICO</option>
+                  <option value="LÍQUIDO CEFALORRAQUÍDEO">LÍQUIDO CEFALORRAQUÍDEO (LCR)</option>
+                  <option value="LÍQUIDO PLEURAL">LÍQUIDO PLEURAL</option>
+                  <option value="ORINA">ORINA</option>
+                  <option value="SANGRE">SANGRE</option>
+                  <option value="BIOPSIA">BIOPSIA</option>
+                  <option value="OTRO">OTRO</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- SERVICIO Y CLASIFICACIÓN -->
+            <div class="p-3 bg-light rounded border mt-3">
+              <div class="row g-3 align-items-center">
+                <div class="col-12"><h6 class="mb-0 text-primary">Servicio y Clasificación</h6></div>
+                
+                <div class="col-auto"><div class="form-check"><input type="radio" name="tb_servicio" id="tb_srv_cext" value="cext" class="form-check-input save-state" onchange="toggleServiciosTB()"><label class="form-check-label" for="tb_srv_cext">C. Externa</label></div></div>
+                <div class="col-auto"><div class="form-check"><input type="radio" name="tb_servicio" id="tb_srv_hosp" value="hosp" class="form-check-input save-state" onchange="toggleServiciosTB()"><label class="form-check-label" for="tb_srv_hosp">Hospitalización</label></div></div>
+                <div class="col-auto"><div class="form-check"><input type="radio" name="tb_servicio" id="tb_srv_emerg" value="emerg" class="form-check-input save-state" onchange="toggleServiciosTB()"><label class="form-check-label" for="tb_srv_emerg">Emergencia</label></div></div>
+                <div class="col-12 col-md-3"><input type="text" id="tb_srv_esp" class="form-control save-state" placeholder="Especifique Especialidad..." disabled></div>
+                
+                <div class="col-auto"><div class="form-check"><input type="radio" name="tb_servicio" id="tb_srv_cons" value="cons" class="form-check-input save-state" onchange="toggleServiciosTB()"><label class="form-check-label" for="tb_srv_cons">Consultorio</label></div></div>
+                <div class="col-12 col-md-3"><input type="text" id="tb_srv_cons_esp" class="form-control save-state" placeholder="Especifique Especialidad..." disabled></div>
+
+                <div class="col-12"><hr class="my-1" style="border-color: var(--apple-border);"></div>
+                
+                <div class="col-6 col-md-3">
+                  <label>Muestra:</label>
+                  <select id="tb_tipo" class="form-select save-state">
+                    <option value="">Sel...</option>
+                    <option value="PULMONAR">PULMONAR</option>
+                    <option value="EXTRAPULMONAR">EXTRAPULMONAR</option>
+                  </select>
+                </div>
+                <div class="col-6 col-md-3">
+                  <label>Antecedente:</label>
+                  <select id="tb_antecedente" class="form-select save-state">
+                    <option value="">Sel...</option>
+                    <option value="NUEVO">CASO NUEVO</option>
+                    <option value="RECAIDA">RECAÍDA</option>
+                    <option value="FRACASO">FRACASO</option>
+                    <option value="PERDIDA">PÉRDIDA SEGUIM.</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- TIPO DE USUARIO -->
+            <div class="p-3 bg-light rounded border mt-3">
+              <h6 class="mb-2 text-primary">Tipo de Usuario / Comorbilidades (Selección múltiple)</h6>
+              <div class="row g-2" style="font-size: 0.85rem;">
+                <div class="col-6 col-md-3"><div class="form-check"><input type="checkbox" id="tb_usr_contacto" class="form-check-input save-state"><label class="form-check-label">Contacto TB</label></div></div>
+                <div class="col-6 col-md-3"><div class="form-check"><input type="checkbox" id="tb_usr_albergue" class="form-check-input save-state"><label class="form-check-label">Albergues/Calle</label></div></div>
+                <div class="col-6 col-md-3"><div class="form-check"><input type="checkbox" id="tb_usr_fallecido" class="form-check-input save-state"><label class="form-check-label">Cont. Fallecido TB</label></div></div>
+                <div class="col-6 col-md-3"><div class="form-check"><input type="checkbox" id="tb_usr_adicciones" class="form-check-input save-state"><label class="form-check-label">Adicciones</label></div></div>
+                
+                <div class="col-6 col-md-3"><div class="form-check"><input type="checkbox" id="tb_usr_salud" class="form-check-input save-state"><label class="form-check-label">Talento Salud</label></div></div>
+                <div class="col-6 col-md-3"><div class="form-check"><input type="checkbox" id="tb_usr_irregular" class="form-check-input save-state"><label class="form-check-label">Irregularidad TTO</label></div></div>
+                <div class="col-6 col-md-3"><div class="form-check"><input type="checkbox" id="tb_usr_embarazo" class="form-check-input save-state"><label class="form-check-label">Embarazo</label></div></div>
+                <div class="col-6 col-md-3"><div class="form-check"><input type="checkbox" id="tb_usr_pvv" class="form-check-input save-state"><label class="form-check-label">PVV</label></div></div>
+                
+                <div class="col-6 col-md-3"><div class="form-check"><input type="checkbox" id="tb_usr_diabetes" class="form-check-input save-state"><label class="form-check-label">Diabetes</label></div></div>
+                <div class="col-6 col-md-3"><div class="form-check"><input type="checkbox" id="tb_usr_ppl" class="form-check-input save-state"><label class="form-check-label">PPL</label></div></div>
+                <div class="col-6 col-md-3"><div class="form-check"><input type="checkbox" id="tb_usr_endemica" class="form-check-input save-state"><label class="form-check-label">Zona Endémica</label></div></div>
+                <div class="col-6 col-md-3"><div class="form-check"><input type="checkbox" id="tb_usr_reversion" class="form-check-input save-state"><label class="form-check-label">Reversión</label></div></div>
+                
+                <div class="col-12 mt-2"><hr class="my-1" style="border-color: var(--apple-border);"></div>
+                
+                <div class="col-12 col-md-6 mt-2"><label style="font-size: 0.8rem; font-weight: bold;">Otras Clínicas / Comorbilidades (Ej. Hipertensión):</label><input type="text" id="tb_usr_otras_txt" class="form-control save-state" placeholder="Especifique..."></div>
+                <div class="col-12 col-md-6 mt-2"><label style="font-size: 0.8rem; font-weight: bold;">Otro Tipo de Usuario (Ej. Indígena):</label><input type="text" id="tb_usr_otros" class="form-control save-state" placeholder="Especifique..."></div>
+              </div>
+            </div>
+
+            <!-- CRITERIOS LAM / ESPECIALES -->
+            <div class="p-3 bg-light rounded border mt-3">
+              <h6 class="mb-2 text-primary">Criterios LAM / Condiciones Especiales</h6>
+              <div class="row g-2">
+                <div class="col-6 col-md-3"><div class="form-check"><input type="checkbox" id="tb_crit_alta" class="form-check-input save-state"><label class="form-check-label">Alta Sosp. Clínica</label></div></div>
+                <div class="col-6 col-md-3"><div class="form-check"><input type="checkbox" id="tb_crit_signos" class="form-check-input save-state"><label class="form-check-label">Signos/Sint. TB</label></div></div>
+                <div class="col-6 col-md-3"><div class="form-check"><input type="checkbox" id="tb_crit_grave" class="form-check-input save-state"><label class="form-check-label">Grav. Enfermo</label></div></div>
+                <div class="col-6 col-md-3"><div class="form-check"><input type="checkbox" id="tb_crit_cd4" class="form-check-input save-state"><label class="form-check-label">CD4 Menor 200</label></div></div>
+                
+                <div class="col-6 col-md-6"><div class="form-check"><input type="checkbox" id="tb_crit_bk2" class="form-check-input save-state"><label class="form-check-label">BK al 2do Mes</label></div></div>
+                <div class="col-6 col-md-6"><div class="form-check"><input type="checkbox" id="tb_crit_meningitis" class="form-check-input save-state"><label class="form-check-label">Sosp. Meningitis TB</label></div></div>
+                
+                <div class="col-12 mt-2"><hr class="my-1" style="border-color: var(--apple-border);"></div>
+                
+                <div class="col-12 col-md-4 mt-2"><div class="form-check mb-0"><input type="checkbox" id="tb_crit_especiales" class="form-check-input save-state" onchange="toggleCondicionesEspeciales(this.checked)"><label class="form-check-label fw-bold">Condiciones Especiales</label></div></div>
+                <div class="col-12 col-md-8 mt-2"><input type="text" id="tb_crit_especiales_txt" class="form-control save-state" placeholder="Especificar Condición Especial..." disabled></div>
+              </div>
+            </div>
+
+            <!-- DIAGNÓSTICO Y CONTROL -->
+            <div class="row g-3 mt-2">
+              <!-- BLOQUE DIAGNÓSTICO REDISEÑADO -->
+              <div class="col-12 col-md-6">
+                <div class="p-3 bg-light rounded border h-100">
+                  <h6 class="text-primary mb-3">Solicitud para Diagnóstico</h6>
+                  
+                  <!-- Baciloscopía -->
+                  <div class="d-flex align-items-center mb-3">
+                    <div class="form-check mb-0 me-3"><input type="checkbox" id="tb_diag_bac" class="form-check-input save-state"><label class="form-check-label fw-bold">Baciloscopía | N°</label></div>
+                    <input type="number" id="tb_diag_bac_num" class="form-control save-state numeric-input p-1" style="width: 70px;">
+                  </div>
+                  
+                  <hr class="my-2" style="border-color: var(--apple-border);">
+                  
+                  <!-- Cultivos -->
+                  <h6 class="text-secondary" style="font-size: 0.85rem; font-weight: 600;">CULTIVOS</h6>
+                  <div class="row g-2 mb-3">
+                    <div class="col-6"><div class="form-check mb-0"><input type="checkbox" id="tb_diag_cult_solido" class="form-check-input save-state"><label class="form-check-label">M. Sólido (OK)</label></div></div>
+                    <div class="col-6"><div class="form-check mb-0"><input type="checkbox" id="tb_diag_cult_liq" class="form-check-input save-state"><label class="form-check-label">Medio Líquido</label></div></div>
+                  </div>
+
+                  <hr class="my-2" style="border-color: var(--apple-border);">
+
+                  <!-- PCR -->
+                  <h6 class="text-secondary" style="font-size: 0.85rem; font-weight: 600;">PCR-XPERT</h6>
+                  <div class="row g-2 mb-2">
+                    <div class="col-6"><div class="form-check mb-0"><input type="checkbox" id="tb_diag_xpert" class="form-check-input save-state"><label class="form-check-label">MTB/RIF (Ultra)</label></div></div>
+                    <div class="col-6"><div class="form-check mb-0"><input type="checkbox" id="tb_diag_xpert_xdr" class="form-check-input save-state"><label class="form-check-label">MTB XDR</label></div></div>
+                  </div>
+                  <div class="p-2 mb-3 bg-white rounded border d-flex justify-content-between align-items-center" style="box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
+                     <label class="d-block text-primary fw-bold mb-0" style="font-size: 0.85rem;">¿PCR como 1era Prueba?</label>
+                     <div class="d-flex gap-3">
+                       <div class="form-check mb-0"><input type="radio" name="tb_diag_pcr1" id="pcr1_si" value="SI" class="form-check-input save-state"><label class="form-check-label fw-bold" for="pcr1_si">SÍ</label></div>
+                       <div class="form-check mb-0"><input type="radio" name="tb_diag_pcr1" id="pcr1_no" value="NO" class="form-check-input save-state"><label class="form-check-label fw-bold" for="pcr1_no">NO</label></div>
+                     </div>
+                  </div>
+
+                  <hr class="my-2" style="border-color: var(--apple-border);">
+
+                  <!-- LAM -->
+                  <div class="form-check mb-2"><input type="checkbox" id="tb_diag_lam" class="form-check-input save-state"><label class="form-check-label fw-bold">Prueba LAM</label></div>
+                  <div class="p-2 mb-3 bg-white rounded border d-flex justify-content-between align-items-center" style="box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
+                     <label class="d-block text-primary fw-bold mb-0" style="font-size: 0.85rem;">¿LAM como 1era Prueba?</label>
+                     <div class="d-flex gap-3">
+                       <div class="form-check mb-0"><input type="radio" name="tb_diag_lam1" id="lam1_si" value="SI" class="form-check-input save-state"><label class="form-check-label fw-bold" for="lam1_si">SÍ</label></div>
+                       <div class="form-check mb-0"><input type="radio" name="tb_diag_lam1" id="lam1_no" value="NO" class="form-check-input save-state"><label class="form-check-label fw-bold" for="lam1_no">NO</label></div>
+                     </div>
+                  </div>
+
+                  <hr class="my-2" style="border-color: var(--apple-border);">
+
+                  <!-- OTRAS PRUEBAS -->
+                  <h6 class="text-secondary" style="font-size: 0.85rem; font-weight: 600;">OTRAS PRUEBAS</h6>
+                  <div class="row g-2">
+                    <div class="col-6"><div class="form-check"><input type="checkbox" id="tb_diag_prop1" class="form-check-input save-state"><label class="form-check-label">Prop. 1era</label></div></div>
+                    <div class="col-6"><div class="form-check"><input type="checkbox" id="tb_diag_prop2" class="form-check-input save-state"><label class="form-check-label">Prop. 2da</label></div></div>
+                    <div class="col-6"><div class="form-check"><input type="checkbox" id="tb_diag_mgit1" class="form-check-input save-state"><label class="form-check-label">MGIT 1era</label></div></div>
+                    <div class="col-6"><div class="form-check"><input type="checkbox" id="tb_diag_mgit2" class="form-check-input save-state"><label class="form-check-label">MGIT 2da</label></div></div>
+                    <div class="col-6"><div class="form-check"><input type="checkbox" id="tb_diag_lpa1" class="form-check-input save-state"><label class="form-check-label">LPA 1era</label></div></div>
+                    <div class="col-6"><div class="form-check"><input type="checkbox" id="tb_diag_lpa2" class="form-check-input save-state"><label class="form-check-label">LPA 2da</label></div></div>
+                    <div class="col-6"><div class="form-check"><input type="checkbox" id="tb_diag_tipif" class="form-check-input save-state"><label class="form-check-label">Tipificación</label></div></div>
+                    <div class="col-6"><div class="form-check"><input type="checkbox" id="tb_diag_ada" class="form-check-input save-state"><label class="form-check-label">ADA</label></div></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- CONTROL -->
+              <div class="col-12 col-md-6">
+                <div class="p-3 bg-light rounded border h-100">
+                  <h6 class="text-primary mb-3">Solicitud para Control</h6>
+                  
+                  <div class="row g-2 align-items-center mb-2">
+                    <div class="col-8"><div class="form-check mb-0"><input type="checkbox" id="tb_ctrl_bac" class="form-check-input save-state"><label class="form-check-label">Baciloscopía (Mes):</label></div></div>
+                    <div class="col-4"><input type="number" id="tb_ctrl_bac_mes" class="form-control save-state numeric-input p-1"></div>
+                  </div>
+                  
+                  <div class="row g-2 align-items-center mb-2">
+                    <div class="col-8"><div class="form-check mb-0"><input type="checkbox" id="tb_ctrl_cult_solido" class="form-check-input save-state"><label class="form-check-label">Cultivo Sólido (Mes):</label></div></div>
+                    <div class="col-4"><input type="number" id="tb_ctrl_cult_solido_mes" class="form-control save-state numeric-input p-1"></div>
+                  </div>
+                  
+                  <div class="row g-2 align-items-center mb-2">
+                    <div class="col-8"><div class="form-check mb-0"><input type="checkbox" id="tb_ctrl_cult_liq" class="form-check-input save-state"><label class="form-check-label">Cultivo Líq. (Mes):</label></div></div>
+                    <div class="col-4"><input type="number" id="tb_ctrl_cult_liq_mes" class="form-control save-state numeric-input p-1"></div>
+                  </div>
+
+                  <hr class="my-3" style="border-color: var(--apple-border);">
+                  
+                  <div class="form-check"><input type="checkbox" id="tb_ctrl_sensible" class="form-check-input save-state"><label class="form-check-label">TB Sensible</label></div>
+                  <div class="form-check"><input type="checkbox" id="tb_ctrl_resistente" class="form-check-input save-state"><label class="form-check-label">TB Resistente</label></div>
+                  <div class="mt-2"><input type="text" id="tb_ctrl_resistencia" class="form-control save-state" placeholder="Tipo de Resistencia..."></div>
+                  <div class="mt-3"><input type="text" id="tb_esquema_tt" class="form-control save-state" placeholder="Esquema de Tratamiento..."></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- OBSERVACIONES Y FIRMA -->
+            <div class="row g-3 mt-2">
+              <div class="col-12 col-md-6"><label>Observaciones (Op. Diagnóstico):</label><input type="text" id="tb_obs" class="form-control save-state"></div>
+              <div class="col-12 col-md-6"><label>Datos Clínicos Opcionales:</label><input type="text" id="tb_opcional" class="form-control save-state"></div>
+              <div class="col-12"><label>Nombres / Firma del Responsable:</label><input type="text" id="tb_responsable" class="form-control save-state" placeholder="Se copia automáticamente del Médico Tratante..."></div>
+            </div>
+
+          </div>
+        </div>
+      </div>
 
   <!-- BOTONES INFERIORES -->
   <div class="d-flex justify-content-center gap-3 mt-5 mb-4 flex-wrap">
@@ -822,7 +1114,8 @@
 <!-- Tom Select JS -->
 <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
 <!-- Tu lógica separada -->
-<script src="app.js?v=2.2"></script>
-<link rel="stylesheet" href="styles.css?v=2.2">
+<script type="module" src="./js/main.js?v=3.1"></script>
+<link rel="stylesheet" href="styles.css?v=3.1">
+<!-- SCRIPT INFALIBLE PARA EL CÁLCULO DE DÍAS (Bypass de Formato Mac) -->
 </body>
 </html>
