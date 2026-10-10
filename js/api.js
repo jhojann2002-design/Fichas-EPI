@@ -379,6 +379,10 @@ export async function descargarFichaSegura(formato = 'pdf') {
         setCampo('OPCIONAL', getVal('tb_opcional'));
         // --- FIN MAPEO ---
 
+        // 👇 AÑADE ESTA LÍNEA PARA APLANAR EL FORMULARIO 👇
+        form.flatten();
+
+        // Ahora al copiar las páginas, se transferirán como gráficos/textos estáticos
         const copiedPages = await mainPdfDoc.copyPages(tbDoc, tbDoc.getPageIndices());
         copiedPages.forEach((page) => mainPdfDoc.addPage(page));
 
