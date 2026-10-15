@@ -17,7 +17,6 @@
   --apple-accordion-bg: transparent;
   --apple-switch-bg: #e9e9ea;
   --apple-switch-checked: #34c759;
-  --select-arrow-filter: none;
   --apple-subcard-bg: #fbfbfd;
 }
 
@@ -36,7 +35,6 @@
   --apple-glass-bg: rgba(0, 0, 0, 0.65);
   --apple-switch-bg: #39393d;
   --apple-switch-checked: #30d158;
-  --select-arrow-filter: invert(1) brightness(2);
   --apple-subcard-bg: #2c2c2e;
 }
 
@@ -118,6 +116,24 @@ body {
   color: white;
   transform: scale(1.02);
   box-shadow: 0 4px 10px rgba(255, 59, 48, 0.2);
+}
+
+.btn-del-contacto {
+  color: var(--apple-red);
+  background: rgba(255, 59, 48, 0.08);
+  border-radius: 8px;
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+.btn-del-contacto:hover {
+  background: var(--apple-red);
+  color: #fff;
+  transform: scale(1.08);
 }
 
 .theme-toggle {
@@ -282,6 +298,8 @@ input[readonly], select[disabled], input[disabled] {
   #tablaContactos tbody tr.expanded td:nth-child(7) { width: 50%; background: rgba(0,0,0,0.03); border-radius: 8px 0 0 8px; padding-top: 8px; padding-bottom: 8px; }
   #tablaContactos tbody tr.expanded td:nth-child(8) { width: 50%; background: rgba(0,0,0,0.03); border-radius: 0 8px 8px 0; padding-top: 8px; padding-bottom: 8px; }
   #tablaContactos tbody tr.expanded td:nth-child(9) { width: 100%; background: rgba(0,0,0,0.03); border-radius: 8px; padding: 8px; margin-top: 4px; }
+  #tablaContactos tbody tr.expanded td:nth-child(10) { width: 100%; display: flex; justify-content: flex-end; align-items: center; padding: 6px 4px 0 0; }
+  #tablaContactos tbody tr.expanded td:nth-child(10)::before { display: none !important; }
   
   #tablaContactos tbody tr::after {
     content: '▼';
@@ -397,8 +415,28 @@ h6 { font-weight: 600; color: var(--apple-text); margin-top: 10px; }
 .ts-control > input { color: var(--apple-input-text) !important; }
 
 .form-select {
-  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
-  filter: var(--select-arrow-filter);
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%2386868b' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 0.75rem center !important;
+  background-size: 16px 12px !important;
+  color: var(--apple-input-text) !important;
+  background-color: var(--apple-input-bg) !important;
+}
+
+[data-theme="dark"] .form-select {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23f5f5f7' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e") !important;
+}
+
+select option,
+.form-select option {
+  background-color: var(--apple-card);
+  color: var(--apple-text);
+}
+
+[data-theme="dark"] select option,
+[data-theme="dark"] .form-select option {
+  background-color: #1c1c1e !important;
+  color: #f5f5f7 !important;
 }
 
 .form-control:focus, .form-select:focus, .ts-control.focus {
@@ -505,4 +543,321 @@ input[type="radio"].form-check-input:checked {
 /* Modo oscuro para el botón de Excel */
 [data-theme="dark"] .btn-apple-excel {
   box-shadow: 0 4px 10px rgba(33, 115, 70, 0.4);
+}
+/* ==========================================
+   CORRECCIÓN ITEMS SELECT Y TOMSELECT (MODO OSCURO)
+   ========================================== */
+.ts-control .item {
+  /* Fuerza al item seleccionado en Tom Select a usar el color correcto */
+  color: var(--apple-input-text) !important;
+}
+
+select option {
+  /* Fuerza el fondo y texto de las opciones nativas para que no queden en blanco */
+  background-color: var(--apple-card);
+  color: var(--apple-text);
+}
+/* ==========================================
+   ESTILOS PARA LOS BOTONES INFERIORES DE ACCIÓN
+   ========================================== */
+.action-buttons-container {
+  width: 100%;
+  padding: 0 15px;
+}
+
+.action-btn {
+  padding: 14px 40px !important;
+  font-size: 1.1rem !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: auto;
+  min-width: 220px; /* Tamaño uniforme en PC */
+}
+
+/* MODO CELULAR: Se apilan y ocupan el 100% del ancho */
+@media (max-width: 768px) {
+  .action-buttons-container {
+    padding: 0;
+  }
+  .action-btn {
+    width: 100%; /* Ocupan todo el ancho en móvil */
+    padding: 14px 20px !important;
+    font-size: 1.05rem !important;
+  }
+}
+
+/* Botón de fecha "Hoy" elegante estilo Apple (sin emojis) */
+.btn-fecha-hoy {
+  background: var(--apple-subcard-bg);
+  color: var(--apple-blue);
+  border: 1px solid var(--apple-border);
+  border-radius: 8px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  padding: 3px 10px;
+  line-height: 1.3;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  text-decoration: none;
+}
+.btn-fecha-hoy:hover {
+  background: var(--apple-blue);
+  color: #ffffff;
+  border-color: var(--apple-blue);
+  box-shadow: 0 2px 6px rgba(0, 113, 227, 0.25);
+}
+.btn-fecha-hoy:active {
+  transform: scale(0.96);
+}
+
+/* Optimización de tabla de contactos en escritorio / PC para prevenir desplazamiento horizontal */
+@media (min-width: 769px) {
+  #tablaContactos {
+    width: 100% !important;
+    max-width: 100% !important;
+    table-layout: fixed !important;
+  }
+  #tablaContactos th {
+    font-size: 0.74rem !important;
+    padding: 6px 2px !important;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    text-align: center;
+  }
+  #tablaContactos th:first-child,
+  #tablaContactos th:nth-child(5),
+  #tablaContactos th:nth-child(9) {
+    text-align: left;
+  }
+  #tablaContactos td {
+    padding: 2px 2px !important;
+    vertical-align: middle;
+  }
+  #tablaContactos .form-control,
+  #tablaContactos .form-select {
+    padding: 3px 4px !important;
+    font-size: 0.78rem !important;
+    height: 30px !important;
+    min-height: 30px !important;
+    border-radius: 6px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+  #tablaContactos td:last-child {
+    text-align: center;
+  }
+  #tablaContactos .btn-del-contact {
+    width: 26px !important;
+    height: 26px !important;
+    padding: 0 !important;
+    margin: 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+/* ==========================================
+   INTERFAZ MODERNA Y FLUIDA PARA TUBERCULOSIS (APPLE STYLE)
+   ========================================== */
+.tb-segmented-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  background-color: var(--apple-input-bg);
+  padding: 5px;
+  border-radius: 12px;
+  border: 1px solid var(--apple-border);
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.tb-segmented-input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.tb-segmented-btn {
+  flex: 1 1 calc(25% - 8px);
+  min-width: 120px;
+  text-align: center;
+  padding: 9px 12px;
+  margin: 0;
+  border-radius: 9px;
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--apple-text);
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.22s cubic-bezier(0.25, 0.8, 0.25, 1);
+  border: 1px solid transparent;
+}
+
+.tb-segmented-btn:hover {
+  background-color: var(--apple-blue-tint);
+  color: var(--apple-blue);
+}
+
+.tb-segmented-input:checked + .tb-segmented-btn {
+  background-color: var(--apple-blue);
+  color: #ffffff !important;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(0, 113, 227, 0.32);
+}
+
+.tb-segmented-input:focus-visible + .tb-segmented-btn {
+  outline: 2px solid var(--apple-blue);
+  outline-offset: 2px;
+}
+
+/* Tarjetas y píldoras Sí/No para 1era Prueba (PCR / LAM) */
+.tb-test-card {
+  background-color: var(--apple-card);
+  border: 1px solid var(--apple-border);
+  border-radius: 12px;
+  padding: 10px 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.tb-test-title {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--apple-blue);
+}
+
+.tb-pill-toggle {
+  display: inline-flex;
+  background-color: var(--apple-input-bg);
+  padding: 3px;
+  border-radius: 999px;
+  border: 1px solid var(--apple-border);
+  gap: 3px;
+}
+
+.tb-mini-radio {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.tb-mini-label {
+  padding: 5px 16px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--apple-text-muted);
+  border-radius: 999px;
+  cursor: pointer;
+  margin: 0;
+  user-select: none;
+  transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.tb-mini-label:hover {
+  color: var(--apple-text);
+}
+
+.tb-mini-radio:checked + .tb-mini-label {
+  background-color: var(--apple-blue);
+  color: #ffffff !important;
+  box-shadow: 0 2px 6px rgba(0, 113, 227, 0.28);
+}
+
+.tb-test-card-disabled {
+  opacity: 0.35 !important;
+  pointer-events: none !important;
+  filter: grayscale(0.7);
+  transition: all 0.25s ease;
+}
+
+/* ==========================================
+   ALERTAS SWEETALERT2 EN MODO OSCURO
+   ========================================== */
+[data-theme="dark"] .swal2-popup {
+  background-color: #1c1c1e !important;
+  color: #f5f5f7 !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border-radius: 18px !important;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6) !important;
+}
+[data-theme="dark"] .swal2-title {
+  color: #f5f5f7 !important;
+}
+[data-theme="dark"] .swal2-html-container {
+  color: #c7c7cc !important;
+}
+[data-theme="dark"] .swal2-input,
+[data-theme="dark"] .swal2-textarea {
+  background-color: #2c2c2e !important;
+  color: #f5f5f7 !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  border-radius: 10px !important;
+}
+[data-theme="dark"] .swal2-validation-message {
+  background-color: #2c2c2e !important;
+  color: #ff453a !important;
+}
+
+/* ==========================================
+   BANNER DE INSTALACIÓN PWA Y MODO OFFLINE
+   ========================================== */
+.pwa-install-banner {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(120%);
+  z-index: 1060;
+  width: calc(100% - 32px);
+  max-width: 580px;
+  background: var(--apple-glass-bg);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--apple-border);
+  border-radius: 20px;
+  padding: 16px 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.pwa-install-banner.show {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.offline-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  background-color: rgba(255, 159, 10, 0.15);
+  color: #ff9f0a;
+  border: 1px solid rgba(255, 159, 10, 0.3);
+  transition: all 0.3s ease;
+}
+
+.offline-status-badge.online {
+  background-color: rgba(48, 209, 88, 0.12);
+  color: #30d158;
+  border-color: rgba(48, 209, 88, 0.25);
+}
+
+[data-theme="dark"] .btn-close {
+  filter: invert(1) grayscale(100%) brightness(200%);
 }

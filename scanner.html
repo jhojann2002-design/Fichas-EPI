@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Escáner de Campos PDF - Definitivo</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 700px; margin: 40px auto; padding: 20px; background: #f4f4f5; color: #333; }
+    .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+    input[type="file"] { margin: 15px 0; padding: 10px; border: 2px dashed #ccc; border-radius: 8px; width: 100%; box-sizing: border-box; cursor: pointer; }
+    pre { background: #282c34; color: #98c379; padding: 15px; border-radius: 8px; overflow-y: auto; max-height: 500px; font-size: 14px; line-height: 1.5; }
+    .type-text { color: #61afef; font-weight: bold; } /* Azul */
+    .type-check { color: #e5c07b; font-weight: bold; } /* Amarillo */
+    .type-radio { color: #c678dd; font-weight: bold; } /* Morado */
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>📑 Escáner de PDF (Método Seguro)</h2>
+    <p>Sube tu plantilla PDF. Este escáner usa análisis de comportamiento para no fallar.</p>
+    <input type="file" id="pdfFile" accept="application/pdf">
+    <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+    <h4 style="margin-bottom: 10px;">Resultados del escaneo:</h4>
+    <pre id="output">Esperando archivo PDF...</pre>
+  </div>
+
+  <script type="module">
+    import { PDFDocument } from 'https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/+esm';
+
+    document.getElementById('pdfFile').addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      document.getElementById('output').textContent = "Escaneando...";
+
+      try {
+        const arrayBuffer = await file.arrayBuffer();
+        const pdfDoc = await PDFDocument.load(arrayBuffer);
+        const form = pdfDoc.getForm();
+        const fields = form.getFields();
+
+        let resultHTML = `Total de campos detectados: ${fields.length}\n`;
+        resultHTML += `--------------------------------------------------\n\n`;
+
+        const parsedFields = fields.map(field => {
+          const name = field.getName();
+          let type = 'Desconocido';
+          let cssClass = '';
+
+          // Preguntar qué funciones tiene el objeto (Análisis infalible)
+          if (typeof field.setText === 'function') {
+            type = 'Texto';
+            cssClass = 'type-text';
+          } else if (typeof field.check === 'function') {
+            type = 'Casilla';
+            cssClass = 'type-check';
+          } else if (typeof field.select === 'function') {
+            type = 'Radio / Desplegable';
+            cssClass = 'type-radio';
+          } else if (typeof field.setImage === 'function') {
+            type = 'Botón';
+          }
+
+          return { name, type, class: cssClass };
+        });
+
+        // Ordenar alfabéticamente
+        parsedFields.sort((a, b) => a.name.localeCompare(b.name));
+
+        parsedFields.forEach(f => {
+          resultHTML += `<span class="${f.class}">[${f.type}]</span> ${f.name}\n`;
+        });
+
+        document.getElementById('output').innerHTML = resultHTML;
+      } catch (err) {
+        document.getElementById('output').textContent = "Error al leer el PDF: " + err.message;
+      }
+    });
+  </script>
+</body>
+</html>

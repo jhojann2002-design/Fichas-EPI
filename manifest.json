@@ -1,0 +1,24 @@
+{
+  "name": "Fichas EPI - Vigilancia Epidemiológica",
+  "short_name": "Fichas EPI",
+  "description": "Formularios oficiales de Investigación Epidemiológica (EPI) y Tuberculosis para el Sistema Nacional de Salud.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f5f5f7",
+  "theme_color": "#0071e3",
+  "icons": [
+    {
+      "src": "./icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

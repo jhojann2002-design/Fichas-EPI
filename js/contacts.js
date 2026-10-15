@@ -71,6 +71,11 @@ export function agregarContacto() {
       </td>
       <td data-label="Fecha Sínt."><input type="date" class="form-control c-fecha save-state" disabled style="font-size:0.85rem" onclick="event.stopPropagation()"></td>
       <td data-label="Observaciones"><input type="text" class="form-control c-obs save-state" disabled style="font-size:0.85rem" onclick="event.stopPropagation()"></td>
+      <td data-label="Acción" class="text-center align-middle">
+        <button type="button" class="btn btn-sm btn-del-contacto p-1 border-0" onclick="eliminarContacto(this, event)" title="Eliminar este contacto">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+        </button>
+      </td>
     </tr>
   `;
   tbody.insertAdjacentHTML('beforeend', rowHTML);
@@ -80,6 +85,19 @@ export function agregarContacto() {
 
 export function agregarContactoRestaurado(c, isFirst) {
   const tbody = document.getElementById('contactsBody');
+  
+  // Lógica para pre-seleccionar opciones de Relación
+  let optionsRelacion = `<option value="" ${!c.relacion ? 'selected disabled' : ''}>Sel. Sexo</option>`;
+  if (c.sexo === 'M') {
+    ['PADRE', 'HERMANO', 'HIJO', 'TÍO', 'PRIMO', 'SOBRINO', 'ABUELO', 'NIETO', 'ESPOSO', 'SUEGRO', 'YERNO', 'CUÑADO', 'CONCUÑADO', 'PADRASTRO', 'HIJASTRO', 'AMIGO', 'COMPAÑERO', 'OTRO'].forEach(o => {
+      optionsRelacion += `<option value="${o}" ${c.relacion === o ? 'selected' : ''}>${o}</option>`;
+    });
+  } else if (c.sexo === 'F') {
+    ['MADRE', 'HERMANA', 'HIJA', 'TÍA', 'PRIMA', 'SOBRINA', 'ABUELA', 'NIETA', 'ESPOSA', 'SUEGRA', 'NUERA', 'CUÑADA', 'CONCUÑADA', 'MADRASTRA', 'HIJASTRA', 'AMIGA', 'COMPAÑERA', 'OTRA'].forEach(o => {
+      optionsRelacion += `<option value="${o}" ${c.relacion === o ? 'selected' : ''}>${o}</option>`;
+    });
+  }
+
   const rowHTML = `
     <tr class="${isFirst ? 'expanded' : ''}" onclick="toggleContactoRow(this)">
       <td data-label="Nombre">
@@ -99,7 +117,9 @@ export function agregarContactoRestaurado(c, isFirst) {
         </select>
       </td>
       <td data-label="Relación">
-        <select class="form-select c-relacion save-state" style="font-size:0.85rem" onchange="updSummary(this)" onclick="event.stopPropagation()"><option value="" ${!c.relacion ? 'selected disabled' : ''}>Sel. Sexo</option></select>
+        <select class="form-select c-relacion save-state" style="font-size:0.85rem" onchange="updSummary(this)" onclick="event.stopPropagation()">
+          ${optionsRelacion}
+        </select>
       </td>
       <td data-label="Dirección/Teléf"><input type="text" class="form-control c-dir save-state" value="${c.dir || ''}" style="font-size:0.85rem" onclick="event.stopPropagation()"></td>
       <td data-label="Lugar">
@@ -118,12 +138,46 @@ export function agregarContactoRestaurado(c, isFirst) {
       </td>
       <td data-label="Fecha Sínt."><input type="date" class="form-control c-fecha save-state" value="${c.fecha || ''}" ${c.enfermo !== 'SI' ? 'disabled' : ''} style="font-size:0.85rem" onclick="event.stopPropagation()"></td>
       <td data-label="Observaciones"><input type="text" class="form-control c-obs save-state" value="${c.obs || ''}" ${c.enfermo !== 'SI' ? 'disabled' : ''} style="font-size:0.85rem" onclick="event.stopPropagation()"></td>
+      <td data-label="Acción" class="text-center align-middle">
+        <button type="button" class="btn btn-sm btn-del-contacto p-1 border-0" onclick="eliminarContacto(this, event)" title="Eliminar este contacto">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+        </button>
+      </td>
     </tr>
   `;
   tbody.insertAdjacentHTML('beforeend', rowHTML);
-  const lastRow = tbody.lastElementChild;
-  const selectSexo = lastRow.querySelector('.c-sexo');
-  if (selectSexo.value) { updRelacion(selectSexo); lastRow.querySelector('.c-relacion').value = c.relacion; updSummary(lastRow.querySelector('.c-relacion')); }
+}
+
+export function eliminarContacto(btn, e) {
+  if (e) e.stopPropagation();
+  const tr = btn.closest('tr');
+  if (!tr) return;
+  const tbody = document.getElementById('contactsBody');
+
+  if (tbody.children.length <= 1) {
+    tr.querySelectorAll('input').forEach(inp => inp.value = '');
+    tr.querySelectorAll('select').forEach(sel => sel.selectedIndex = 0);
+    const sumName = tr.querySelector('.sum-name');
+    const sumRel = tr.querySelector('.sum-rel');
+    if (sumName) sumName.textContent = 'Nuevo Contacto';
+    if (sumRel) sumRel.textContent = 'Sin relación';
+    const fecha = tr.querySelector('.c-fecha');
+    const obs = tr.querySelector('.c-obs');
+    if (fecha) { fecha.value = ''; fecha.disabled = true; }
+    if (obs) { obs.value = ''; obs.disabled = true; }
+  } else {
+    tr.remove();
+  }
+
+  let enfermos = 0;
+  document.querySelectorAll('.c-enfermo').forEach(s => { if (s.value === 'SI') enfermos++; });
+  const selectOtrosEnf = document.getElementById('otros_enfermos');
+  if (selectOtrosEnf) {
+    selectOtrosEnf.value = enfermos > 0 ? 'SI' : 'NO';
+    toggleDondeEnfermos(selectOtrosEnf.value);
+  }
+
+  document.getElementById('epiForm')?.dispatchEvent(new Event('input', { bubbles: true }));
 }
 
 export function updRelacion(sel) {
@@ -131,8 +185,11 @@ export function updRelacion(sel) {
   const fragRel = document.createDocumentFragment();
   let op = document.createElement('option'); op.value = ""; op.text = "Seleccione..."; op.selected = true; op.disabled = true; fragRel.appendChild(op);
 
-  if (sel.value === 'M') ['PADRE', 'HERMANO', 'HIJO', 'TÍO', 'PRIMO', 'SOBRINO', 'ABUELO', 'ESPOSO', 'AMIGO', 'COMPAÑERO', 'OTRO'].forEach(o => fragRel.appendChild(new Option(o, o)));
-  else if (sel.value === 'F') ['MADRE', 'HERMANA', 'HIJA', 'TÍA', 'PRIMA', 'SOBRINA', 'ABUELA', 'ESPOSA', 'AMIGA', 'COMPAÑERA', 'OTRA'].forEach(o => fragRel.appendChild(new Option(o, o)));
+  if (sel.value === 'M') {
+    ['PADRE', 'HERMANO', 'HIJO', 'TÍO', 'PRIMO', 'SOBRINO', 'ABUELO', 'NIETO', 'ESPOSO', 'SUEGRO', 'YERNO', 'CUÑADO', 'CONCUÑADO', 'PADRASTRO', 'HIJASTRO', 'AMIGO', 'COMPAÑERO', 'OTRO'].forEach(o => fragRel.appendChild(new Option(o, o)));
+  } else if (sel.value === 'F') {
+    ['MADRE', 'HERMANA', 'HIJA', 'TÍA', 'PRIMA', 'SOBRINA', 'ABUELA', 'NIETA', 'ESPOSA', 'SUEGRA', 'NUERA', 'CUÑADA', 'CONCUÑADA', 'MADRASTRA', 'HIJASTRA', 'AMIGA', 'COMPAÑERA', 'OTRA'].forEach(o => fragRel.appendChild(new Option(o, o)));
+  }
   relSelect.innerHTML = ""; relSelect.appendChild(fragRel);
   updSummary(sel);
 }
@@ -152,5 +209,6 @@ window.toggleContactoRow = toggleContactoRow;
 window.updSummary = updSummary;
 window.agregarContacto = agregarContacto;
 window.agregarContactoRestaurado = agregarContactoRestaurado;
+window.eliminarContacto = eliminarContacto;
 window.updRelacion = updRelacion;
 window.updCont = updCont;

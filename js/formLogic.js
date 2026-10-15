@@ -144,6 +144,39 @@ export function setUnidadPredeterminada() {
   const instSelect = document.getElementById('institucion');
   const estabSelect = document.getElementById('establecimiento');
   if (!instSelect || !estabSelect) return;
+
+  const savedDefaultsStr = localStorage.getItem('epiUserDefaults');
+  if (savedDefaultsStr) {
+    try {
+      const defs = JSON.parse(savedDefaultsStr);
+      if (defs.institucion) {
+        instSelect.value = defs.institucion;
+        instSelect.dispatchEvent(new Event('change'));
+        if (defs.establecimiento) {
+          estabSelect.value = defs.establecimiento;
+          estabSelect.dispatchEvent(new Event('change'));
+        }
+      }
+      if (defs.medico_tratante) {
+        const medInput = document.getElementById('medico_tratante');
+        if (medInput && !medInput.value) {
+          medInput.value = defs.medico_tratante;
+          medInput.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+      }
+      if (defs.prov_residencia) {
+        const provRes = document.getElementById('prov_residencia');
+        if (provRes && !provRes.value) {
+          provRes.value = defs.prov_residencia;
+          provRes.dispatchEvent(new Event('change'));
+        }
+      }
+      return;
+    } catch(err) {
+      console.warn("Error leyendo epiUserDefaults", err);
+    }
+  }
+
   const instOpt = Array.from(instSelect.options).find(o => o.value.toUpperCase().includes("INSTITUTO ECUATORIANO DE SEGURIDAD SOCIAL") || o.value.toUpperCase() === "IESS");
   if (instOpt) {
     instSelect.value = instOpt.value;
@@ -158,6 +191,40 @@ export function setUnidadPredeterminada() {
     }
   }
 }
+
+export function guardarConfiguracionPredeterminada() {
+  const inst = document.getElementById('institucion')?.value || '';
+  const estab = document.getElementById('establecimiento')?.value || '';
+  const med = document.getElementById('medico_tratante')?.value || '';
+  const prov = document.getElementById('prov_residencia')?.value || '';
+
+  if (!inst || !estab) {
+    Swal.fire('Selección incompleta', 'Seleccione al menos una Institución y un Establecimiento antes de guardarlos como predeterminados.', 'warning');
+    return;
+  }
+
+  const defs = {
+    institucion: inst,
+    establecimiento: estab,
+    medico_tratante: med,
+    prov_residencia: prov
+  };
+  localStorage.setItem('epiUserDefaults', JSON.stringify(defs));
+
+  const menuEl = document.getElementById('menuOpciones');
+  if (menuEl) {
+    const bsOffcanvas = bootstrap.Offcanvas.getInstance(menuEl);
+    if (bsOffcanvas) bsOffcanvas.hide();
+  }
+
+  Swal.fire({
+    icon: 'success',
+    title: '¡Valores Predeterminados Guardados!',
+    html: `<b>Institución:</b> ${inst}<br><b>Establecimiento:</b> ${estab}${med ? `<br><b>Médico:</b> ${med}` : ''}<br><br><small style="color: var(--apple-text-muted);">Se cargarán automáticamente cada vez que inicies o limpies la ficha.</small>`,
+    confirmButtonColor: 'var(--apple-blue)'
+  });
+}
+window.guardarConfiguracionPredeterminada = guardarConfiguracionPredeterminada;
 
 export function fillCantones(prov) {
   const cantSelect = document.getElementById('canton_residencia');
@@ -290,15 +357,32 @@ window.revisarCie10ParaTB = revisarCie10ParaTB;
 
 export function toggleServiciosTB() {
   const srv = document.querySelector('input[name="tb_servicio"]:checked')?.value;
+  const contEsp = document.getElementById('tb_esp_container');
+  const contCons = document.getElementById('tb_cons_esp_container');
   const inpEsp = document.getElementById('tb_srv_esp');
   const inpConsEsp = document.getElementById('tb_srv_cons_esp');
   
   if (srv === 'cons') {
-    inpEsp.disabled = true; inpEsp.value = '';
-    inpConsEsp.disabled = false; inpConsEsp.focus();
-  } else if (srv) {
-    inpConsEsp.disabled = true; inpConsEsp.value = '';
-    inpEsp.disabled = false; inpEsp.focus();
+    if (contEsp) contEsp.style.display = 'none';
+    if (contCons) contCons.style.display = 'block';
+    if (inpEsp) { inpEsp.disabled = true; inpEsp.value = ''; }
+    if (inpConsEsp) {
+      inpConsEsp.disabled = false;
+      if (document.activeElement?.name === 'tb_servicio') inpConsEsp.focus();
+    }
+  } else if (srv === 'cext' || srv === 'hosp' || srv === 'emerg') {
+    if (contCons) contCons.style.display = 'none';
+    if (contEsp) contEsp.style.display = 'block';
+    if (inpConsEsp) { inpConsEsp.disabled = true; inpConsEsp.value = ''; }
+    if (inpEsp) {
+      inpEsp.disabled = false;
+      if (document.activeElement?.name === 'tb_servicio') inpEsp.focus();
+    }
+  } else {
+    if (contEsp) contEsp.style.display = 'none';
+    if (contCons) contCons.style.display = 'none';
+    if (inpEsp) { inpEsp.disabled = true; }
+    if (inpConsEsp) { inpConsEsp.disabled = true; }
   }
 }
 
@@ -306,6 +390,45 @@ export function toggleCondicionesEspeciales(checked) {
   const inp = document.getElementById('tb_crit_especiales_txt');
   inp.disabled = !checked;
   if (!checked) inp.value = ''; else inp.focus();
+}
+
+export function togglePcrLam1eraPrueba() {
+  const chkXpert = document.getElementById('tb_diag_xpert');
+  const chkXdr = document.getElementById('tb_diag_xpert_xdr');
+  const cardPcr = document.getElementById('tb_card_pcr1');
+  const pcrRadios = document.querySelectorAll('input[name="tb_diag_pcr1"]');
+
+  const hasPcr = Boolean(chkXpert?.checked || chkXdr?.checked);
+  if (cardPcr) {
+    if (hasPcr) {
+      cardPcr.classList.remove('tb-test-card-disabled');
+      pcrRadios.forEach(r => r.disabled = false);
+    } else {
+      cardPcr.classList.add('tb-test-card-disabled');
+      pcrRadios.forEach(r => {
+        r.checked = false;
+        r.disabled = true;
+      });
+    }
+  }
+
+  const chkLam = document.getElementById('tb_diag_lam');
+  const cardLam = document.getElementById('tb_card_lam1');
+  const lamRadios = document.querySelectorAll('input[name="tb_diag_lam1"]');
+
+  const hasLam = Boolean(chkLam?.checked);
+  if (cardLam) {
+    if (hasLam) {
+      cardLam.classList.remove('tb-test-card-disabled');
+      lamRadios.forEach(r => r.disabled = false);
+    } else {
+      cardLam.classList.add('tb-test-card-disabled');
+      lamRadios.forEach(r => {
+        r.checked = false;
+        r.disabled = true;
+      });
+    }
+  }
 }
 
 export function calcularZonaDistrito(provincia, canton) {
@@ -394,8 +517,37 @@ export function recopilarDatos() {
     fecha_hasta: getVal('fecha_hasta'), otros_enfermos: otrosEnfVal, donde_enfermos: dondeEnfermos, tipo_caso: getVal('tipo_caso'),
     comorbilidades: getVal('comorbilidades'), especificar_comor: getVal('especificar_comor'), carac_factores: getVal('carac_factores'), obs_epidemiologicas: getVal('obs_epidemiologicas'),
     muestra: getVal('muestra'), fecha_muestra: getVal('fecha_muestra'), muestra_adecuada: getVal('muestra_adecuada'), tipo_muestra: getVal('tipo_muestra'),
-    tecnica: getVal('tecnica'), antes_tratamiento: getVal('antes_tratamiento'), resultado: getVal('resultado'), agente: getVal('agente'),
-    diagnostico_def: getVal('diagnostico_def'), confirmado_por: getVal('confirmado_por'), tipo_caso_brote: getVal('tipo_caso_brote'), fecha_cierre: getVal('fecha_cierre')
+    antes_tratamiento: getVal('antes_tratamiento'), resultado: getVal('resultado'), tecnica: getVal('tecnica'), agente: getVal('agente'),
+    diagnostico_def: getVal('diagnostico_def'), confirmado_por: getVal('confirmado_por'), tipo_caso_brote: getVal('tipo_caso_brote'), fecha_cierre: getVal('fecha_cierre'),
+    tb_requiere_ficha: getVal('tb_requiere_ficha'), tb_zona: getVal('tb_zona'), tb_distrito: getVal('tb_distrito'),
+    tb_fecha_toma: getVal('tb_fecha_toma'), tb_tipo_muestra: getVal('tb_tipo_muestra'),
+    tb_servicio: document.querySelector('input[name="tb_servicio"]:checked')?.value || '',
+    tb_srv_esp: getVal('tb_srv_esp'), tb_srv_cons: getChk('tb_srv_cons'), tb_srv_cons_esp: getVal('tb_srv_cons_esp'),
+    tb_tipo: getVal('tb_tipo'), tb_antecedente: getVal('tb_antecedente'),
+    tb_usr_contacto: getChk('tb_usr_contacto'), tb_usr_albergue: getChk('tb_usr_albergue'), tb_usr_fallecido: getChk('tb_usr_fallecido'),
+    tb_usr_adicciones: getChk('tb_usr_adicciones'), tb_usr_salud: getChk('tb_usr_salud'), tb_usr_irregular: getChk('tb_usr_irregular'),
+    tb_usr_embarazo: getChk('tb_usr_embarazo'), tb_usr_pvv: getChk('tb_usr_pvv'), tb_usr_diabetes: getChk('tb_usr_diabetes'),
+    tb_usr_ppl: getChk('tb_usr_ppl'), tb_usr_endemica: getChk('tb_usr_endemica'), tb_usr_reversion: getChk('tb_usr_reversion'),
+    tb_usr_otras_txt: getVal('tb_usr_otras_txt'), tb_usr_otros: getVal('tb_usr_otros'),
+    tb_crit_alta: getChk('tb_crit_alta'), tb_crit_signos: getChk('tb_crit_signos'), tb_crit_grave: getChk('tb_crit_grave'),
+    tb_crit_cd4: getChk('tb_crit_cd4'), tb_crit_bk2: getChk('tb_crit_bk2'), tb_crit_meningitis: getChk('tb_crit_meningitis'),
+    tb_crit_especiales: getChk('tb_crit_especiales'), tb_crit_especiales_txt: getVal('tb_crit_especiales_txt'),
+    tb_diag_bac: getChk('tb_diag_bac'), tb_diag_bac_num: getVal('tb_diag_bac_num'),
+    tb_diag_cult_solido: getChk('tb_diag_cult_solido'), tb_diag_cult_liq: getChk('tb_diag_cult_liq'),
+    tb_diag_xpert: getChk('tb_diag_xpert'), tb_diag_xpert_xdr: getChk('tb_diag_xpert_xdr'),
+    tb_diag_pcr1: document.querySelector('input[name="tb_diag_pcr1"]:checked')?.value || '',
+    tb_diag_lam: getChk('tb_diag_lam'),
+    tb_diag_lam1: document.querySelector('input[name="tb_diag_lam1"]:checked')?.value || '',
+    tb_diag_prop1: getChk('tb_diag_prop1'), tb_diag_prop2: getChk('tb_diag_prop2'),
+    tb_diag_mgit1: getChk('tb_diag_mgit1'), tb_diag_mgit2: getChk('tb_diag_mgit2'),
+    tb_diag_lpa1: getChk('tb_diag_lpa1'), tb_diag_lpa2: getChk('tb_diag_lpa2'),
+    tb_diag_tipif: getChk('tb_diag_tipif'), tb_diag_ada: getChk('tb_diag_ada'),
+    tb_ctrl_bac: getChk('tb_ctrl_bac'), tb_ctrl_bac_mes: getVal('tb_ctrl_bac_mes'),
+    tb_ctrl_cult_solido: getChk('tb_ctrl_cult_solido'), tb_ctrl_cult_solido_mes: getVal('tb_ctrl_cult_solido_mes'),
+    tb_ctrl_cult_liq: getChk('tb_ctrl_cult_liq'), tb_ctrl_cult_liq_mes: getVal('tb_ctrl_cult_liq_mes'),
+    tb_ctrl_sensible: getChk('tb_ctrl_sensible'), tb_ctrl_resistente: getChk('tb_ctrl_resistente'),
+    tb_ctrl_resistencia: getVal('tb_ctrl_resistencia'), tb_esquema_tt: getVal('tb_esquema_tt'),
+    tb_obs: getVal('tb_obs'), tb_opcional: getVal('tb_opcional'), tb_responsable: getVal('tb_responsable')
   };
 
   let validContactCount = 0;
@@ -445,6 +597,7 @@ window.toggleFormularioTB = toggleFormularioTB;
 window.revisarCie10ParaTB = revisarCie10ParaTB;
 window.toggleServiciosTB = toggleServiciosTB;
 window.toggleCondicionesEspeciales = toggleCondicionesEspeciales;
+window.togglePcrLam1eraPrueba = togglePcrLam1eraPrueba;
 
 // ¡AQUÍ ESTÁ LA CORRECCIÓN DE LOS FALLOS (Faltaban exponerlas globalmente)!
 window.toggleTratamientoCampos = toggleTratamientoCampos;

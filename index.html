@@ -11,7 +11,22 @@
   <!-- Tom Select CSS para búsqueda avanzada -->
   <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
   <!-- Tus estilos personalizados -->
-  <link rel="stylesheet" href="styles.css?v=1.1">
+  <link rel="stylesheet" href="styles.css?v=3.8">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0071e3">
+  
+  <!-- SCRIPT ANTI-FLASHAZO: Debe ir antes de cerrar el head -->
+  <script>
+    (function() {
+      var currentTheme = localStorage.getItem('theme');
+      if (!currentTheme && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        currentTheme = 'dark';
+      }
+      if (currentTheme === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      }
+    })();
+  </script>
 </head>
 <body>
 
@@ -27,10 +42,15 @@
   <!-- IZQUIERDA: Botón Hamburguesa y Título -->
   <div class="d-flex align-items-center gap-3">
     <button class="btn p-1 d-flex align-items-center gap-1" type="button" data-bs-toggle="offcanvas" data-bs-target="#menuOpciones" style="background: transparent; border: none; color: var(--apple-text); transition: opacity 0.2s;" onmouseover="this.style.opacity='0.7'" onmouseout="this.style.opacity='1'">
-      <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
-      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--apple-blue); margin-left: 2px;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+      <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+      <svg xmlns="http://www.w3.org/2000/svg" width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 2px;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
     </button>
     <h3 class="m-0 d-none d-md-block" style="color: var(--apple-text); font-weight: 600;">Fichas EPI</h3>
+    <!-- Badge de estado de conexión / Modo Offline -->
+    <div id="offlineBadge" class="offline-status-badge d-none" style="cursor: pointer;" onclick="mostrarInfoModoOffline()" title="Toca para más información">
+      <span style="display:inline-block; width:7px; height:7px; border-radius:50%; background: currentColor;"></span>
+      <span id="offlineBadgeText">Modo Offline</span>
+    </div>
   </div>
 
   <!-- DERECHA: Acciones Rápidas (Tema, Limpiar, Exportar) -->
@@ -61,7 +81,7 @@
       <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--apple-blue);"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
       Gestión Médica
     </h5>
-    <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close" style="filter: var(--select-arrow-filter);"></button>
+    <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Cerrar"></button>
   </div>
   
   <div class="offcanvas-body d-flex flex-column gap-3 p-4">
@@ -69,6 +89,12 @@
     <button type="button" id="btnGoogleLogin" class="btn-apple" style="background-color: var(--apple-card); color: var(--apple-text); border: 1px solid var(--apple-border); display: flex; align-items: center; justify-content: center; gap: 10px; padding: 14px 16px; width: 100%; box-shadow: 0 2px 8px rgba(0,0,0,0.04);" onclick="toggleLogin()">
       <svg id="loginIcon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
       <span id="loginText" style="font-weight: 600; font-size: 1rem;">Iniciar sesión</span>
+    </button>
+
+    <!-- Botón Instalar App (PWA) -->
+    <button type="button" id="btnInstallAppMenu" class="btn-apple w-100" style="background-color: var(--apple-blue-tint); color: var(--apple-blue); border: 1px solid rgba(0, 113, 227, 0.2); display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 14px; font-weight: 600; box-shadow: none;" onclick="instalarAppPWA()">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+      <span id="txtBtnInstallApp">Instalar App (Offline)</span>
     </button>
 
     <!-- Botones Operativos de la Nube (Ocultos hasta iniciar sesión) -->
@@ -89,6 +115,48 @@
       <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
       Cerrar sesión
     </button>
+
+    <hr style="border-color: var(--apple-border); margin: 6px 0;">
+
+    <!-- Sección Configuración Predeterminada -->
+    <div>
+      <small class="text-uppercase fw-bold text-muted" style="font-size: 0.72rem; letter-spacing: 0.05em;">Ajustes de Unidad</small>
+      <button type="button" class="btn-apple w-100 mt-2" style="background-color: var(--apple-subcard-bg); color: var(--apple-text); border: 1px solid var(--apple-border); display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 14px; font-size: 0.88rem; box-shadow: none;" onclick="guardarConfiguracionPredeterminada()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+        Fijar Unidad y Médico Actual
+      </button>
+    </div>
+
+    <!-- Sección Borradores Locales (Offline) -->
+    <div>
+      <small class="text-uppercase fw-bold text-muted" style="font-size: 0.72rem; letter-spacing: 0.05em;">Borradores Offline</small>
+      <div class="d-flex flex-column gap-2 mt-2">
+        <button type="button" class="btn-apple w-100" style="background-color: var(--apple-subcard-bg); color: var(--apple-text); border: 1px solid var(--apple-border); display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 14px; font-size: 0.88rem; box-shadow: none;" onclick="guardarBorradorLocal()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline></svg>
+          Guardar Borrador Local
+        </button>
+        <button type="button" class="btn-apple w-100" style="background-color: var(--apple-subcard-bg); color: var(--apple-text); border: 1px solid var(--apple-border); display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 14px; font-size: 0.88rem; box-shadow: none;" onclick="abrirModalBorradores()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+          Mis Borradores Locales
+        </button>
+      </div>
+    </div>
+
+    <!-- Sección Respaldo de Archivo JSON -->
+    <div>
+      <small class="text-uppercase fw-bold text-muted" style="font-size: 0.72rem; letter-spacing: 0.05em;">Respaldo de Datos</small>
+      <div class="d-flex gap-2 mt-2">
+        <button type="button" class="btn-apple flex-grow-1" style="background-color: var(--apple-subcard-bg); color: var(--apple-text); border: 1px solid var(--apple-border); display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px 8px; font-size: 0.84rem; box-shadow: none;" onclick="exportarRespaldoJSON()" title="Exportar ficha actual como archivo JSON">
+          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          Exportar JSON
+        </button>
+        <button type="button" class="btn-apple flex-grow-1" style="background-color: var(--apple-subcard-bg); color: var(--apple-text); border: 1px solid var(--apple-border); display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px 8px; font-size: 0.84rem; box-shadow: none;" onclick="document.getElementById('inputImportarJSON').click()" title="Cargar ficha desde archivo JSON">
+          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+          Importar JSON
+        </button>
+        <input type="file" id="inputImportarJSON" accept=".json,application/json" style="display: none;" onchange="importarRespaldoJSON(event)">
+      </div>
+    </div>
   </div>
 </div>
 
@@ -127,7 +195,10 @@
           </div>
 
           <div class="col-12 col-md-4">
-            <label>Fecha Atención:</label>
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <label class="mb-0" for="fecha_atencion">Fecha Atención:</label>
+              <button type="button" class="btn-fecha-hoy" onclick="establecerFechaHoy('fecha_atencion')" title="Poner fecha actual">Hoy</button>
+            </div>
             <input type="date" id="fecha_atencion" class="form-control save-state" onchange="calcDiasSintomas()" oninput="calcDiasSintomas()">
           </div>
         </div>
@@ -154,7 +225,10 @@
                 <input type="tel" id="historia_clinica" class="form-control save-state numeric-input">
               </div>
               <div class="col-6 col-md-3">
-                <label>Fecha Nacimiento:</label>
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <label class="mb-0" for="fecha_nacimiento">Fecha Nacimiento:</label>
+                  <span id="badge_edad_calculada" class="badge rounded-pill" style="display: none; font-size: 0.72rem; font-weight: 600; background: var(--apple-blue-tint); color: var(--apple-blue); border: 1px solid rgba(0, 113, 227, 0.2);"></span>
+                </div>
                 <input type="date" id="fecha_nacimiento" class="form-control save-state">
               </div>
               <div class="col-6 col-md-3">
@@ -380,15 +454,16 @@
             <table class="table table-borderless table-sm align-middle mt-3" id="tablaContactos">
               <thead>
                 <tr>
-                  <th style="min-width: 130px;">Nombre</th>
-                  <th style="width: 70px; min-width: 70px;">Edad</th>
-                  <th style="width: 100px; min-width: 100px;">Sexo</th>
-                  <th style="width: 140px; min-width: 140px;">Relación</th>
-                  <th style="min-width: 140px;">Dirección/Teléf</th>
-                  <th style="width: 120px; min-width: 120px;">Lugar</th>
-                  <th style="width: 90px; min-width: 90px;">¿Enfermó?</th>
-                  <th style="width: 130px; min-width: 130px;">Fecha Sínt.</th>
-                  <th style="min-width: 130px;">Observaciones</th>
+                  <th style="width: 18%;">Nombre</th>
+                  <th style="width: 6%;">Edad</th>
+                  <th style="width: 7%;">Sexo</th>
+                  <th style="width: 11%;">Relación</th>
+                  <th style="width: 17%;">Dirección/Teléf</th>
+                  <th style="width: 10%;">Lugar</th>
+                  <th style="width: 8%;">¿Enfermó?</th>
+                  <th style="width: 10%;">Fecha Sínt.</th>
+                  <th style="width: 10%;">Observaciones</th>
+                  <th style="width: 3%; text-align: center;"></th>
                 </tr>
               </thead>
               <tbody id="contactsBody"></tbody>
@@ -432,6 +507,7 @@
                   <option value="" selected>Sel...</option>
                   <option value="SI">SI</option>
                   <option value="NO">NO</option>
+                  <option value="DESCONOCE">DESCONOCE</option>
                 </select>
               </div>
               <div class="col-6 col-md-3">
@@ -886,7 +962,13 @@
             <div class="row g-3 mt-1 align-items-end">
               <div class="col-4 col-md-2"><label>Zona:</label><input type="text" id="tb_zona" class="form-control save-state"></div>
               <div class="col-4 col-md-2"><label>Distrito:</label><input type="text" id="tb_distrito" class="form-control save-state"></div>
-              <div class="col-4 col-md-3"><label>F. Toma Muestra:</label><input type="date" id="tb_fecha_toma" class="form-control save-state"></div>
+              <div class="col-4 col-md-3">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <label class="mb-0" for="tb_fecha_toma" style="white-space: nowrap;">F. Toma Muestra:</label>
+                  <button type="button" class="btn-fecha-hoy" onclick="establecerFechaHoy('tb_fecha_toma')" title="Poner fecha actual">Hoy</button>
+                </div>
+                <input type="date" id="tb_fecha_toma" class="form-control save-state">
+              </div>
               <div class="col-12 col-md-5">
                 <label>Tipo de Muestra:</label>
                 <select id="tb_tipo_muestra" class="form-select save-state">
@@ -906,35 +988,54 @@
 
             <!-- SERVICIO Y CLASIFICACIÓN -->
             <div class="p-3 bg-light rounded border mt-3">
-              <div class="row g-3 align-items-center">
-                <div class="col-12"><h6 class="mb-0 text-primary">Servicio y Clasificación</h6></div>
-                
-                <div class="col-auto"><div class="form-check"><input type="radio" name="tb_servicio" id="tb_srv_cext" value="cext" class="form-check-input save-state" onchange="toggleServiciosTB()"><label class="form-check-label" for="tb_srv_cext">C. Externa</label></div></div>
-                <div class="col-auto"><div class="form-check"><input type="radio" name="tb_servicio" id="tb_srv_hosp" value="hosp" class="form-check-input save-state" onchange="toggleServiciosTB()"><label class="form-check-label" for="tb_srv_hosp">Hospitalización</label></div></div>
-                <div class="col-auto"><div class="form-check"><input type="radio" name="tb_servicio" id="tb_srv_emerg" value="emerg" class="form-check-input save-state" onchange="toggleServiciosTB()"><label class="form-check-label" for="tb_srv_emerg">Emergencia</label></div></div>
-                <div class="col-12 col-md-3"><input type="text" id="tb_srv_esp" class="form-control save-state" placeholder="Especifique Especialidad..." disabled></div>
-                
-                <div class="col-auto"><div class="form-check"><input type="radio" name="tb_servicio" id="tb_srv_cons" value="cons" class="form-check-input save-state" onchange="toggleServiciosTB()"><label class="form-check-label" for="tb_srv_cons">Consultorio</label></div></div>
-                <div class="col-12 col-md-3"><input type="text" id="tb_srv_cons_esp" class="form-control save-state" placeholder="Especifique Especialidad..." disabled></div>
+              <div class="row g-3">
+                <div class="col-12">
+                  <h6 class="mb-2 text-primary fw-bold" style="font-size: 0.95rem;">Servicio Solicitante</h6>
+                  <div class="tb-segmented-group" role="radiogroup" aria-label="Servicio solicitante">
+                    <input type="radio" name="tb_servicio" id="tb_srv_cext" value="cext" class="save-state tb-segmented-input" onchange="toggleServiciosTB()">
+                    <label for="tb_srv_cext" class="tb-segmented-btn">C. Externa</label>
+
+                    <input type="radio" name="tb_servicio" id="tb_srv_hosp" value="hosp" class="save-state tb-segmented-input" onchange="toggleServiciosTB()">
+                    <label for="tb_srv_hosp" class="tb-segmented-btn">Hospitalización</label>
+
+                    <input type="radio" name="tb_servicio" id="tb_srv_emerg" value="emerg" class="save-state tb-segmented-input" onchange="toggleServiciosTB()">
+                    <label for="tb_srv_emerg" class="tb-segmented-btn">Emergencia</label>
+
+                    <input type="radio" name="tb_servicio" id="tb_srv_cons" value="cons" class="save-state tb-segmented-input" onchange="toggleServiciosTB()">
+                    <label for="tb_srv_cons" class="tb-segmented-btn">Consultorio</label>
+                  </div>
+                </div>
+
+                <!-- Campo dinámico para Especialidad (C. Externa, Hospitalización, Emergencia) -->
+                <div class="col-12" id="tb_esp_container" style="display: none;">
+                  <label for="tb_srv_esp" class="form-label small fw-semibold text-secondary mb-1">Especialidad (C. Externa / Emergencia / Hospitalización):</label>
+                  <input type="text" id="tb_srv_esp" class="form-control save-state" placeholder="Ej. Medicina Interna, Neumología, Pediatría..." disabled>
+                </div>
+
+                <!-- Campo dinámico para Consultorio -->
+                <div class="col-12" id="tb_cons_esp_container" style="display: none;">
+                  <label for="tb_srv_cons_esp" class="form-label small fw-semibold text-secondary mb-1">Especifique Consultorio:</label>
+                  <input type="text" id="tb_srv_cons_esp" class="form-control save-state" placeholder="Ej. Consultorio 3, Consulta Rápida..." disabled>
+                </div>
 
                 <div class="col-12"><hr class="my-1" style="border-color: var(--apple-border);"></div>
                 
-                <div class="col-6 col-md-3">
-                  <label>Muestra:</label>
+                <div class="col-12 col-md-6">
+                  <label for="tb_tipo" class="form-label small fw-semibold text-secondary mb-1">Clasificación de Muestra:</label>
                   <select id="tb_tipo" class="form-select save-state">
-                    <option value="">Sel...</option>
+                    <option value="">Seleccione tipo de muestra...</option>
                     <option value="PULMONAR">PULMONAR</option>
                     <option value="EXTRAPULMONAR">EXTRAPULMONAR</option>
                   </select>
                 </div>
-                <div class="col-6 col-md-3">
-                  <label>Antecedente:</label>
+                <div class="col-12 col-md-6">
+                  <label for="tb_antecedente" class="form-label small fw-semibold text-secondary mb-1">Antecedente del Paciente:</label>
                   <select id="tb_antecedente" class="form-select save-state">
-                    <option value="">Sel...</option>
+                    <option value="">Seleccione antecedente...</option>
                     <option value="NUEVO">CASO NUEVO</option>
                     <option value="RECAIDA">RECAÍDA</option>
                     <option value="FRACASO">FRACASO</option>
-                    <option value="PERDIDA">PÉRDIDA SEGUIM.</option>
+                    <option value="PERDIDA">PÉRDIDA SEGUIMIENTO</option>
                   </select>
                 </div>
               </div>
@@ -962,7 +1063,7 @@
                 <div class="col-12 mt-2"><hr class="my-1" style="border-color: var(--apple-border);"></div>
                 
                 <div class="col-12 col-md-6 mt-2"><label style="font-size: 0.8rem; font-weight: bold;">Otras Clínicas / Comorbilidades (Ej. Hipertensión):</label><input type="text" id="tb_usr_otras_txt" class="form-control save-state" placeholder="Especifique..."></div>
-                <div class="col-12 col-md-6 mt-2"><label style="font-size: 0.8rem; font-weight: bold;">Otro Tipo de Usuario (Ej. Indígena):</label><input type="text" id="tb_usr_otros" class="form-control save-state" placeholder="Especifique..."></div>
+                <div class="col-12 col-md-6 mt-2"><label style="font-size: 0.8rem; font-weight: bold;">Otro Grupo Prioritario / Vulnerable:</label><input type="text" id="tb_usr_otros" class="form-control save-state" placeholder="Ej. Migrante, Minero, Asilo, etc."></div>
               </div>
             </div>
 
@@ -1012,27 +1113,31 @@
                   <!-- PCR -->
                   <h6 class="text-secondary" style="font-size: 0.85rem; font-weight: 600;">PCR-XPERT</h6>
                   <div class="row g-2 mb-2">
-                    <div class="col-6"><div class="form-check mb-0"><input type="checkbox" id="tb_diag_xpert" class="form-check-input save-state"><label class="form-check-label">MTB/RIF (Ultra)</label></div></div>
-                    <div class="col-6"><div class="form-check mb-0"><input type="checkbox" id="tb_diag_xpert_xdr" class="form-check-input save-state"><label class="form-check-label">MTB XDR</label></div></div>
+                    <div class="col-6"><div class="form-check mb-0"><input type="checkbox" id="tb_diag_xpert" class="form-check-input save-state" onchange="togglePcrLam1eraPrueba()"><label class="form-check-label">MTB/RIF (Ultra)</label></div></div>
+                    <div class="col-6"><div class="form-check mb-0"><input type="checkbox" id="tb_diag_xpert_xdr" class="form-check-input save-state" onchange="togglePcrLam1eraPrueba()"><label class="form-check-label">MTB XDR</label></div></div>
                   </div>
-                  <div class="p-2 mb-3 bg-white rounded border d-flex justify-content-between align-items-center" style="box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
-                     <label class="d-block text-primary fw-bold mb-0" style="font-size: 0.85rem;">¿PCR como 1era Prueba?</label>
-                     <div class="d-flex gap-3">
-                       <div class="form-check mb-0"><input type="radio" name="tb_diag_pcr1" id="pcr1_si" value="SI" class="form-check-input save-state"><label class="form-check-label fw-bold" for="pcr1_si">SÍ</label></div>
-                       <div class="form-check mb-0"><input type="radio" name="tb_diag_pcr1" id="pcr1_no" value="NO" class="form-check-input save-state"><label class="form-check-label fw-bold" for="pcr1_no">NO</label></div>
-                     </div>
+                  <div id="tb_card_pcr1" class="tb-test-card mb-3 d-flex justify-content-between align-items-center tb-test-card-disabled">
+                    <span class="tb-test-title">¿PCR como 1era Prueba?</span>
+                    <div class="tb-pill-toggle">
+                      <input type="radio" name="tb_diag_pcr1" id="pcr1_si" value="SI" class="save-state tb-mini-radio" disabled>
+                      <label for="pcr1_si" class="tb-mini-label">SÍ</label>
+                      <input type="radio" name="tb_diag_pcr1" id="pcr1_no" value="NO" class="save-state tb-mini-radio" disabled>
+                      <label for="pcr1_no" class="tb-mini-label">NO</label>
+                    </div>
                   </div>
 
                   <hr class="my-2" style="border-color: var(--apple-border);">
 
                   <!-- LAM -->
-                  <div class="form-check mb-2"><input type="checkbox" id="tb_diag_lam" class="form-check-input save-state"><label class="form-check-label fw-bold">Prueba LAM</label></div>
-                  <div class="p-2 mb-3 bg-white rounded border d-flex justify-content-between align-items-center" style="box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
-                     <label class="d-block text-primary fw-bold mb-0" style="font-size: 0.85rem;">¿LAM como 1era Prueba?</label>
-                     <div class="d-flex gap-3">
-                       <div class="form-check mb-0"><input type="radio" name="tb_diag_lam1" id="lam1_si" value="SI" class="form-check-input save-state"><label class="form-check-label fw-bold" for="lam1_si">SÍ</label></div>
-                       <div class="form-check mb-0"><input type="radio" name="tb_diag_lam1" id="lam1_no" value="NO" class="form-check-input save-state"><label class="form-check-label fw-bold" for="lam1_no">NO</label></div>
-                     </div>
+                  <div class="form-check mb-2"><input type="checkbox" id="tb_diag_lam" class="form-check-input save-state" onchange="togglePcrLam1eraPrueba()"><label class="form-check-label fw-bold">Prueba LAM</label></div>
+                  <div id="tb_card_lam1" class="tb-test-card mb-3 d-flex justify-content-between align-items-center tb-test-card-disabled">
+                    <span class="tb-test-title">¿LAM como 1era Prueba?</span>
+                    <div class="tb-pill-toggle">
+                      <input type="radio" name="tb_diag_lam1" id="lam1_si" value="SI" class="save-state tb-mini-radio" disabled>
+                      <label for="lam1_si" class="tb-mini-label">SÍ</label>
+                      <input type="radio" name="tb_diag_lam1" id="lam1_no" value="NO" class="save-state tb-mini-radio" disabled>
+                      <label for="lam1_no" class="tb-mini-label">NO</label>
+                    </div>
                   </div>
 
                   <hr class="my-2" style="border-color: var(--apple-border);">
@@ -1094,11 +1199,17 @@
       </div>
 
   <!-- BOTONES INFERIORES -->
-  <div class="d-flex justify-content-center gap-3 mt-5 mb-4 flex-wrap">
-    <button type="button" class="btn-apple-excel" onclick="descargarFichaSegura('excel')" style="padding: 14px 40px; font-size: 1.1rem;">
+  <div class="d-flex flex-column flex-md-row justify-content-center align-items-center gap-3 mt-5 mb-4 action-buttons-container">
+    <button type="button" id="btnSaveCloudBottom" class="btn-apple action-btn" style="display: none;" onclick="guardarFichaNube()">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 16.9A5 5 0 0 0 18 7h-1.26a8 8 0 1 0-11.62 9"></path><polyline points="16 12 12 8 8 12"></polyline><line x1="12" y1="8" x2="12" y2="21"></line></svg>
+      Guardar en Nube
+    </button>
+    <button type="button" class="btn-apple-excel action-btn" onclick="descargarFichaSegura('excel')">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="13" x2="16" y2="17"></line><line x1="16" y1="13" x2="8" y2="17"></line></svg>
       Generar Excel
     </button>
-    <button type="button" class="btn-apple" onclick="descargarFichaSegura('pdf')" style="padding: 14px 40px; font-size: 1.1rem;">
+    <button type="button" class="btn-apple action-btn" onclick="descargarFichaSegura('pdf')">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
       Generar PDF
     </button>
   </div>
@@ -1108,14 +1219,32 @@
   </div>
 </div>
 
+<!-- BANNER INFORMATIVO PARA INSTALAR APP Y USAR OFFLINE -->
+<div id="pwaInstallBanner" class="pwa-install-banner">
+  <div class="d-flex align-items-start justify-content-between gap-3">
+    <div class="d-flex align-items-center gap-3">
+      <img src="icon-192.png" alt="App Icon" style="width: 44px; height: 44px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.12); flex-shrink: 0;">
+      <div>
+        <h6 class="mb-1 fw-bold" style="font-size: 0.95rem; color: var(--apple-text);">¿Sabías que puedes instalar esta App?</h6>
+        <p class="mb-0 text-muted" style="font-size: 0.82rem; line-height: 1.35;">
+          Instálala en tu dispositivo para llenar fichas y generar PDFs <b>100% sin conexión a internet</b>, ideal para brigadas y centros rurales.
+        </p>
+      </div>
+    </div>
+    <button type="button" class="btn-close flex-shrink-0" onclick="cerrarBannerPWA(false)" aria-label="Cerrar"></button>
+  </div>
+  <div class="d-flex justify-content-end gap-2 mt-3">
+    <button type="button" class="btn btn-sm btn-outline-secondary" style="border-radius: 999px; font-size: 0.82rem; padding: 6px 14px;" onclick="cerrarBannerPWA(true)">Recordar después</button>
+    <button type="button" class="btn-apple btn-sm" style="font-size: 0.82rem; padding: 6px 18px;" onclick="instalarAppPWA()">Instalar Ahora</button>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <!-- SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <!-- Tom Select JS -->
 <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
 <!-- Tu lógica separada -->
-<script type="module" src="./js/main.js?v=3.1"></script>
-<link rel="stylesheet" href="styles.css?v=3.1">
-<!-- SCRIPT INFALIBLE PARA EL CÁLCULO DE DÍAS (Bypass de Formato Mac) -->
+<script type="module" src="./js/main.js?v=3.8"></script>
 </body>
 </html>
