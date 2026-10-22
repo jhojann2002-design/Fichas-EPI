@@ -312,10 +312,23 @@ export function revisarCie10ParaTB(value) {
   }
 }
 
+export function sincronizarCopiasTB(valor) {
+  const val = (valor === '1' || valor === '2') ? valor : '2';
+  const selTop = document.getElementById('tb_copias');
+  const selSec = document.getElementById('tb_copias_sec');
+  if (selTop && selTop.value !== val) selTop.value = val;
+  if (selSec && selSec.value !== val) selSec.value = val;
+}
+
 export function toggleFormularioTB(skipScroll = false) {
   const req = document.getElementById('tb_requiere_ficha')?.value;
   const container = document.getElementById('secTuberculosisContainer');
   const collapseEl = document.getElementById('secTuberculosis');
+  const copiasWrap = document.getElementById('tb_copias_pregunta_wrap');
+
+  if (copiasWrap) {
+    copiasWrap.style.display = (req === 'SI') ? 'block' : 'none';
+  }
 
   if (!container) return;
 
@@ -352,6 +365,7 @@ export function toggleFormularioTB(skipScroll = false) {
 window.calcDiasSintomas = forzarCalculoDias;
 window.toggleFormularioTB = toggleFormularioTB;
 window.revisarCie10ParaTB = revisarCie10ParaTB;
+window.sincronizarCopiasTB = sincronizarCopiasTB;
 
 // --- LÓGICA DE INTERFAZ DE TUBERCULOSIS ---
 
@@ -519,7 +533,8 @@ export function recopilarDatos() {
     muestra: getVal('muestra'), fecha_muestra: getVal('fecha_muestra'), muestra_adecuada: getVal('muestra_adecuada'), tipo_muestra: getVal('tipo_muestra'),
     antes_tratamiento: getVal('antes_tratamiento'), resultado: getVal('resultado'), tecnica: getVal('tecnica'), agente: getVal('agente'),
     diagnostico_def: getVal('diagnostico_def'), confirmado_por: getVal('confirmado_por'), tipo_caso_brote: getVal('tipo_caso_brote'), fecha_cierre: getVal('fecha_cierre'),
-    tb_requiere_ficha: getVal('tb_requiere_ficha'), tb_zona: getVal('tb_zona'), tb_distrito: getVal('tb_distrito'),
+    tb_requiere_ficha: getVal('tb_requiere_ficha'), tb_copias: getVal('tb_copias') || getVal('tb_copias_sec') || '2',
+    tb_zona: getVal('tb_zona'), tb_distrito: getVal('tb_distrito'),
     tb_fecha_toma: getVal('tb_fecha_toma'), tb_tipo_muestra: getVal('tb_tipo_muestra'),
     tb_servicio: document.querySelector('input[name="tb_servicio"]:checked')?.value || '',
     tb_srv_esp: getVal('tb_srv_esp'), tb_srv_cons: getChk('tb_srv_cons'), tb_srv_cons_esp: getVal('tb_srv_cons_esp'),

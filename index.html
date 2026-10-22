@@ -11,7 +11,7 @@
   <!-- Tom Select CSS para búsqueda avanzada -->
   <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
   <!-- Tus estilos personalizados -->
-  <link rel="stylesheet" href="styles.css?v=3.8">
+  <link rel="stylesheet" href="styles.css?v=4.3">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0071e3">
   
@@ -41,11 +41,43 @@
   
   <!-- IZQUIERDA: Botón Hamburguesa y Título -->
   <div class="d-flex align-items-center gap-3">
-    <button class="btn p-1 d-flex align-items-center gap-1" type="button" data-bs-toggle="offcanvas" data-bs-target="#menuOpciones" style="background: transparent; border: none; color: var(--apple-text); transition: opacity 0.2s;" onmouseover="this.style.opacity='0.7'" onmouseout="this.style.opacity='1'">
-      <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
-      <svg xmlns="http://www.w3.org/2000/svg" width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 2px;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+    <button class="btn p-1 d-flex align-items-center justify-content-center" type="button" data-bs-toggle="offcanvas" data-bs-target="#menuOpciones" style="background: transparent; border: none; color: var(--apple-text); transition: opacity 0.2s;" onmouseover="this.style.opacity='0.7'" onmouseout="this.style.opacity='1'" title="Menú de Opciones" aria-label="Menú de Opciones">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
     </button>
-    <h3 class="m-0 d-none d-md-block" style="color: var(--apple-text); font-weight: 600;">Fichas EPI</h3>
+    <!-- Selector de Formulario en Esquina Superior Izquierda -->
+    <div class="dropdown form-switcher-dropdown d-none d-md-block">
+      <button class="btn p-0 d-flex align-items-center gap-2 form-title-btn" type="button" id="dropdownFormSwitcher" data-bs-toggle="dropdown" aria-expanded="false" title="Haz clic para cambiar de formulario">
+        <h3 class="m-0 fw-bold" id="headerTituloFormulario" style="color: var(--apple-text); font-size: 1.35rem; transition: color 0.2s;">Fichas EPI</h3>
+        <span class="badge-form-mode badge-epi" id="headerBadgeFormulario">EPI / TB</span>
+        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="switcher-caret"><polyline points="6 9 12 15 18 9"></polyline></svg>
+      </button>
+      <ul class="dropdown-menu dropdown-menu-apple shadow-lg" aria-labelledby="dropdownFormSwitcher">
+        <li><h6 class="dropdown-header text-uppercase" style="font-size: 0.68rem; font-weight: 700; letter-spacing: 0.5px;">Seleccionar Formulario</h6></li>
+        <li>
+          <a class="dropdown-item d-flex align-items-center gap-3 py-2 px-3 rounded-3 active" id="optSwitchEpi" href="javascript:void(0)" onclick="window.solicitarCambioModo('epi')">
+            <div class="icon-wrap-switch text-primary bg-primary bg-opacity-10 p-2 rounded-circle">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+            </div>
+            <div>
+              <div class="fw-bold" style="font-size: 0.95rem;">Fichas Epidemiológicas</div>
+              <small class="text-muted" style="font-size: 0.78rem;">Notificación EPI y Tuberculosis (TB)</small>
+            </div>
+          </a>
+        </li>
+        <li><hr class="dropdown-divider my-1 opacity-25"></li>
+        <li>
+          <a class="dropdown-item d-flex align-items-center gap-3 py-2 px-3 rounded-3" id="optSwitchSppat" href="javascript:void(0)" onclick="window.solicitarCambioModo('sppat')">
+            <div class="icon-wrap-switch text-danger bg-danger bg-opacity-10 p-2 rounded-circle">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="m4.93 4.93 4.24 4.24"></path><path d="m14.83 9.17 4.24-4.24"></path><path d="m14.83 14.83 4.24 4.24"></path><path d="m9.17 14.83-4.24 4.24"></path><circle cx="12" cy="12" r="4"></circle></svg>
+            </div>
+            <div>
+              <div class="fw-bold" style="font-size: 0.95rem;">Expediente SPPAT</div>
+              <small class="text-muted" style="font-size: 0.78rem;">Accidentes de Tránsito / Emergencias</small>
+            </div>
+          </a>
+        </li>
+      </ul>
+    </div>
     <!-- Badge de estado de conexión / Modo Offline -->
     <div id="offlineBadge" class="offline-status-badge d-none" style="cursor: pointer;" onclick="mostrarInfoModoOffline()" title="Toca para más información">
       <span style="display:inline-block; width:7px; height:7px; border-radius:50%; background: currentColor;"></span>
@@ -68,11 +100,12 @@
     </button>
     
     <!-- Exportar PDF -->
-    <button type="button" class="btn-apple d-flex align-items-center gap-2" onclick="descargarFichaSegura('pdf')">
-      <span class="d-none d-sm-inline">Exportar</span> PDF
+    <button type="button" id="btnExportarHeader" class="btn-apple d-flex align-items-center gap-2" onclick="window.ejecutarExportarHeader()">
+      <span class="d-none d-sm-inline">Exportar</span> <span id="txtBtnExportarHeader">PDF</span>
     </button>
   </div>
 </div>
+
 
 <!-- MENÚ LATERAL (OFFCANVAS) PARA GESTIÓN DE NUBE -->
 <div class="offcanvas offcanvas-start" tabindex="-1" id="menuOpciones" style="background-color: var(--apple-bg); color: var(--apple-text); border-right: 1px solid var(--apple-border); width: 320px;">
@@ -89,6 +122,12 @@
     <button type="button" id="btnGoogleLogin" class="btn-apple" style="background-color: var(--apple-card); color: var(--apple-text); border: 1px solid var(--apple-border); display: flex; align-items: center; justify-content: center; gap: 10px; padding: 14px 16px; width: 100%; box-shadow: 0 2px 8px rgba(0,0,0,0.04);" onclick="toggleLogin()">
       <svg id="loginIcon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
       <span id="loginText" style="font-weight: 600; font-size: 1rem;">Iniciar sesión</span>
+    </button>
+
+    <!-- Botón Médicos Frecuentes -->
+    <button type="button" id="btnMedicosMenu" class="btn-apple w-100" style="background-color: var(--apple-input-bg); color: var(--apple-text); border: 1px solid var(--apple-border); display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 14px; font-weight: 500; box-shadow: none;" onclick="window.abrirGestionMedicos()">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><polyline points="17 11 19 13 23 9"></polyline></svg>
+      <span>Médicos Frecuentes</span>
     </button>
 
     <!-- Botón Instalar App (PWA) -->
@@ -161,11 +200,25 @@
 </div>
 
 <div class="container-fluid app-container py-2">
-  <h2 class="d-md-none text-center mb-4 fw-bold" style="color: var(--apple-blue); font-size: 1.55rem;">Formulario Fichas EPI</h2>
+  <!-- Selector de Formulario en Móvil (Apple Navigation Pill) -->
+  <div class="d-md-none mobile-title-switcher-container">
+    <button type="button" class="btn-mobile-title-switcher" onclick="window.abrirModalCambiarFormulario()" title="Toca para cambiar de formulario">
+      <span class="mobile-switcher-icon-wrap icon-epi" id="mobileModeIconWrap">
+        <svg id="svgMobileEpi" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+      </span>
+      <span class="mobile-switcher-title" id="mobileTituloFormulario">Fichas EPI</span>
+      <span class="badge-form-mode badge-epi" id="mobileBadgeModo">EPI / TB</span>
+      <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="mobile-switcher-caret"><polyline points="6 9 12 15 18 9"></polyline></svg>
+    </button>
+  </div>
+
   <form id="epiForm">
     <!-- SECCIÓN UNIDAD NOTIFICADORA -->
     <div class="card">
-      <div class="card-header-custom"><svg class="me-2" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"></path><path d="M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16"></path><path d="M9 21v-4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v4"></path><path d="M10 9h4"></path><path d="M12 7v4"></path></svg>Unidad Notificadora</div>
+      <div class="card-header-custom" id="tituloUnidadCard">
+        <svg class="me-2" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"></path><path d="M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16"></path><path d="M9 21v-4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v4"></path><path d="M10 9h4"></path><path d="M12 7v4"></path></svg>
+        <span id="txtTituloUnidadCard">Unidad Notificadora</span>
+      </div>
       <div class="card-body pt-2">
         <div class="row g-4 align-items-end">
           <div class="col-md-6">
@@ -181,15 +234,15 @@
             </select>
           </div>
           
-          <div class="col-4 col-md-4">
+          <div class="col-4 col-md-4 ocultar-en-sppat">
             <label>Provincia Est.:</label>
             <input type="text" id="prov_establecimiento" class="form-control" readonly>
           </div>
-          <div class="col-4 col-md-4">
+          <div class="col-4 col-md-4 ocultar-en-sppat">
             <label>Cantón Est.:</label>
             <input type="text" id="canton_establecimiento" class="form-control" readonly>
           </div>
-          <div class="col-4 col-md-4">
+          <div class="col-4 col-md-4 ocultar-en-sppat">
             <label style="white-space: nowrap;">Parroquia Est.:</label>
             <input type="text" id="parroquia_establecimiento" class="form-control" readonly>
           </div>
@@ -210,7 +263,7 @@
       <div class="accordion-item">
         <h2 class="accordion-header">
           <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#sec1">
-  <svg class="me-2" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>Identificación y Datos del Paciente
+  <svg class="me-2" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg><span id="txtTituloIdentificacion">Identificación y Datos del Paciente</span>
 </button>
         </h2>
         <div id="sec1" class="accordion-collapse collapse show" data-bs-parent="#accordionFicha">
@@ -318,27 +371,27 @@
                 <input type="text" id="ocupacion" class="form-control save-state">
               </div>
 
-              <div class="col-6 col-md-4">
+              <div class="col-6 col-md-4 ocultar-en-sppat">
                 <label>Madre o Responsable:</label>
                 <input type="text" id="nombre_madre" class="form-control save-state">
               </div>
-              <div class="col-6 col-md-4">
+              <div class="col-6 col-md-4 ocultar-en-sppat" id="col_medico_tratante">
                 <label>Médico Tratante:</label>
                 <input type="text" id="medico_tratante" class="form-control save-state" oninput="const resp = document.getElementById('tb_responsable'); if(resp) { resp.value = this.value; resp.dispatchEvent(new Event('input', {bubbles:true})); }">
               </div>
-              <div class="col-12 col-md-4">
+              <div class="col-12 col-md-4 ocultar-en-sppat" id="col_cie10">
                 <label>Diagnóstico CIE-10:</label>
                 <select id="diagnostico_cie10" class="form-select save-state" placeholder="Buscar diagnóstico..."></select>
               </div>
 
-              <div class="col-6 col-md-2">
+              <div class="col-6 col-md-2 ocultar-en-sppat">
                 <label>¿Embarazada?:</label>
                 <select id="embarazada" class="form-select save-state">
                   <option value="NO">NO</option>
                   <option value="SI">SI</option>
                 </select>
               </div>
-              <div class="col-6 col-md-2">
+              <div class="col-6 col-md-2 ocultar-en-sppat">
                 <label>Sem. Gestación:</label>
                 <input type="text" inputmode="decimal" id="semanas_gestacion" class="form-control save-state decimal-input" disabled>
               </div>
@@ -346,6 +399,9 @@
           </div>
         </div>
       </div>
+
+      <!-- INICIO CONTENEDOR EXCLUSIVO EPI / TB -->
+      <div id="contenedorEpiTb">
 
       <!-- SECCIÓN SÍNTOMAS Y SIGNOS -->
       <div class="accordion-item">
@@ -930,19 +986,26 @@
           </div>
         </div>
       </div>
-    </div>
     <!-- PREGUNTA OPCIONAL PARA TUBERCULOSIS -->
       <div class="card mb-4" id="tb_pregunta_container" style="display: none; border: 2px solid var(--apple-red) !important; background-color: rgba(255, 59, 48, 0.03);">
         <div class="card-body">
-          <div class="row align-items-center">
-            <div class="col-12 col-md-8">
+          <div class="row align-items-center g-3">
+            <div class="col-12 col-md-6">
               <h6 class="text-danger mb-1"><svg class="me-2" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>Diagnóstico de Tuberculosis detectado</h6>
               <p class="mb-0" style="color: var(--apple-text-muted); font-size: 0.85rem;">¿Desea llenar y adjuntar la Solicitud de Pruebas de Diagnóstico y Control de TB al PDF final?</p>
             </div>
-            <div class="col-12 col-md-4 mt-3 mt-md-0">
+            <div class="col-12 col-md-3">
+              <label class="small fw-bold text-danger mb-1">¿Adjuntar Ficha TB?:</label>
               <select id="tb_requiere_ficha" class="form-select save-state" onchange="toggleFormularioTB()" style="border-color: var(--apple-red); color: var(--apple-red); font-weight: bold;">
                 <option value="NO" selected>NO</option>
                 <option value="SI">SÍ, LLENAR FICHA TB</option>
+              </select>
+            </div>
+            <div class="col-12 col-md-3" id="tb_copias_pregunta_wrap" style="display: none;">
+              <label class="small fw-bold text-danger mb-1">Copias al final del PDF:</label>
+              <select id="tb_copias" class="form-select save-state" onchange="window.sincronizarCopiasTB(this.value)" style="border-color: var(--apple-red); font-weight: 600;">
+                <option value="1">1 COPIA</option>
+                <option value="2" selected>2 COPIAS (SUELEN PEDIR 2)</option>
               </select>
             </div>
           </div>
@@ -1188,15 +1251,392 @@
             </div>
 
             <!-- OBSERVACIONES Y FIRMA -->
-            <div class="row g-3 mt-2">
+            <div class="row g-3 mt-2 align-items-end">
               <div class="col-12 col-md-6"><label>Observaciones (Op. Diagnóstico):</label><input type="text" id="tb_obs" class="form-control save-state"></div>
               <div class="col-12 col-md-6"><label>Datos Clínicos Opcionales:</label><input type="text" id="tb_opcional" class="form-control save-state"></div>
-              <div class="col-12"><label>Nombres / Firma del Responsable:</label><input type="text" id="tb_responsable" class="form-control save-state" placeholder="Se copia automáticamente del Médico Tratante..."></div>
+              <div class="col-12 col-md-8"><label>Nombres / Firma del Responsable:</label><input type="text" id="tb_responsable" class="form-control save-state" placeholder="Se copia automáticamente del Médico Tratante..."></div>
+              <div class="col-12 col-md-4">
+                <label class="fw-bold" style="color: var(--apple-red);">Copias de Ficha TB en el PDF:</label>
+                <select id="tb_copias_sec" class="form-select save-state" onchange="window.sincronizarCopiasTB(this.value)" style="border-color: var(--apple-red); font-weight: 600;">
+                  <option value="1">1 COPIA AL FINAL DEL PDF</option>
+                  <option value="2" selected>2 COPIAS AL FINAL DEL PDF (SUELEN PEDIR 2)</option>
+                </select>
+              </div>
             </div>
 
           </div>
         </div>
       </div>
+      </div> <!-- FIN contenedorEpiTb -->
+    </div> <!-- FIN accordionFicha -->
+
+      <!-- ========================================================
+           CONTENEDOR EXPEDIENTE SPPAT / EMERGENCIAS
+           ======================================================== -->
+      <div id="contenedorSppat" style="display: none;">
+
+
+
+        <!-- TARJETA 1: DATOS DE INGRESO DEL ACCIDENTE DE TRÁNSITO (SPPAT) -->
+        <div class="card p-3 mb-3 border-0 shadow-sm" style="background: var(--apple-card); border-radius: 14px;">
+          <div class="d-flex flex-wrap justify-content-between align-items-center mb-2">
+            <h6 class="fw-bold mb-0 text-primary d-flex align-items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+              Datos de Ingreso del Accidente de Tránsito (SPPAT)
+            </h6>
+            <span class="sppat-badge-alerta" id="badgeSppatTipo">Accidente de Tránsito (6 Documentos Oficiales)</span>
+          </div>
+          
+          <div class="row g-3 align-items-end">
+            <div class="col-6 col-md-3">
+              <label for="sppat_hora_atencion">Hora de Ingreso / Atención:</label>
+              <input type="time" id="sppat_hora_atencion" class="form-control save-state">
+            </div>
+            <div class="col-6 col-md-3">
+              <label for="sppat_condicion_accidentado">Condición del Accidentado:</label>
+              <select id="sppat_condicion_accidentado" class="form-select save-state">
+                <option value="CONDUCTOR" selected>Conductor (Ocupante en SPPAT)</option>
+                <option value="OCUPANTE">Ocupante / Pasajero</option>
+                <option value="PEATON">Peatón / Atropellado</option>
+              </select>
+            </div>
+            <div class="col-6 col-md-3">
+              <label for="sppat_modo_llegada">Modo de Llegada (008 - B):</label>
+              <select id="sppat_modo_llegada" class="form-select save-state">
+                <option value="OTRO" selected>Particular / Otro Transporte</option>
+                <option value="AMBULANCIA">Ambulancia (911)</option>
+                <option value="AMBULATORIO">Ambulatorio</option>
+              </select>
+            </div>
+            <div class="col-6 col-md-3">
+              <label for="sppat_condicion_llegada">Condición de Llegada (008 - C):</label>
+              <select id="sppat_condicion_llegada" class="form-select save-state">
+                <option value="ESTABLE" selected>Estable</option>
+                <option value="INESTABLE">Inestable</option>
+                <option value="FALLECIDO">Fallecido</option>
+              </select>
+            </div>
+
+            <div class="col-6 col-md-3">
+              <label for="sppat_seguro">Seguro de Salud (008 - B):</label>
+              <select id="sppat_seguro" class="form-select form-select-sm save-state">
+                <option value="" selected>Automático (Según Institución)</option>
+                <option value="IESS-G">IESS-G (Seguro General)</option>
+                <option value="IESS-C">IESS-C (Seguro Campesino)</option>
+                <option value="ISSPOL">ISSPOL</option>
+                <option value="ISSFA">ISSFA</option>
+                <option value="PRIV">Privado</option>
+                <option value="NINGUNO">Ninguno</option>
+              </select>
+            </div>
+            <div class="col-6 col-md-2">
+              <label for="sppat_unicodigo">Unicódigo (Opc.):</label>
+              <input type="text" id="sppat_unicodigo" class="form-control form-control-sm save-state" placeholder="Ej: 13D01">
+            </div>
+            <div class="col-6 col-md-2">
+              <label for="sppat_cama">Cama (Opcional):</label>
+              <input type="text" id="sppat_cama" class="form-control form-control-sm save-state" placeholder="Vacío si no aplica">
+            </div>
+            <div class="col-6 col-md-5">
+              <label for="sppat_motivo_atencion">Motivo de Atención (008 - C):</label>
+              <input type="text" id="sppat_motivo_atencion" class="form-control form-control-sm save-state" placeholder="TRAUMA POR ACCIDENTE DE TRÁNSITO">
+            </div>
+          </div>
+        </div>
+
+        <!-- TARJETA 2: CONTROL DE FIRMAS Y CINEMÁTICA DEL ACCIDENTE -->
+        <div class="card p-3 mb-3 border-0 shadow-sm" style="background: var(--apple-card); border-radius: 14px;">
+          <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+            <h6 class="fw-bold mb-0 text-primary d-flex align-items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
+              Firmas y Representación Legal
+            </h6>
+            <!-- Segmented Control Quién Firma -->
+            <div class="d-inline-flex p-1 sppat-subcard rounded-pill">
+              <div class="form-check form-check-inline m-0 me-1">
+                <input class="btn-check" type="radio" name="sppat_quien_firma" id="sppat_firma_px" value="PACIENTE" checked onchange="window.alternarQuienFirmaSppat('PACIENTE')">
+                <label class="btn btn-sm rounded-pill px-3 py-1" for="sppat_firma_px" style="font-size: 0.82rem; font-weight: 600;">👤 Paciente Firma</label>
+              </div>
+              <div class="form-check form-check-inline m-0">
+                <input class="btn-check" type="radio" name="sppat_quien_firma" id="sppat_firma_rep" value="REPRESENTANTE" onchange="window.alternarQuienFirmaSppat('REPRESENTANTE')">
+                <label class="btn btn-sm rounded-pill px-3 py-1" for="sppat_firma_rep" style="font-size: 0.82rem; font-weight: 600;">👥 Familiar / Representante</label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sub-tarjeta Acompañante / Familiar -->
+          <div id="seccionAcompananteSppat" class="p-3 sppat-subcard mb-3" style="display: none; border-left: 4px solid var(--apple-blue) !important;">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <small class="fw-bold text-primary" style="font-size: 0.84rem;">Datos del Familiar o Representante (Aparece en Acta, Consentimiento 024 y 008):</small>
+            </div>
+            <div class="row g-3">
+              <div class="col-12 col-md-4">
+                <label>Nombres y Apellidos del Familiar:</label>
+                <input type="text" id="sppat_acom_nombre" class="form-control save-state" placeholder="Ej: CARMEN REYNA">
+              </div>
+              <div class="col-6 col-md-3">
+                <label>Cédula del Familiar:</label>
+                <input type="text" id="sppat_acom_cedula" class="form-control save-state numeric-input" placeholder="C.I. del familiar">
+              </div>
+              <div class="col-6 col-md-3">
+                <label>Parentesco:</label>
+                <input type="text" id="sppat_acom_parentesco" class="form-control save-state" placeholder="Ej: HERMANA, MADRE, CÓNYUGE, HIJO/A...">
+              </div>
+              <div class="col-12 col-md-2">
+                <label>Teléfono Familiar:</label>
+                <input type="tel" id="sppat_acom_telefono" class="form-control save-state numeric-input" placeholder="0987654321">
+              </div>
+            </div>
+          </div>
+
+          <!-- Cinemática y Lugar del Accidente -->
+          <div id="seccionDetallesAccidente">
+            <h6 class="fw-bold mb-2 text-primary" style="font-size: 0.88rem;">Cinemática y Lugar del Accidente (Para 008 Punto D y Reclamación SPPAT)</h6>
+            <div class="row g-3">
+              <div class="col-12 col-md-6">
+                <label>Lugar / Calles del Accidente:</label>
+                <input type="text" id="sppat_lugar_evento" class="form-control save-state" placeholder="Ej: VIA PRINCIPAL CHARAPOTO / LA SEQUITA">
+              </div>
+              <div class="col-12 col-md-6">
+                <label>Barrio o Sector:</label>
+                <input type="text" id="sppat_barrio" class="form-control save-state" placeholder="Ej: SECTOR LA SEQUITA">
+              </div>
+              <div class="col-12">
+                <label>Relato de los Hechos (Cinemática del Trauma):</label>
+                <textarea id="sppat_relato_accidente" class="form-control save-state" rows="2" placeholder="Ej: MIENTRAS CONDUCIA MOTOTAXI, FUE IMPACTADO POR CAMION EN LA VIA PRINCIPAL, PRESENTANDO TRAUMATISMO SEVERO..."></textarea>
+              </div>
+              <div class="col-6 col-md-4">
+                <div class="form-check mt-2">
+                  <input class="form-check-input save-state" type="checkbox" id="sppat_custodia_policial">
+                  <label class="form-check-label" for="sppat_custodia_policial">¿Custodia Policial?</label>
+                </div>
+              </div>
+              <div class="col-6 col-md-4">
+                <div class="form-check mt-2">
+                  <input class="form-check-input save-state" type="checkbox" id="sppat_aliento_alcohol">
+                  <label class="form-check-label" for="sppat_aliento_alcohol">¿Aliento Alcohólico?</label>
+                </div>
+              </div>
+            </div>
+
+            <!-- DATOS OPCIONALES DEL VEHÍCULO -->
+            <div class="p-2 sppat-subcard mt-2">
+              <div class="row g-2 align-items-center">
+                <div class="col-12 col-md-4">
+                  <label style="font-size: 0.8rem; font-weight: bold;">Placa del Vehículo (Opcional):</label>
+                  <input type="text" id="sppat_veh_placa" class="form-control form-control-sm save-state" placeholder="Ej: M-12345 (Vacío si no se sabe)">
+                </div>
+                <div class="col-12 col-md-4">
+                  <label style="font-size: 0.8rem; font-weight: bold;">Aseguradora (Opcional):</label>
+                  <input type="text" id="sppat_veh_aseguradora" class="form-control form-control-sm save-state" placeholder="Ej: SPPAT">
+                </div>
+                <div class="col-12 col-md-4 pt-3">
+                  <div class="form-check">
+                    <input class="form-check-input save-state" type="checkbox" id="sppat_veh_asegurado" checked>
+                    <label class="form-check-label" style="font-size: 0.8rem;" for="sppat_veh_asegurado">¿Vehículo Asegurado?</label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TARJETA 3: EVALUACIÓN CLÍNICA DE EMERGENCIA (FORMULARIO 008) -->
+        <div class="card p-3 mb-3 border-0 shadow-sm" style="background: var(--apple-card); border-radius: 14px;">
+          <h6 class="fw-bold mb-3 text-primary d-flex align-items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
+            Atención de Emergencia (Constantes, Diagnósticos y Examen de Trauma)
+          </h6>
+          
+          <!-- Constantes Vitales -->
+          <div class="row g-2 mb-2">
+            <div class="col-6 col-md-2">
+              <label style="font-size: 0.78rem;">P. Arterial (mmHg):</label>
+              <input type="text" id="sppat_pa" class="form-control form-control-sm save-state" placeholder="120/80">
+            </div>
+            <div class="col-6 col-md-2">
+              <label style="font-size: 0.78rem;">Pulso / min:</label>
+              <input type="text" id="sppat_pulso" class="form-control form-control-sm save-state numeric-input" placeholder="75">
+            </div>
+            <div class="col-6 col-md-2">
+              <label style="font-size: 0.78rem;">F. Resp / min:</label>
+              <input type="text" id="sppat_fr" class="form-control form-control-sm save-state numeric-input" placeholder="18">
+            </div>
+            <div class="col-6 col-md-2">
+              <label style="font-size: 0.78rem;">SpO2 (%):</label>
+              <input type="text" id="sppat_spo2" class="form-control form-control-sm save-state numeric-input" placeholder="98">
+            </div>
+            <div class="col-6 col-md-2">
+              <label style="font-size: 0.78rem;">Glasgow:</label>
+              <input type="text" id="sppat_glasgow" class="form-control form-control-sm save-state numeric-input" placeholder="15">
+            </div>
+            <div class="col-6 col-md-2">
+              <label style="font-size: 0.78rem;">Pupilas (Der/Izq):</label>
+              <input type="text" id="sppat_pupilas" class="form-control form-control-sm save-state" placeholder="REACTIVA / ISOC.">
+            </div>
+          </div>
+
+          <div class="row g-2 mb-3">
+            <div class="col-6 col-md-3">
+              <label style="font-size: 0.78rem;">Llenado Capilar (s):</label>
+              <input type="text" id="sppat_llenado_capilar" class="form-control form-control-sm save-state" placeholder="Ej: 2 SEG">
+            </div>
+            <div class="col-6 col-md-3">
+              <label style="font-size: 0.78rem;">Peso (kg):</label>
+              <input type="text" id="sppat_peso" class="form-control form-control-sm save-state decimal-input" placeholder="Peso kg">
+            </div>
+            <div class="col-6 col-md-3">
+              <label style="font-size: 0.78rem;">Talla (cm):</label>
+              <input type="text" id="sppat_talla" class="form-control form-control-sm save-state numeric-input" placeholder="Talla cm">
+            </div>
+            <div class="col-6 col-md-3">
+              <label style="font-size: 0.78rem;">Glicemia (mg/dL):</label>
+              <input type="text" id="sppat_glicemia" class="form-control form-control-sm save-state numeric-input" placeholder="Glicemia mg/dL">
+            </div>
+          </div>
+
+          <!-- DIAGNÓSTICOS CIE-10 PARA TRAUMA / TRÁNSITO (BASE DE DATOS EXCLUSIVA SPPAT) -->
+          <div class="p-3 sppat-subcard mb-3">
+            <small class="fw-bold text-uppercase text-primary d-block mb-2" style="font-size: 0.76rem; letter-spacing: 0.05em;">Diagnósticos CIE-10 de Accidente de Tránsito y Lesiones Anatómicas (008 Cuadro L/M, 012A y Reclamación SPPAT):</small>
+            
+            <div class="row g-2 mb-3">
+              <div class="col-12">
+                <label style="font-size: 0.78rem; font-weight: 600;">🔍 Buscador CIE-10 Diagnóstico 1 (Accidente de Tránsito / Lesión Principal):</label>
+                <select id="sppat_select_cie1" class="form-select form-select-sm save-state" placeholder="Buscar CIE-10 de accidente de tránsito (V01-V99) o lesión anatómica (S00-T14)..."></select>
+              </div>
+              <div class="col-12 col-md-8">
+                <label style="font-size: 0.75rem;">Descripción Diagnóstico 1 (Causa Externa / Mecanismo):</label>
+                <input type="text" id="sppat_diag_principal_txt" class="form-control form-control-sm save-state" placeholder="Ej: MOTOCICLISTA LESIONADO POR COLISIÓN...">
+              </div>
+              <div class="col-12 col-md-4">
+                <label style="font-size: 0.75rem;">Código CIE-10 Principal:</label>
+                <input type="text" id="sppat_diag_principal_cie" class="form-control form-control-sm save-state" placeholder="Ej: V240">
+              </div>
+            </div>
+
+            <hr class="my-2" style="border-color: var(--apple-border);">
+
+            <div class="row g-2 mt-1">
+              <div class="col-12">
+                <label style="font-size: 0.78rem; font-weight: 600;">🔍 Buscador CIE-10 Diagnóstico 2 (Lesión Anatómica Específica / Secundario):</label>
+                <select id="sppat_select_cie2" class="form-select form-select-sm save-state" placeholder="Buscar lesión anatómica (fractura, herida, contusión, TEC, esguince S00-T14)..."></select>
+              </div>
+              <div class="col-12 col-md-8">
+                <label style="font-size: 0.75rem;">Descripción Diagnóstico 2 (Lesión Anatómica Específica):</label>
+                <input type="text" id="sppat_diag_sec_txt" class="form-control form-control-sm save-state" placeholder="Ej: FRACTURA DEL PIE, EXCEPTO DEL TOBILLO">
+              </div>
+              <div class="col-12 col-md-4">
+                <label style="font-size: 0.75rem;">Código CIE-10 Secundario:</label>
+                <input type="text" id="sppat_diag_sec_cie" class="form-control form-control-sm save-state" placeholder="Ej: S929">
+              </div>
+            </div>
+          </div>
+
+          <!-- Antecedentes, Examen Físico y de Trauma -->
+          <div class="row g-3">
+            <div class="col-12">
+              <label>Antecedentes Patológicos Personales y Familiares (008 - E):</label>
+              <input type="text" id="sppat_antecedentes" class="form-control form-control-sm save-state" placeholder="Dejar vacío para marcar 'NO APLICA' automáticamente">
+            </div>
+            <div class="col-12 col-md-6">
+              <label>Examen Físico Regional (008 - H):</label>
+              <textarea id="sppat_examen_fisico" class="form-control save-state" rows="2" placeholder="Ej: Herida o laceraciones en extremidad..."></textarea>
+            </div>
+            <div class="col-12 col-md-6">
+              <label>Examen Físico de Trauma / Crítico (008 - I):</label>
+              <textarea id="sppat_examen_trauma" class="form-control save-state" rows="2" placeholder="Ej: Deformidad ósea, movilidad patológica, pulsos distales..."></textarea>
+            </div>
+
+            <!-- Plan de Tratamiento STAT -->
+            <div class="col-12">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <label class="mb-0">Plan de Tratamiento / Medicamentos Aplicados (008 - N):</label>
+                <small class="text-muted" style="font-size: 0.74rem;">Ej: CEFTRIAXONA 1G IV C/12H (separa automático medicamento, vía, dosis, posología y días)</small>
+              </div>
+              <textarea id="sppat_tratamiento" class="form-control save-state" rows="3" placeholder="1. CEFTRIAXONA 1G IV C/12H&#10;2. KETOROLACO 60MG IV STAT"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- TARJETA 4: SOLICITUD DE IMAGENOLOGÍA / RAYOS X (FORMULARIO 012A) -->
+        <div class="card p-3 mb-4 border-0 shadow-sm" style="background: var(--apple-card); border-radius: 14px;">
+          <h6 class="fw-bold mb-2 text-primary d-flex align-items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+            Solicitud de Imagenología / Rayos X (Formulario 012A)
+          </h6>
+
+          <div class="mb-2">
+            <small class="text-muted d-block mb-1">Selección rápida de estudios (toca para agregar/quitar):</small>
+            <div class="d-flex flex-wrap gap-2">
+              <button type="button" class="btn-chip-rx" data-estudio="73620 - RX PIE AP Y LATERAL" onclick="window.alternarEstudioRx(this, '73620 - RX PIE AP Y LATERAL')">Rx Pie</button>
+              <button type="button" class="btn-chip-rx" data-estudio="73600 - RX TOBILLO AP Y LATERAL" onclick="window.alternarEstudioRx(this, '73600 - RX TOBILLO AP Y LATERAL')">Rx Tobillo</button>
+              <button type="button" class="btn-chip-rx" data-estudio="73590 - RX TIBIA Y PERONE AP Y LATERAL" onclick="window.alternarEstudioRx(this, '73590 - RX TIBIA Y PERONE AP Y LATERAL')">Rx Pierna (Tibia/Peroné)</button>
+              <button type="button" class="btn-chip-rx" data-estudio="73560 - RX RODILLA AP Y LATERAL" onclick="window.alternarEstudioRx(this, '73560 - RX RODILLA AP Y LATERAL')">Rx Rodilla</button>
+              <button type="button" class="btn-chip-rx" data-estudio="73550 - RX FEMUR AP Y LATERAL" onclick="window.alternarEstudioRx(this, '73550 - RX FEMUR AP Y LATERAL')">Rx Fémur</button>
+              <button type="button" class="btn-chip-rx" data-estudio="72170 - RX PELVIS AP" onclick="window.alternarEstudioRx(this, '72170 - RX PELVIS AP')">Rx Pelvis</button>
+              <button type="button" class="btn-chip-rx" data-estudio="73090 - RX ANTEBRAZO AP Y LATERAL" onclick="window.alternarEstudioRx(this, '73090 - RX ANTEBRAZO AP Y LATERAL')">Rx Antebrazo</button>
+              <button type="button" class="btn-chip-rx" data-estudio="73120 - RX MANO DOS POSICIONES" onclick="window.alternarEstudioRx(this, '73120 - RX MANO DOS POSICIONES')">Rx Mano</button>
+              <button type="button" class="btn-chip-rx" data-estudio="71020 - RX TORAX AP Y LATERAL" onclick="window.alternarEstudioRx(this, '71020 - RX TORAX AP Y LATERAL')">Rx Tórax</button>
+              <button type="button" class="btn-chip-rx" data-estudio="70250 - RX CRANEO AP Y LATERAL" onclick="window.alternarEstudioRx(this, '70250 - RX CRANEO AP Y LATERAL')">Rx Cráneo</button>
+            </div>
+          </div>
+
+          <div class="row g-3 mt-1">
+            <div class="col-12 col-md-8">
+              <label>Estudio(s) Solicitado(s):</label>
+              <input type="text" id="sppat_rx_estudio" class="form-control save-state" placeholder="Ej: 73600 - RX TOBILLO AP Y LATERAL">
+            </div>
+            <div class="col-12 col-md-4">
+              <label>Motivo de la Solicitud:</label>
+              <input type="text" id="sppat_rx_motivo" class="form-control save-state" placeholder="Ej: DESCARTAR FRACTURA O LUXACION">
+            </div>
+          </div>
+
+          <!-- OBSERVACIONES DE ENTREGA-RECEPCIÓN DE SERVICIOS (ACTA) -->
+          <div class="mt-3 p-3 sppat-subcard">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <small class="fw-bold text-primary" style="font-size: 0.82rem;">Observaciones para Acta Entrega-Recepción de Servicios:</small>
+            </div>
+            <div class="d-flex flex-wrap gap-1 mb-2">
+              <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size: 0.74rem; border-radius: 999px;" onclick="window.seleccionarObservacionEntrega('NINGUNA')">Ninguna</button>
+              <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size: 0.74rem; border-radius: 999px;" onclick="window.seleccionarObservacionEntrega('PACIENTE RECIBIDO EN CONDICION ESTABLE')">Paciente Estable</button>
+              <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size: 0.74rem; border-radius: 999px;" onclick="window.seleccionarObservacionEntrega('SE COORDINA VALORACION POR TRAUMATOLOGIA')">Valoración Traumatología</button>
+            </div>
+            <input type="text" id="sppat_observaciones_entrega" class="form-control form-control-sm save-state" placeholder="Observaciones en el acta de entrega (opcional)">
+          </div>
+
+          <!-- DATOS DEL MÉDICO EN SPPAT (SINCRONIZADO CON medicos.js) -->
+          <div class="mt-3 p-3 sppat-subcard">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <h6 class="mb-0 text-primary fw-bold" style="font-size: 0.88rem;">Médico Responsable (Se auto-guarda en la base de datos)</h6>
+              <button type="button" class="btn btn-sm btn-outline-primary" style="font-size: 0.75rem; border-radius: 999px; padding: 2px 10px;" onclick="window.abrirGestionMedicos()">Ver Médicos Guardados</button>
+            </div>
+            <div class="row g-2">
+              <div class="col-12 col-md-6">
+                <label style="font-size: 0.78rem;">Médico Tratante (Escribe para autocompletar):</label>
+                <input type="text" id="sppat_medico_nombre" class="form-control form-control-sm save-state" list="listaMedicosDatalist" placeholder="Ej: DR. YANDRY SALTOS MEZA">
+              </div>
+              <div class="col-6 col-md-3">
+                <label style="font-size: 0.78rem;">Cédula / Reg. MSP:</label>
+                <input type="text" id="sppat_medico_cedula" class="form-control form-control-sm save-state" placeholder="1311851735">
+              </div>
+              <div class="col-6 col-md-3">
+                <label style="font-size: 0.78rem;">Especialidad / Cargo:</label>
+                <input type="text" id="sppat_medico_esp" class="form-control form-control-sm save-state" placeholder="MEDICO RESIDENTE">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- BOTÓN DE DESCARGA SPPAT DENTRO DEL CONTENEDOR -->
+        <div class="d-flex justify-content-center mb-5">
+          <button type="button" class="btn-apple btn-lg shadow-sm d-flex align-items-center gap-2 px-5 py-3" style="font-size: 1.05rem;" onclick="window.descargarExpedienteSppat()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
+            Exportar Expediente SPPAT Completo (PDF)
+          </button>
+        </div>
+      </div> <!-- FIN contenedorSppat -->
+  </form>
 
   <!-- BOTONES INFERIORES -->
   <div class="d-flex flex-column flex-md-row justify-content-center align-items-center gap-3 mt-5 mb-4 action-buttons-container">
@@ -1204,13 +1644,17 @@
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 16.9A5 5 0 0 0 18 7h-1.26a8 8 0 1 0-11.62 9"></path><polyline points="16 12 12 8 8 12"></polyline><line x1="12" y1="8" x2="12" y2="21"></line></svg>
       Guardar en Nube
     </button>
-    <button type="button" class="btn-apple-excel action-btn" onclick="descargarFichaSegura('excel')">
+    <button type="button" id="btnGenerarExcelBottom" class="btn-apple-excel action-btn" onclick="descargarFichaSegura('excel')">
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="13" x2="16" y2="17"></line><line x1="16" y1="13" x2="8" y2="17"></line></svg>
       Generar Excel
     </button>
-    <button type="button" class="btn-apple action-btn" onclick="descargarFichaSegura('pdf')">
+    <button type="button" id="btnGenerarPdfBottom" class="btn-apple action-btn" onclick="descargarFichaSegura('pdf')">
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
       Generar PDF
+    </button>
+    <button type="button" id="btnGenerarSppatBottom" class="btn-apple action-btn" style="display: none;" onclick="window.descargarExpedienteSppat()">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+      Exportar SPPAT (PDF)
     </button>
   </div>
 
@@ -1245,6 +1689,6 @@
 <!-- Tom Select JS -->
 <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
 <!-- Tu lógica separada -->
-<script type="module" src="./js/main.js?v=3.8"></script>
+<script type="module" src="./js/main.js?v=4.6"></script>
 </body>
 </html>

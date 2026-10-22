@@ -1,7 +1,7 @@
 // js/main.js
 import { dbSintomas, dbVacunas } from './constants.js';
 import { initTheme, enfocarElementoSeguro, mostrarLoader, ocultarLoader } from './ui.js';
-import { setupAutoSave } from './storage.js';
+import { setupAutoSave, saveFormData, loadFormData } from './storage.js';
 import { initData, initApiListeners } from './api.js';
 import { 
   toggleElementos, toggleExposicion, validarProcedenciaAgua, 
@@ -11,6 +11,16 @@ import {
 
 // 1. IMPORTAMOS LA FUNCIÓN DE LA NUBE
 import { initCloudAuth } from './cloud.js';
+
+// 2. IMPORTAMOS FUNCIONES SPPAT, MÉDICOS Y EXPORTACIÓN
+import { 
+  configurarAutocompletadoMedicos, 
+  abrirGestionMedicos, 
+  registrarOActualizarMedico,
+  obtenerMedicos
+} from './medicos.js';
+import { recopilarDatosSppat, generarExpedienteSppatBlob } from './sppat.js';
+import { descargarFichaSegura } from './api.js';
 
 // Inicializar configuración base
 initTheme();
@@ -641,3 +651,451 @@ if (isStandalone) {
       element.addEventListener('input', forzarCalculoDias);
   }
 });
+
+// ==========================================
+// MÓDULO SPPAT / ACCIDENTES Y GESTIÓN DE MÉDICOS
+// ==========================================
+let modoAppActual = 'epi';
+try {
+  const savedModo = localStorage.getItem('modoAppActual');
+  if (savedModo === 'sppat' || savedModo === 'epi') modoAppActual = savedModo;
+} catch(e) {}
+window.modoAppActual = modoAppActual;
+
+export function alternarModoApp() {
+  const nuevoModo = (modoAppActual === 'sppat') ? 'epi' : 'sppat';
+  abrirModalCambiarFormulario(nuevoModo);
+}
+
+export function abrirModalCambiarFormulario(modoDestino) {
+  const target = modoDestino || (modoAppActual === 'sppat' ? 'epi' : 'sppat');
+  if (target === modoAppActual) return;
+
+  const esHaciaSppat = (target === 'sppat');
+  const nombreDestino = esHaciaSppat ? 'Expediente SPPAT' : 'Fichas Epidemiológicas';
+  const subtituloDestino = esHaciaSppat ? 'Accidentes de Tránsito / Emergencias' : 'Notificación EPI y TB';
+  const iconoDestino = esHaciaSppat ? '🚨' : '📋';
+  const colorBoton = esHaciaSppat ? '#ff453a' : '#0071e3';
+
+  Swal.fire({
+    title: `¿Cambiar a ${nombreDestino}?`,
+    html: `
+      <div class="text-center py-2" style="color: var(--apple-text);">
+        <div style="font-size: 2.4rem; margin-bottom: 12px; line-height: 1;">${iconoDestino}</div>
+        <p style="font-size: 0.95rem; font-weight: 500; margin-bottom: 8px;">
+          Vas a ingresar al entorno de <b>${nombreDestino}</b> (${subtituloDestino}).
+        </p>
+        <p class="text-muted" style="font-size: 0.82rem; margin-bottom: 0;">
+          🔒 Ambos formularios son 100% independientes (no se mezclan ni sincronizan datos entre EPI y SPPAT).
+        </p>
+      </div>
+    `,
+    showCancelButton: true,
+    confirmButtonText: `Sí, cambiar a ${nombreDestino}`,
+    cancelButtonText: 'Cancelar',
+    confirmButtonColor: colorBoton,
+    cancelButtonColor: '#8e8e93',
+    reverseButtons: true,
+    focusCancel: true
+  }).then((result) => {
+    if (result.isConfirmed) {
+      cambiarModoApp(target, false);
+      const Toast = Swal.mixin({
+        toast: true,
+        position: 'top',
+        showConfirmButton: false,
+        timer: 1800,
+        timerProgressBar: false
+      });
+      Toast.fire({
+        icon: 'success',
+        title: `Modo activo: ${nombreDestino}`
+      });
+    }
+  });
+}
+
+export function cambiarModoApp(modo, esCargaInicial = false) {
+  const modoAnterior = modoAppActual;
+  if (!esCargaInicial && modoAnterior !== modo) {
+    saveFormData(modoAnterior);
+  }
+  modoAppActual = modo;
+  window.modoAppActual = modo;
+  document.body.setAttribute('data-modo', modo);
+  try { localStorage.setItem('modoAppActual', modo); } catch(e) {}
+  if (!esCargaInicial && modoAnterior !== modo) {
+    loadFormData(modo, true);
+  }
+
+  // 1. Elementos del Switcher Superior Izquierdo (Desktop)
+  const headerTitulo = document.getElementById('headerTituloFormulario');
+  const headerBadge = document.getElementById('headerBadgeFormulario');
+  const optEpi = document.getElementById('optSwitchEpi');
+  const optSppat = document.getElementById('optSwitchSppat');
+
+  // 2. Elementos del Switcher en Móvil
+  const mobileTitulo = document.getElementById('mobileTituloFormulario');
+  const mobileBadge = document.getElementById('mobileBadgeModo');
+  const mobileIconWrap = document.getElementById('mobileModeIconWrap');
+
+  // 3. Encabezados de tarjetas adaptables
+  const txtTituloUnidad = document.getElementById('txtTituloUnidadCard');
+  const txtTituloIdent = document.getElementById('txtTituloIdentificacion');
+
+  // 4. Contenedores y botones
+  const contEpi = document.getElementById('contenedorEpiTb');
+  const contSppat = document.getElementById('contenedorSppat');
+  const btnExportHeader = document.getElementById('btnExportarHeader');
+  const btnGenPdfBottom = document.getElementById('btnGenerarPdfBottom');
+  const btnGenExcelBottom = document.getElementById('btnGenerarExcelBottom');
+  const btnGenSppatBottom = document.getElementById('btnGenerarSppatBottom');
+
+  if (modo === 'sppat') {
+    // Switcher Superior Izquierdo
+    if (headerTitulo) headerTitulo.innerText = 'Expediente SPPAT';
+    if (headerBadge) {
+      headerBadge.innerText = 'SPPAT / EMERGENCIA';
+      headerBadge.className = 'badge-form-mode badge-sppat';
+    }
+    if (optEpi) optEpi.classList.remove('active');
+    if (optSppat) optSppat.classList.add('active');
+
+    // Switcher Móvil
+    if (mobileTitulo) mobileTitulo.innerText = 'Expediente SPPAT';
+    if (mobileBadge) {
+      mobileBadge.innerText = 'SPPAT / EMERGENCIA';
+      mobileBadge.className = 'badge-form-mode badge-sppat';
+    }
+    if (mobileIconWrap) {
+      mobileIconWrap.className = 'mobile-switcher-icon-wrap icon-sppat';
+      mobileIconWrap.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="m4.93 4.93 4.24 4.24"></path><path d="m14.83 9.17 4.24-4.24"></path><path d="m14.83 14.83 4.24 4.24"></path><path d="m9.17 14.83-4.24 4.24"></path><circle cx="12" cy="4" r="2"></circle></svg>`;
+    }
+
+    // Títulos de tarjetas
+    if (txtTituloUnidad) txtTituloUnidad.innerText = 'Establecimiento de Salud (Emergencia SPPAT)';
+    if (txtTituloIdent) txtTituloIdent.innerText = 'Datos del Paciente / Accidentado';
+
+    // Visibilidad de secciones
+    if (contEpi) contEpi.style.display = 'none';
+    if (contSppat) contSppat.style.display = 'block';
+
+    if (btnExportHeader) {
+      btnExportHeader.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        Exportar SPPAT
+      `;
+      btnExportHeader.setAttribute('title', 'Generar expediente oficial SPPAT');
+    }
+    if (btnGenPdfBottom) btnGenPdfBottom.style.display = 'none';
+    if (btnGenExcelBottom) btnGenExcelBottom.style.display = 'none';
+    if (btnGenSppatBottom) btnGenSppatBottom.style.display = 'flex';
+
+    sincronizarChipsRx();
+  } else {
+    // Switcher Superior Izquierdo
+    if (headerTitulo) headerTitulo.innerText = 'Fichas EPI';
+    if (headerBadge) {
+      headerBadge.innerText = 'EPI / TB';
+      headerBadge.className = 'badge-form-mode badge-epi';
+    }
+    if (optEpi) optEpi.classList.add('active');
+    if (optSppat) optSppat.classList.remove('active');
+
+    // Switcher Móvil
+    if (mobileTitulo) mobileTitulo.innerText = 'Fichas EPI';
+    if (mobileBadge) {
+      mobileBadge.innerText = 'EPI / TB';
+      mobileBadge.className = 'badge-form-mode badge-epi';
+    }
+    if (mobileIconWrap) {
+      mobileIconWrap.className = 'mobile-switcher-icon-wrap icon-epi';
+      mobileIconWrap.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>`;
+    }
+
+    // Títulos de tarjetas
+    if (txtTituloUnidad) txtTituloUnidad.innerText = 'Unidad Notificadora';
+    if (txtTituloIdent) txtTituloIdent.innerText = 'Identificación y Datos del Paciente';
+
+    // Visibilidad de secciones
+    if (contEpi) contEpi.style.display = 'block';
+    if (contSppat) contSppat.style.display = 'none';
+
+    if (btnExportHeader) {
+      btnExportHeader.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        Exportar PDF
+      `;
+      btnExportHeader.setAttribute('title', 'Descargar Ficha Epidemiológica');
+    }
+    if (btnGenPdfBottom) btnGenPdfBottom.style.display = 'flex';
+    if (btnGenExcelBottom) btnGenExcelBottom.style.display = 'flex';
+    if (btnGenSppatBottom) btnGenSppatBottom.style.display = 'none';
+  }
+}
+
+export async function ejecutarExportarHeader() {
+  if (modoAppActual === 'sppat') {
+    await descargarExpedienteSppat();
+  } else {
+    await descargarFichaSegura('pdf', false);
+  }
+}
+
+export function actualizarTipoEventoSppat() {
+  const secDetalles = document.getElementById('seccionDetallesAccidente');
+  if (secDetalles) secDetalles.style.display = 'block';
+}
+
+export function alternarEstudioRx(chipBtn, estudio) {
+  const inputRx = document.getElementById('sppat_rx_estudio');
+  if (!inputRx) return;
+  const target = (estudio || chipBtn?.getAttribute('data-estudio') || '').trim();
+  if (!target) return;
+
+  const targetCodigoMatch = target.match(/\b\d{5}\b/);
+  const targetCodigo = targetCodigoMatch ? targetCodigoMatch[0] : null;
+  const targetDesc = target.replace(/^\d{5}\s*[-–—]\s*/, '').trim().toUpperCase();
+
+  let items = inputRx.value
+    .split(/[\/,;\n]+/)
+    .map(s => s.trim())
+    .filter(s => s.length > 0);
+
+  // Comprobar si ya existe por código o por texto descriptivo
+  const index = items.findIndex(item => {
+    if (targetCodigo && item.includes(targetCodigo)) return true;
+    const itemDesc = item.replace(/^\d{5}\s*[-–—]\s*/, '').trim().toUpperCase();
+    return (targetDesc.length >= 4 && itemDesc === targetDesc) || item.toUpperCase() === target.toUpperCase();
+  });
+
+  if (index >= 0) {
+    // Si ya existe, se remueve completamente (toggle OFF)
+    items.splice(index, 1);
+  } else {
+    // Si no existe, se añade una sola vez (toggle ON)
+    items.push(target);
+  }
+
+  // Deduplicación estricta por código o nombre
+  const listaUnica = [];
+  const clavesVistas = new Set();
+  for (const item of items) {
+    const codMatch = item.match(/\b\d{5}\b/);
+    const key = codMatch ? codMatch[0] : item.toUpperCase().trim();
+    if (!clavesVistas.has(key)) {
+      clavesVistas.add(key);
+      listaUnica.push(item);
+    }
+  }
+
+  inputRx.value = listaUnica.join(' / ');
+  inputRx.dispatchEvent(new Event('input', { bubbles: true }));
+  inputRx.dispatchEvent(new Event('change', { bubbles: true }));
+  sincronizarChipsRx();
+}
+
+export function sincronizarChipsRx() {
+  const inputRx = document.getElementById('sppat_rx_estudio');
+  const valor = (inputRx?.value || '').toUpperCase();
+  const chips = document.querySelectorAll('.btn-chip-rx');
+
+  chips.forEach(chip => {
+    const estudio = (chip.getAttribute('data-estudio') || chip.getAttribute('onclick') || '').toUpperCase();
+    const codigoMatch = estudio.match(/\d{5}/);
+    const codigo = codigoMatch ? codigoMatch[0] : null;
+
+    let activo = false;
+    if (codigo && valor.includes(codigo)) {
+      activo = true;
+    } else {
+      const textoBuscado = chip.textContent.replace('+', '').replace('Rx', '').replace('✓', '').trim().toUpperCase();
+      if (textoBuscado.length >= 3 && valor.includes(textoBuscado)) {
+        activo = true;
+      }
+    }
+
+    if (activo) {
+      chip.classList.add('active');
+    } else {
+      chip.classList.remove('active');
+    }
+  });
+}
+
+
+
+export function alternarQuienFirmaSppat(quien) {
+  const secAcom = document.getElementById('seccionAcompananteSppat');
+  const esRep = (quien === 'REPRESENTANTE');
+
+  if (secAcom) {
+    secAcom.style.display = esRep ? 'block' : 'none';
+  }
+
+  const rPx = document.getElementById('sppat_firma_px');
+  const rRep = document.getElementById('sppat_firma_rep');
+  if (rPx && rRep) {
+    if (esRep) rRep.checked = true;
+    else rPx.checked = true;
+  }
+
+  if (esRep) {
+    const nomAcom = document.getElementById('sppat_acom_nombre');
+    if (nomAcom && !nomAcom.value) nomAcom.focus();
+  }
+}
+
+
+
+export function seleccionarObservacionEntrega(obs) {
+  const input = document.getElementById('sppat_observaciones_entrega');
+  if (input) {
+    input.value = obs;
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    input.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+}
+
+export async function descargarExpedienteSppat() {
+  const cedula = (document.getElementById('cedula')?.value || '').trim();
+  const apellido = (document.getElementById('primer_apellido')?.value || '').trim();
+  const nombre = (document.getElementById('primer_nombre')?.value || '').trim();
+
+  if (!cedula && !apellido && !nombre) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Datos del Paciente Requeridos',
+      text: 'Por favor complete al menos la Cédula y Nombres del paciente en la sección superior antes de generar el expediente.',
+      confirmButtonColor: 'var(--apple-blue)'
+    });
+    return;
+  }
+
+  try {
+    mostrarLoader("Compilando expediente oficial SPPAT (6 documentos)...");
+    const datos = recopilarDatosSppat();
+    const { blob, fileName } = await generarExpedienteSppatBlob(datos);
+    ocultarLoader();
+
+    // Descarga segura multiplataforma
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 2000);
+
+    Swal.fire({
+      icon: 'success',
+      title: '¡Expediente Generado con Éxito!',
+      html: `Se descargó <b>${fileName}</b>.<br><br>Incluye <b>6 documentos</b> en el orden reglamentario del hospital:<br>` +
+            `<ol class="text-start small ps-4 mt-2">` +
+            `<li>Autorización al Hospital</li>` +
+            `<li>Consentimiento Informado (Form. 024 - Pág. 2)</li>` +
+            `<li>Acta Entrega-Recepción Servicios</li>` +
+            `<li>Formulario Único Reclamación SPPAT</li>` +
+            `<li>Formulario 008 Emergencia</li>` +
+            `<li>Formulario 012A Rayos X</li>` +
+            `</ol>`,
+      confirmButtonColor: 'var(--apple-blue)'
+    });
+  } catch (err) {
+    ocultarLoader();
+    console.error('Error generando SPPAT:', err);
+    Swal.fire({
+      icon: 'error',
+      title: 'Error al generar expediente',
+      text: err.message || 'Ocurrió un error inesperado al estampar las plantillas oficiales.',
+      confirmButtonColor: 'var(--apple-blue)'
+    });
+  }
+}
+
+// Configuración de autocompletado de médicos (independiente entre EPI y SPPAT)
+function inicializarModuloMedicos() {
+  const alSeleccionarMedicoEpi = (medico) => {
+    const elMedTrat = document.getElementById('medico_tratante');
+    const elTbResp = document.getElementById('tb_responsable');
+    if (elMedTrat) elMedTrat.value = medico.nombreCompleto;
+    if (elTbResp) elTbResp.value = medico.nombreCompleto;
+  };
+
+  const alSeleccionarMedicoSppat = (medico) => {
+    const elSppatNom = document.getElementById('sppat_medico_nombre');
+    const elSppatCed = document.getElementById('sppat_medico_cedula');
+    const elSppatEsp = document.getElementById('sppat_medico_esp');
+    if (elSppatNom) elSppatNom.value = medico.nombreCompleto;
+    if (elSppatCed) elSppatCed.value = medico.cedula || medico.registroMsp || '';
+    if (elSppatEsp) elSppatEsp.value = medico.especialidad || 'MEDICO RESIDENTE';
+  };
+
+  configurarAutocompletadoMedicos('medico_tratante', { onSelect: alSeleccionarMedicoEpi });
+  configurarAutocompletadoMedicos('sppat_medico_nombre', { onSelect: alSeleccionarMedicoSppat });
+
+  // Auto-aprendizaje al perder el foco (blur)
+  const guardarMedicoSilencioso = (esSppatField) => {
+    if (esSppatField) {
+      const nom = (document.getElementById('sppat_medico_nombre')?.value || '').trim();
+      const ced = (document.getElementById('sppat_medico_cedula')?.value || '').trim();
+      const esp = (document.getElementById('sppat_medico_esp')?.value || 'MEDICO RESIDENTE').trim();
+      if (nom.length >= 5 || ced.length >= 7) {
+        registrarOActualizarMedico({ nombreCompleto: nom, cedula: ced, registroMsp: ced, especialidad: esp });
+      }
+    } else {
+      const nom = (document.getElementById('medico_tratante')?.value || '').trim();
+      if (nom.length >= 5) {
+        registrarOActualizarMedico({ nombreCompleto: nom });
+      }
+    }
+  };
+
+  ['sppat_medico_nombre', 'sppat_medico_cedula', 'sppat_medico_esp'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('blur', () => guardarMedicoSilencioso(true));
+  });
+  const elMedEpi = document.getElementById('medico_tratante');
+  if (elMedEpi) elMedEpi.addEventListener('blur', () => guardarMedicoSilencioso(false));
+
+  const rxInput = document.getElementById('sppat_rx_estudio');
+  if (rxInput) {
+    rxInput.addEventListener('input', sincronizarChipsRx);
+    rxInput.addEventListener('change', sincronizarChipsRx);
+  }
+
+  setTimeout(() => {
+    actualizarTipoEventoSppat();
+    sincronizarChipsRx();
+  }, 100);
+}
+
+// Inicializar al cargar el DOM
+const initAppModoYMedicos = () => {
+  inicializarModuloMedicos();
+  cambiarModoApp(modoAppActual, true);
+};
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initAppModoYMedicos);
+} else {
+  initAppModoYMedicos();
+}
+
+// Exponer funciones al objeto global window para botones HTML onclick
+window.cambiarModoApp = cambiarModoApp;
+window.alternarModoApp = alternarModoApp;
+window.abrirModalCambiarFormulario = abrirModalCambiarFormulario;
+window.solicitarCambioModo = abrirModalCambiarFormulario;
+window.descargarExpedienteSppat = descargarExpedienteSppat;
+window.ejecutarExportarHeader = ejecutarExportarHeader;
+window.actualizarTipoEventoSppat = actualizarTipoEventoSppat;
+window.agregarEstudioRx = alternarEstudioRx;
+window.alternarEstudioRx = alternarEstudioRx;
+window.sincronizarChipsRx = sincronizarChipsRx;
+window.abrirGestionMedicos = abrirGestionMedicos;
+window.alternarQuienFirmaSppat = alternarQuienFirmaSppat;
+window.seleccionarObservacionEntrega = seleccionarObservacionEntrega;

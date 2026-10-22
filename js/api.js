@@ -1,5 +1,5 @@
 // js/api.js
-import { API_URL } from './constants.js';
+import { API_URL, dbCie10Sppat } from './constants.js';
 import { mostrarLoader, ocultarLoader, enfocarElementoSeguro } from './ui.js';
 import { setCatData, catData, fillCantones, fillParroquias, getVal, getChk, recopilarDatos, calcularZonaDistrito } from './formLogic.js';
 import { loadFormData } from './storage.js';
@@ -144,7 +144,45 @@ export function initData(dataStr) {
   }
   lugSelect.innerHTML = ""; lugSelect.appendChild(fragLug);
 
-  loadFormData();
+  // Poblar selectores de CIE-10 exclusivos para el Formulario SPPAT (Accidentes de Tránsito y Lesiones Anatómicas)
+  const sppatCatalog = (catData && catData.cie10_sppat) ? catData.cie10_sppat : dbCie10Sppat;
+  const listaTransito = Array.isArray(sppatCatalog?.transito) ? sppatCatalog.transito : (dbCie10Sppat.transito || []);
+  const listaLesiones = Array.isArray(sppatCatalog?.lesiones) ? sppatCatalog.lesiones : (dbCie10Sppat.lesiones || []);
+
+  const poblarSelectSppat = (selectId, placeholderTxt, primeroLesiones = false) => {
+    const sel = document.getElementById(selectId);
+    if (!sel) return;
+    const frag = document.createDocumentFragment();
+    const optEmpty = document.createElement('option');
+    optEmpty.value = "";
+    optEmpty.text = placeholderTxt;
+    frag.appendChild(optEmpty);
+
+    const crearGrupo = (titulo, items) => {
+      const grp = document.createElement('optgroup');
+      grp.label = titulo;
+      items.forEach(item => {
+        const o = document.createElement('option');
+        o.value = item;
+        o.text = item;
+        grp.appendChild(o);
+      });
+      return grp;
+    };
+
+    if (primeroLesiones) {
+      frag.appendChild(crearGrupo('LESIONES ANATÓMICAS Y TRAUMATISMOS (S00 - T14)', listaLesiones));
+      frag.appendChild(crearGrupo('ACCIDENTES DE TRÁNSITO / CAUSA EXTERNA (V01 - V99)', listaTransito));
+    } else {
+      frag.appendChild(crearGrupo('ACCIDENTES DE TRÁNSITO / CAUSA EXTERNA (V01 - V99)', listaTransito));
+      frag.appendChild(crearGrupo('LESIONES ANATÓMICAS Y TRAUMATISMOS (S00 - T14)', listaLesiones));
+    }
+    sel.innerHTML = "";
+    sel.appendChild(frag);
+  };
+
+  poblarSelectSppat('sppat_select_cie1', 'Buscar CIE-10 de tránsito (V01-V99) o lesión (S00-T14)...', false);
+  poblarSelectSppat('sppat_select_cie2', 'Buscar lesión anatómica (S00-T14) o tránsito (V01-V99)...', true);
 
   window.tomSelectCie10 = new TomSelect("#diagnostico_cie10", { 
     create: false, maxOptions: null,
@@ -157,6 +195,45 @@ export function initData(dataStr) {
       if (window.revisarCie10ParaTB) window.revisarCie10ParaTB(value);
     }
   });
+
+  const aplicarSeleccionCieSppat = (valor, idTxt, idCie) => {
+    if (!valor) return;
+    const inpTxt = document.getElementById(idTxt);
+    const inpCie = document.getElementById(idCie);
+    const partes = String(valor).split(' - ');
+    const codigo = (partes[0] || '').trim().toUpperCase();
+    const desc = (partes.length > 1 ? partes.slice(1).join(' - ') : valor).trim().toUpperCase();
+    if (inpCie) {
+      inpCie.value = codigo;
+      inpCie.dispatchEvent(new Event('input', { bubbles: true }));
+      inpCie.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+    if (inpTxt) {
+      inpTxt.value = desc;
+      inpTxt.dispatchEvent(new Event('input', { bubbles: true }));
+      inpTxt.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+  };
+
+  if (document.getElementById('sppat_select_cie1')) {
+    window.tomSelectSppatCie1 = new TomSelect("#sppat_select_cie1", {
+      create: false, maxOptions: null,
+      onChange: function(value) {
+        if (value) aplicarSeleccionCieSppat(value, 'sppat_diag_principal_txt', 'sppat_diag_principal_cie');
+      }
+    });
+  }
+
+  if (document.getElementById('sppat_select_cie2')) {
+    window.tomSelectSppatCie2 = new TomSelect("#sppat_select_cie2", {
+      create: false, maxOptions: null,
+      onChange: function(value) {
+        if (value) aplicarSeleccionCieSppat(value, 'sppat_diag_sec_txt', 'sppat_diag_sec_cie');
+      }
+    });
+  }
+
+  loadFormData();
 
   ocultarLoader();
 }
@@ -749,9 +826,10 @@ export async function obtenerBlobDocumento(formato) {
       else if (estTb.length > 30) fontSizeEst = 4.0;
       else if (estTb.length > 20) fontSizeEst = 4.6;
       setCampo('establecimiento', estTb, { centrado: false, negrita: true, fontSize: fontSizeEst });
-      setCampo('provincia', getVal('prov_establecimiento'));
-      setCampo('canton', getVal('canton_establecimiento'));
-      setCampo('parroquia', getVal('parroquia_establecimiento'));
+      // En la ficha TB, provincia, cantón y parroquia corresponden a los datos de residencia del paciente:
+      setCampo('provincia', getVal('prov_residencia'));
+      setCampo('canton', getVal('canton_residencia'));
+      setCampo('parroquia', getVal('parroquia_residencia'));
       const nombreCompleto = `${getVal('primer_apellido')} ${getVal('segundo_apellido')} ${getVal('primer_nombre')} ${getVal('segundo_nombre')}`.trim();
       setCampo('nombres', nombreCompleto);
       setCampo('cedula', getVal('cedula'));
@@ -895,8 +973,11 @@ export async function obtenerBlobDocumento(formato) {
       // Aplanar formulario de Tuberculosis conservando apariencia e impidiendo distorsiones
       aplanarFormularioSeguro(tbDoc);
       
-      const copiedPages = await mainPdfDoc.copyPages(tbDoc, tbDoc.getPageIndices());
-      copiedPages.forEach((page) => mainPdfDoc.addPage(page));
+      const numCopiasTb = (getVal('tb_copias') === '2' || getVal('tb_copias_sec') === '2' || datosObj.tb_copias === '2') ? 2 : 1;
+      for (let copiaIdx = 0; copiaIdx < numCopiasTb; copiaIdx++) {
+        const copiedPages = await mainPdfDoc.copyPages(tbDoc, tbDoc.getPageIndices());
+        copiedPages.forEach((page) => mainPdfDoc.addPage(page));
+      }
     }
 
     try {

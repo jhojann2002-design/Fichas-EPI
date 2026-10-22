@@ -4,7 +4,7 @@ import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, on
 import { getFirestore, doc, setDoc, getDoc, collection, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
 import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-storage.js";
 import { mostrarLoader, ocultarLoader } from "./ui.js";
-import { loadFormData, saveFormData, guardarBorradorLocal } from "./storage.js";
+import { loadFormData, saveFormData, guardarBorradorLocal, obtenerClaveStorage } from "./storage.js";
 import { descargarFichaSegura } from "./api.js";
 
 const firebaseConfig = {
@@ -219,11 +219,13 @@ export async function guardarFichaNube() {
 
   mostrarLoader("Guardando datos en la nube...");
   try {
-    saveFormData();
-    const savedData = localStorage.getItem('epiFormData');
+    const modo = window.modoAppActual || 'epi';
+    saveFormData(modo);
+    const savedData = localStorage.getItem(obtenerClaveStorage(modo));
     if(!savedData) throw new Error("No hay datos para guardar.");
 
     const datosObj = JSON.parse(savedData);
+    datosObj._modoFormulario = modo;
     datosObj.fecha_sincronizacion = new Date().toISOString(); 
     
     // Almacenar SOLO datos en Firestore
@@ -386,12 +388,22 @@ export async function cargarYDescargarPDF(cedula) {
   try {
     const docElegido = await getDoc(doc(db, `usuarios/${currentUser.uid}/fichas/${cedula}`));
     if (docElegido.exists()) {
-      localStorage.setItem('epiFormData', JSON.stringify(docElegido.data()));
-      loadFormData(); // Se inyectan en la interfaz
+      const data = docElegido.data();
+      const modoDestino = data._modoFormulario || 'epi';
+      localStorage.setItem(obtenerClaveStorage(modoDestino), JSON.stringify(data));
+      if (typeof window.cambiarModoApp === 'function' && window.modoAppActual !== modoDestino) {
+        window.cambiarModoApp(modoDestino);
+      } else {
+        loadFormData(modoDestino);
+      }
       
       // Retardo breve para asegurar que el DOM aplicó los datos antes de generar el PDF
       setTimeout(async () => {
-         await descargarFichaSegura('pdf', false);
+         if (modoDestino === 'sppat' && typeof window.descargarExpedienteSppat === 'function') {
+           await window.descargarExpedienteSppat();
+         } else {
+           await descargarFichaSegura('pdf', false);
+         }
       }, 500);
     }
   } catch (error) {
@@ -406,8 +418,14 @@ export async function cargarFichaEspecifica(cedula) {
   try {
     const docElegido = await getDoc(doc(db, `usuarios/${currentUser.uid}/fichas/${cedula}`));
     if (docElegido.exists()) {
-      localStorage.setItem('epiFormData', JSON.stringify(docElegido.data()));
-      loadFormData();
+      const data = docElegido.data();
+      const modoDestino = data._modoFormulario || 'epi';
+      localStorage.setItem(obtenerClaveStorage(modoDestino), JSON.stringify(data));
+      if (typeof window.cambiarModoApp === 'function' && window.modoAppActual !== modoDestino) {
+        window.cambiarModoApp(modoDestino);
+      } else {
+        loadFormData(modoDestino);
+      }
       ocultarLoader();
       Swal.fire('¡Cargado!', `Ficha web de ${cedula} restaurada correctamente.`, 'success');
     }
