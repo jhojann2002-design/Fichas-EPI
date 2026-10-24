@@ -510,15 +510,15 @@
             <table class="table table-borderless table-sm align-middle mt-3" id="tablaContactos">
               <thead>
                 <tr>
-                  <th style="width: 18%;">Nombre</th>
-                  <th style="width: 6%;">Edad</th>
-                  <th style="width: 7%;">Sexo</th>
-                  <th style="width: 11%;">Relación</th>
-                  <th style="width: 17%;">Dirección/Teléf</th>
-                  <th style="width: 10%;">Lugar</th>
-                  <th style="width: 8%;">¿Enfermó?</th>
+                  <th style="width: 16%;">Nombre</th>
+                  <th style="width: 5%;">Edad</th>
+                  <th style="width: 6%;">Sexo</th>
+                  <th style="width: 10%;">Relación</th>
+                  <th style="width: 15%;">Dirección/Teléf</th>
+                  <th style="width: 8%;">Lugar</th>
+                  <th style="width: 7%;">¿Enfermó?</th>
                   <th style="width: 10%;">Fecha Sínt.</th>
-                  <th style="width: 10%;">Observaciones</th>
+                  <th style="width: 20%; min-width: 160px;">Observaciones</th>
                   <th style="width: 3%; text-align: center;"></th>
                 </tr>
               </thead>
@@ -957,11 +957,11 @@
               
               <div class="col-12"><hr class="my-2" style="border-color: var(--apple-border);"></div>
               
-              <div class="col-6 col-md-3">
+              <div class="col-6 col-md-3" style="display: none;">
                 <label>Diagnóstico Definitivo:</label>
-                <input type="text" id="diagnostico_def" class="form-control save-state">
+                <input type="text" id="diagnostico_def" class="form-control" disabled>
               </div>
-              <div class="col-6 col-md-3">
+              <div class="col-6 col-md-6">
                 <label>Confirmado por:</label>
                 <select id="confirmado_por" class="form-select save-state">
                   <option value="" selected>No aplica</option>
@@ -970,7 +970,7 @@
                   <option value="NEXO">NEXO EPIDEM.</option>
                 </select>
               </div>
-              <div class="col-6 col-md-3">
+              <div class="col-6 col-md-6">
                 <label>Tipo de Caso (Brote):</label>
                 <select id="tipo_caso_brote" class="form-select save-state">
                   <option value="" selected>No aplica</option>
@@ -978,9 +978,9 @@
                   <option value="BROTE / EPIDEMIA">BROTE/EPIDEMIA</option>
                 </select>
               </div>
-              <div class="col-6 col-md-3">
+              <div class="col-6 col-md-3" style="display: none;">
                 <label>Fecha Notif./Cierre:</label>
-                <input type="date" id="fecha_cierre" class="form-control save-state">
+                <input type="date" id="fecha_cierre" class="form-control" disabled>
               </div>
             </div>
           </div>

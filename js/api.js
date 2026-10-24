@@ -282,7 +282,13 @@ export function aplanarFormularioSeguro(pdfDoc) {
             let apRef = null;
 
             if (normalAp instanceof PDFRef) {
-              apRef = normalAp;
+              // Para TextFields: si el campo está vacío, NO estampar apariencias residuales de la plantilla
+              if (typeof field.getText === 'function') {
+                const txtVal = field.getText();
+                apRef = (txtVal && String(txtVal).trim() !== '') ? normalAp : null;
+              } else {
+                apRef = normalAp;
+              }
             } else if (normalAp instanceof PDFDict) {
               // Para CheckBoxes: si el campo está desmarcado, NO debemos sobreescribir el fondo de la plantilla
               if (typeof field.isChecked === 'function' && !field.isChecked()) {
@@ -377,22 +383,88 @@ async function procesarFichaEpiLocalmente(datosObj) {
   // 1. Cargar la fuente Negrita en memoria
   const helveticaBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
-  // 2. Helper con CENTRADO Y NEGRITA POR DEFECTO
+  // Limpiar cualquier valor pregrabado en la plantilla PDF (ej. 'paracetamol', '*', '40', 'HOSPITAL')
+  try {
+    form.getFields().forEach(f => {
+      if (typeof f.setText === 'function') {
+        try { f.setText(''); } catch (e) {}
+      }
+    });
+  } catch (e) {}
+
+  // 2. Helper con CENTRADO, NEGRITA Y AUTO-AJUSTE GEOMÉTRICO REAL
   const setCampo = (idPDF, valor, opciones = { centrado: true, negrita: true }) => { 
     try { 
-      if (valor !== undefined && valor !== null && valor !== '') {
+      if (valor !== undefined && valor !== null && String(valor).trim() !== '') {
         const campo = form.getTextField(idPDF);
-        const strVal = String(valor).toUpperCase();
-        campo.setText(strVal); 
-        
-        // Ajuste dinámico de tamaño de fuente para evitar desbordes en textos largos
-        if (opciones.fontSize) {
-          campo.setFontSize(opciones.fontSize);
-        } else if (strVal.length > 70) {
-          campo.setFontSize(6.5);
-        } else if (strVal.length > 35) {
-          campo.setFontSize(7.5);
+        const strVal = String(valor).trim().toUpperCase();
+        const widgets = campo.acroField.getWidgets();
+
+        const esFilaContacto = idPDF.startsWith('c_');
+        const esObsContacto = idPDF.startsWith('c_obs_');
+
+        // Ajuste geométrico de celdas en la tabla de contactos (h=7.68pt en plantilla original)
+        // para evitar que el padding interno de pdf-lib recorte vertical u horizontalmente el texto
+        if (esFilaContacto && widgets.length > 0) {
+          const w0 = widgets[0];
+          const r0 = w0.getRectangle();
+          const anchoObs = 106.3; // Columna Observaciones completa (x: 478.5 .. 584.8)
+          const necesitaDosLineas = esObsContacto && helveticaBold.widthOfTextAtSize(strVal, 4.6) > (anchoObs - 3.5);
+
+          if (necesitaDosLineas) {
+            try { campo.enableMultiline(); } catch (e) {}
+            w0.setRectangle({
+              x: 478.5,
+              y: r0.y - 2.2,
+              width: anchoObs,
+              height: 12.2
+            });
+          } else {
+            try { campo.disableMultiline(); } catch (e) {}
+            w0.setRectangle({
+              x: esObsContacto ? 478.5 : r0.x,
+              y: r0.y - 0.8,
+              width: esObsContacto ? anchoObs : r0.width,
+              height: Math.max(r0.height, 9.3)
+            });
+          }
         }
+
+        campo.setText(strVal);
+
+        // Calcular dimensiones mínimas entre los widgets del campo
+        let minW = Infinity;
+        let minH = Infinity;
+        widgets.forEach(w => {
+          const r = w.getRectangle();
+          if (r.width > 0 && r.width < minW) minW = r.width;
+          if (r.height > 0 && r.height < minH) minH = r.height;
+        });
+
+        const isMulti = campo.isMultiline();
+        let fs = opciones.fontSize || 7.5;
+
+        if (isMulti && esObsContacto) {
+          // Observación de contacto larga en 2 líneas dentro de la fila
+          const usableW2 = Math.max(20, (minW - 3.5) * 1.9);
+          fs = 4.3;
+          while (fs > 3.1 && helveticaBold.widthOfTextAtSize(strVal, fs) > usableW2) {
+            fs = Math.round((fs - 0.2) * 10) / 10;
+          }
+        } else if (!isMulti && isFinite(minW) && isFinite(minH)) {
+          // Limitar altura de fuente para no cortar tildes ni la Ñ
+          const maxFsByHeight = esFilaContacto ? 6.5 : Math.max(5.5, Math.min(9.0, minH * 0.75));
+          fs = Math.min(fs, maxFsByHeight);
+          const usableW = Math.max(8, minW - 3.5);
+          while (fs > 3.3 && helveticaBold.widthOfTextAtSize(strVal, fs) > usableW) {
+            fs = Math.round((fs - 0.2) * 10) / 10;
+          }
+        } else if (isMulti) {
+          if (strVal.length > 260) fs = Math.min(fs, 5.8);
+          else if (strVal.length > 140) fs = Math.min(fs, 6.5);
+        }
+
+        campo.setFontSize(fs);
         
         // Aplicar alineación
         if (opciones.centrado) {
@@ -485,13 +557,17 @@ async function procesarFichaEpiLocalmente(datosObj) {
   setCampo('otras_vacunas', datosObj.otras_vacunas);
   setCampo('lugar_viaje', datosObj.lugar_viaje);
   setCampo('especificar_comor', datosObj.especificar_comor, { centrado: false, negrita: true });
-  setCampo('carac_factores', datosObj.carac_factores, { centrado: false, negrita: true });
+  const textoFactoresYObs = [datosObj.carac_factores, datosObj.obs_epidemiologicas]
+    .map(v => (v || '').trim())
+    .filter(Boolean)
+    .join(' | ');
+  setCampo('carac_factores', textoFactoresYObs, { centrado: false, negrita: true });
   setCampo('nombre_ubicacion_laboratorio', datosObj.establecimiento || datosObj.institucion, { centrado: false, negrita: true, fontSize: 6.5 });
   setCampo('tipo_muestra', datosObj.tipo_muestra, { centrado: false, negrita: true });
   setCampo('tecnica', datosObj.tecnica, { centrado: false, negrita: true });
   setCampo('agente', datosObj.agente, { centrado: false, negrita: true });
   setCampo('resultado', datosObj.resultado, { centrado: false, negrita: true });
-  setCampo('diagnostico_def', datosObj.diagnostico_def, { centrado: false, negrita: true });
+  // NOTA: diagnostico_def y fecha_cierre NO se llenan (uso exclusivo de Epidemiología)
 
   const ced = datosObj.cedula || '';
   for (let i = 0; i < 10; i++) {
@@ -527,8 +603,6 @@ async function procesarFichaEpiLocalmente(datosObj) {
   setFechaDesglose('fecha_hasta', datosObj.fecha_hasta);
   setFechaDesglose('fecha_muestra', datosObj.fecha_muestra);
   setCampo('fecha_muestra', datosObj.fecha_muestra, { centrado: true, negrita: true });
-  setFechaDesglose('fecha_cierre', datosObj.fecha_cierre);
-  setCampo('fecha_cierre', datosObj.fecha_cierre, { centrado: true, negrita: true });
   setFechaDesglose('fecha_ultima_dosis', datosObj.fecha_ultima_dosis);
 
   // Cálculo y asignación de semana epidemiológica (semanaepi):
@@ -699,8 +773,7 @@ async function procesarFichaEpiLocalmente(datosObj) {
     setCheck('condicion_egreso_ambulatorio', true);
   }
 
-  // Fecha de cierre de la investigación epidemiológica
-  setCampo('fecha_cierre', datosObj.fecha_cierre || datosObj.fecha_atencion);
+  // NOTA: fecha_cierre y diagnostico_def se dejan en blanco para ser llenados por Epidemiología
 
   // Lugar probable de infección y laboratorio
   setCampo('lugar_probable_infeccion', datosObj.lugar_viaje || datosObj.canton_residencia || datosObj.canton_establecimiento);

@@ -532,7 +532,7 @@ export function recopilarDatos() {
     comorbilidades: getVal('comorbilidades'), especificar_comor: getVal('especificar_comor'), carac_factores: getVal('carac_factores'), obs_epidemiologicas: getVal('obs_epidemiologicas'),
     muestra: getVal('muestra'), fecha_muestra: getVal('fecha_muestra'), muestra_adecuada: getVal('muestra_adecuada'), tipo_muestra: getVal('tipo_muestra'),
     antes_tratamiento: getVal('antes_tratamiento'), resultado: getVal('resultado'), tecnica: getVal('tecnica'), agente: getVal('agente'),
-    diagnostico_def: getVal('diagnostico_def'), confirmado_por: getVal('confirmado_por'), tipo_caso_brote: getVal('tipo_caso_brote'), fecha_cierre: getVal('fecha_cierre'),
+    diagnostico_def: '', confirmado_por: getVal('confirmado_por'), tipo_caso_brote: getVal('tipo_caso_brote'), fecha_cierre: '',
     tb_requiere_ficha: getVal('tb_requiere_ficha'), tb_copias: getVal('tb_copias') || getVal('tb_copias_sec') || '2',
     tb_zona: getVal('tb_zona'), tb_distrito: getVal('tb_distrito'),
     tb_fecha_toma: getVal('tb_fecha_toma'), tb_tipo_muestra: getVal('tb_tipo_muestra'),

@@ -267,11 +267,16 @@ export function loadFormData(modoExplicito = null, desdeCambioModo = false) {
       // === CARGA SEGURA DE CONTACTOS ===
       const tbody = document.getElementById('contactsBody');
       tbody.innerHTML = '';
-      if (data.contactos && data.contactos.length > 0) {
-        data.contactos.forEach((c, index) => agregarContactoRestaurado(c, index === 0));
+      const listaContactos = [...(data.contactos || []), ...(data.contactos_12_14 || [])];
+      if (listaContactos.length > 0) {
+        listaContactos.forEach((c, index) => agregarContactoRestaurado(c, index === 0));
       } else {
         agregarContacto();
       }
+      const inpDiagDef = document.getElementById('diagnostico_def');
+      if (inpDiagDef) inpDiagDef.value = '';
+      const inpFechaCierre = document.getElementById('fecha_cierre');
+      if (inpFechaCierre) inpFechaCierre.value = '';
 
       forzarCalculoDias();
 

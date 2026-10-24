@@ -32,6 +32,7 @@ export function agregarContacto() {
 
   const defaultParr = document.getElementById('parroquia_residencia') ? document.getElementById('parroquia_residencia').value : '';
   const defVal = (defaultParr === 'Seleccione Parroquia...' || !defaultParr) ? '' : defaultParr;
+  const escAttr = (v) => String(v || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
   const rowHTML = `
     <tr onclick="toggleContactoRow(this)">
@@ -54,7 +55,7 @@ export function agregarContacto() {
       <td data-label="Relación">
         <select class="form-select c-relacion save-state" style="font-size:0.85rem" onchange="updSummary(this)" onclick="event.stopPropagation()"><option value="" selected disabled>Sel. Sexo</option></select>
       </td>
-      <td data-label="Dirección/Teléf"><input type="text" class="form-control c-dir save-state" value="${defVal}" style="font-size:0.85rem" onclick="event.stopPropagation()"></td>
+      <td data-label="Dirección/Teléf"><input type="text" class="form-control c-dir save-state" value="${escAttr(defVal)}" style="font-size:0.85rem" onclick="event.stopPropagation()"></td>
       <td data-label="Lugar">
         <select class="form-select c-lugar save-state" style="font-size:0.85rem" onclick="event.stopPropagation()">
           <option value="CASA">CASA</option>
@@ -70,7 +71,7 @@ export function agregarContacto() {
         </select>
       </td>
       <td data-label="Fecha Sínt."><input type="date" class="form-control c-fecha save-state" disabled style="font-size:0.85rem" onclick="event.stopPropagation()"></td>
-      <td data-label="Observaciones"><input type="text" class="form-control c-obs save-state" disabled style="font-size:0.85rem" onclick="event.stopPropagation()"></td>
+      <td data-label="Observaciones"><input type="text" class="form-control c-obs save-state" style="font-size:0.85rem" placeholder="Observaciones..." onclick="event.stopPropagation()"></td>
       <td data-label="Acción" class="text-center align-middle">
         <button type="button" class="btn btn-sm btn-del-contacto p-1 border-0" onclick="eliminarContacto(this, event)" title="Eliminar este contacto">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
@@ -85,6 +86,7 @@ export function agregarContacto() {
 
 export function agregarContactoRestaurado(c, isFirst) {
   const tbody = document.getElementById('contactsBody');
+  const escAttr = (v) => String(v || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   
   // Lógica para pre-seleccionar opciones de Relación
   let optionsRelacion = `<option value="" ${!c.relacion ? 'selected disabled' : ''}>Sel. Sexo</option>`;
@@ -98,17 +100,19 @@ export function agregarContactoRestaurado(c, isFirst) {
     });
   }
 
+  const dirVal = c.dir !== undefined ? c.dir : (c.direccion || '');
+
   const rowHTML = `
     <tr class="${isFirst ? 'expanded' : ''}" onclick="toggleContactoRow(this)">
       <td data-label="Nombre">
         <div class="contact-summary" style="display: none; pointer-events: none;">
-          <span class="sum-name">${c.nombre || 'Nuevo Contacto'}</span>&nbsp;-&nbsp;<span class="sum-rel">${c.relacion || 'Sin relación'}</span>
+          <span class="sum-name">${escAttr(c.nombre) || 'Nuevo Contacto'}</span>&nbsp;-&nbsp;<span class="sum-rel">${escAttr(c.relacion) || 'Sin relación'}</span>
         </div>
         <div class="contact-input-wrapper">
-          <input type="text" class="form-control c-nombre save-state" value="${c.nombre || ''}" style="font-size:0.85rem" oninput="updSummary(this)" onclick="event.stopPropagation()">
+          <input type="text" class="form-control c-nombre save-state" value="${escAttr(c.nombre)}" style="font-size:0.85rem" oninput="updSummary(this)" onclick="event.stopPropagation()">
         </div>
       </td>
-      <td data-label="Edad"><input type="number" class="form-control c-edad save-state numeric-input" value="${c.edad || ''}" style="font-size:0.85rem" onclick="event.stopPropagation()"></td>
+      <td data-label="Edad"><input type="number" class="form-control c-edad save-state numeric-input" value="${escAttr(c.edad)}" style="font-size:0.85rem" onclick="event.stopPropagation()"></td>
       <td data-label="Sexo">
         <select class="form-select c-sexo save-state" onchange="updRelacion(this)" style="font-size:0.85rem" onclick="event.stopPropagation()">
           <option value="" ${!c.sexo ? 'selected disabled' : ''}>Sel</option>
@@ -121,7 +125,7 @@ export function agregarContactoRestaurado(c, isFirst) {
           ${optionsRelacion}
         </select>
       </td>
-      <td data-label="Dirección/Teléf"><input type="text" class="form-control c-dir save-state" value="${c.dir || ''}" style="font-size:0.85rem" onclick="event.stopPropagation()"></td>
+      <td data-label="Dirección/Teléf"><input type="text" class="form-control c-dir save-state" value="${escAttr(dirVal)}" style="font-size:0.85rem" onclick="event.stopPropagation()"></td>
       <td data-label="Lugar">
         <select class="form-select c-lugar save-state" style="font-size:0.85rem" onclick="event.stopPropagation()">
           <option value="CASA" ${c.lugar === 'CASA' ? 'selected' : ''}>CASA</option>
@@ -136,8 +140,8 @@ export function agregarContactoRestaurado(c, isFirst) {
           <option value="SI" ${c.enfermo === 'SI' ? 'selected' : ''}>SI</option>
         </select>
       </td>
-      <td data-label="Fecha Sínt."><input type="date" class="form-control c-fecha save-state" value="${c.fecha || ''}" ${c.enfermo !== 'SI' ? 'disabled' : ''} style="font-size:0.85rem" onclick="event.stopPropagation()"></td>
-      <td data-label="Observaciones"><input type="text" class="form-control c-obs save-state" value="${c.obs || ''}" ${c.enfermo !== 'SI' ? 'disabled' : ''} style="font-size:0.85rem" onclick="event.stopPropagation()"></td>
+      <td data-label="Fecha Sínt."><input type="date" class="form-control c-fecha save-state" value="${escAttr(c.fecha)}" ${c.enfermo !== 'SI' ? 'disabled' : ''} style="font-size:0.85rem" onclick="event.stopPropagation()"></td>
+      <td data-label="Observaciones"><input type="text" class="form-control c-obs save-state" value="${escAttr(c.obs)}" style="font-size:0.85rem" placeholder="Observaciones..." onclick="event.stopPropagation()"></td>
       <td data-label="Acción" class="text-center align-middle">
         <button type="button" class="btn btn-sm btn-del-contacto p-1 border-0" onclick="eliminarContacto(this, event)" title="Eliminar este contacto">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
@@ -164,7 +168,7 @@ export function eliminarContacto(btn, e) {
     const fecha = tr.querySelector('.c-fecha');
     const obs = tr.querySelector('.c-obs');
     if (fecha) { fecha.value = ''; fecha.disabled = true; }
-    if (obs) { obs.value = ''; obs.disabled = true; }
+    if (obs) { obs.value = ''; obs.disabled = false; }
   } else {
     tr.remove();
   }
@@ -196,8 +200,10 @@ export function updRelacion(sel) {
 
 export function updCont(sel) {
   const row = sel.closest('tr'); const isSi = sel.value === 'SI';
-  toggleElementos([row.querySelector('.c-fecha'), row.querySelector('.c-obs')], isSi);
-  if (!isSi) { row.querySelector('.c-fecha').value = ''; row.querySelector('.c-obs').value = ''; }
+  toggleElementos([row.querySelector('.c-fecha')], isSi);
+  if (!isSi) { row.querySelector('.c-fecha').value = ''; }
+  const obsInput = row.querySelector('.c-obs');
+  if (obsInput) toggleElementos([obsInput], true);
 
   let enfermos = 0; document.querySelectorAll('.c-enfermo').forEach(s => { if (s.value === 'SI') enfermos++; });
   const selectOtrosEnf = document.getElementById('otros_enfermos');
