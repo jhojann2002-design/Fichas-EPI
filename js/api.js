@@ -1450,18 +1450,12 @@ async function procesarFichaEpiExcelLocalmente(datosObj) {
     } else {
       c.setAttribute('t', 'inlineStr');
       const isEl = doc.createElementNS(NS, 'is');
-      const rEl = doc.createElementNS(NS, 'r');
-      const rPrEl = doc.createElementNS(NS, 'rPr');
-      const bEl = doc.createElementNS(NS, 'b');
-      rPrEl.appendChild(bEl);
-      rEl.appendChild(rPrEl);
       const tEl = doc.createElementNS(NS, 't');
       if (strVal.startsWith(' ') || strVal.endsWith(' ')) {
         tEl.setAttribute('xml:space', 'preserve');
       }
       tEl.textContent = strVal;
-      rEl.appendChild(tEl);
-      isEl.appendChild(rEl);
+      isEl.appendChild(tEl);
       c.appendChild(isEl);
     }
   };
@@ -1984,23 +1978,14 @@ async function procesarFichaEpiExcelLocalmente(datosObj) {
     s3Obj.entry.rawBytes = encoder.encode(serializer.serializeToString(d3));
   }
 
-  // Sanitización defensiva de fuentes en styles.xml: normalizar todas las fuentes a Calibri y negrita
+  // Sanitización defensiva de fuentes en styles.xml: normalizar Calibri1 / Calibri2 a Calibri
   const stylesEntry = entries.find(e => e.name === 'xl/styles.xml');
   if (stylesEntry) {
     const stylesRaw = stylesEntry.method === 8 ? await inflateRawBytes(stylesEntry.compData) : stylesEntry.compData;
     let stylesStr = decoder.decode(stylesRaw);
-    let mod = false;
     if (stylesStr.includes('Calibri1') || stylesStr.includes('Calibri2') || stylesStr.includes('Cambria')) {
       stylesStr = stylesStr.replace(/<name val="Calibri[12]"\/>/g, '<name val="Calibri"/>')
                            .replace(/<name val="Cambria"\/>/g, '<name val="Calibri"/>');
-      mod = true;
-    }
-    // Asegurar que cada <font> tenga <b/>
-    if (stylesStr.includes('<fonts')) {
-      stylesStr = stylesStr.replace(/<font>(?![\s\S]*?<b\/>)/g, '<font><b/>');
-      mod = true;
-    }
-    if (mod) {
       stylesEntry.rawBytes = encoder.encode(stylesStr);
     }
   }
