@@ -213,6 +213,17 @@ document.addEventListener('DOMContentLoaded', () => {
   // Iniciamos Validación de Cédula
   setupValidacionCedula();
 
+  // Aviso de actualización en curso
+  Swal.fire({
+    title: '⚠️ Actualización de Ficha en Proceso',
+    html: 'Estamos realizando ajustes y mejoras en el formato de la ficha.<br><br><b>No se recomienda utilizar el formulario mientras se completan las correcciones</b> para evitar inconsistencias en sus documentos generados.',
+    icon: 'warning',
+    confirmButtonText: 'Entendido',
+    confirmButtonColor: '#d33',
+    allowOutsideClick: false,
+    backdrop: `rgba(0, 0, 0, 0.6)`
+  });
+
   if (!localStorage.getItem('aviso_nube_vista')) {
     Swal.fire({
       title: '¡Nuevas Funciones! 🚀',
