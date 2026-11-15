@@ -266,6 +266,20 @@ export function calcularSemanaEpidemiologica(fechaStr) {
   return weekNum > 0 ? String(weekNum) : '1';
 }
 
+export function splitDireccion(dir, maxChars = 45) {
+  if (!dir) return { l1: '', l2: '' };
+  const str = String(dir).trim();
+  if (str.length <= maxChars) return { l1: str, l2: '' };
+  let breakPoint = str.lastIndexOf(' ', maxChars);
+  if (breakPoint <= 0 || breakPoint < maxChars * 0.4) {
+    breakPoint = str.indexOf(' ', maxChars);
+    if (breakPoint === -1) breakPoint = maxChars;
+  }
+  const l1 = str.substring(0, breakPoint).trim();
+  const l2 = str.substring(breakPoint).trim();
+  return { l1, l2 };
+}
+
 export function aplanarFormularioSeguro(pdfDoc) {
   try {
     const form = pdfDoc.getForm();
@@ -1018,7 +1032,7 @@ async function procesarFichaEpiLocalmente(datosObj) {
     dibujarTextoDirecto(page2, "X", 264.6, 395.3, 7.0);
   }
 
-  setCampo("responsable nombre", datosObj.medico_tratante, { centrado: false, negrita: true });
+  setCampo("responsable nombre", ""); // Nombre responsable epid. debe ir vacío (lo llenan los epidemiólogos)
 
   // =========================================================================
   // PÁGINA 3: FORMULARIO EPI-1 INDIVIDUAL (NOTIFICACIÓN Y CIERRE DE CASO)
@@ -1078,8 +1092,9 @@ async function procesarFichaEpiLocalmente(datosObj) {
   setCampo("lugar residencia_provincia", datosObj.prov_residencia);
   setCampo("lugar residencia_canton", datosObj.canton_residencia);
   setCampo("lugar residencia_parroquia", datosObj.parroquia_residencia);
-  setCampo("direccion exacta", datosObj.direccion, { centrado: false, negrita: true });
-  setCampo("direccion exacta_barrio, localidad", datosObj.parroquia_residencia, { centrado: false, negrita: true });
+  const dirP3 = splitDireccion(datosObj.direccion, 45);
+  setCampo("direccion exacta", dirP3.l1, { centrado: false, negrita: true });
+  setCampo("direccion exacta_barrio, localidad", dirP3.l2 || datosObj.parroquia_residencia, { centrado: false, negrita: true });
   setCampo("Telf", datosObj.telefono);
   setCampo("lugar probable de infeccion", lugarProbInfeccion, { centrado: false, negrita: true });
 
@@ -1113,13 +1128,13 @@ async function procesarFichaEpiLocalmente(datosObj) {
 
   // 25. Observaciones, 26. Se realizó investigación y 27. Fecha de investigación (estampado en Página 3)
   if (up(datosObj.obs_epidemiologicas)) {
-    dibujarTextoDirecto(page3, datosObj.obs_epidemiologicas, 125.4, 303.0, 5.8, 303.3);
+    dibujarTextoDirecto(page3, datosObj.obs_epidemiologicas, 125.4, 303.0, 5.8, 305);
   }
   if (datosObj.fecha_atencion) {
-    dibujarTextoDirecto(page3, "X", 199.8, 286.2, 7.0); // 26. Se realizó investigación: Sí
-    dibujarTextoDirecto(page3, fa.dia, 186.2, 269.8, 6.5);
-    dibujarTextoDirecto(page3, fa.mes, 225.1, 269.8, 6.5);
-    dibujarTextoDirecto(page3, fa.ano, 261.5, 269.8, 6.5);
+    dibujarTextoDirecto(page3, "X", 198.5, 286.2, 7.0); // 26. Se realizó investigación: Sí
+    dibujarTextoDirecto(page3, fa.dia, 186.0, 261.8, 6.5);
+    dibujarTextoDirecto(page3, fa.mes, 225.0, 261.8, 6.5);
+    dibujarTextoDirecto(page3, fa.ano, 265.0, 261.8, 6.5);
   }
 
   // 28 al 36: Contactos sintomáticos, Evolución, Condición Final y Clasificación
@@ -1441,6 +1456,30 @@ async function procesarFichaEpiExcelLocalmente(datosObj) {
     return [String(parseInt(p[2], 10)), String(parseInt(p[1], 10)), String(parseInt(p[0], 10))];
   };
 
+  const splitDateDigits = (dStr) => {
+    if (!dStr) return { d1: '', d2: '', m1: '', m2: '', ano: '', dia: '', mes: '' };
+    const p = String(dStr).trim().split('-');
+    if (p.length !== 3) return { d1: '', d2: '', m1: '', m2: '', ano: '', dia: '', mes: '' };
+    const dNum = parseInt(p[2], 10);
+    const mNum = parseInt(p[1], 10);
+    const aNum = parseInt(p[0], 10);
+    if (isNaN(dNum) || isNaN(mNum) || isNaN(aNum)) {
+      return { d1: '', d2: '', m1: '', m2: '', ano: '', dia: '', mes: '' };
+    }
+    const diaStr = String(dNum).padStart(2, '0');
+    const mesStr = String(mNum).padStart(2, '0');
+    const anoStr = String(aNum);
+    return {
+      d1: diaStr[0],
+      d2: diaStr[1],
+      m1: mesStr[0],
+      m2: mesStr[1],
+      dia: String(dNum),
+      mes: String(mNum),
+      ano: anoStr
+    };
+  };
+
   const up = (v) => String(v || '').trim().toUpperCase();
   const ced = String(datosObj.cedula || '').trim();
   const hc = String(datosObj.historia_clinica || '').trim();
@@ -1462,6 +1501,16 @@ async function procesarFichaEpiExcelLocalmente(datosObj) {
   const [fvhDia, fvhMes, fvhAno] = splitYMD(datosObj.fecha_hasta);
   const [fcDia, fcMes, fcAno] = splitYMD(datosObj.fecha_contacto);
   const [fmDia, fmMes, fmAno] = splitYMD(datosObj.fecha_muestra);
+
+  const faDig = splitDateDigits(datosObj.fecha_atencion);
+  const fsDig = splitDateDigits(datosObj.fecha_inicio_sintomas);
+  const frDig = splitDateDigits(datosObj.fecha_sintoma_relevante);
+  const fhDig = splitDateDigits(datosObj.fecha_hosp);
+  const ffDig = splitDateDigits(datosObj.fecha_fallecimiento);
+  const fvDig = splitDateDigits(datosObj.fecha_ultima_dosis);
+  const fvdDig = splitDateDigits(datosObj.fecha_desde);
+  const fvhDig = splitDateDigits(datosObj.fecha_hasta);
+  const fcDig = splitDateDigits(datosObj.fecha_contacto);
 
   let edadAnos = '', edadMeses = '', edadDias = '';
   if (datosObj.fecha_nacimiento) {
@@ -1559,7 +1608,9 @@ async function procesarFichaEpiExcelLocalmente(datosObj) {
     setCellValue(d1, 'F29', up(datosObj.prov_residencia));
     setCellValue(d1, 'K29', up(datosObj.canton_residencia));
     setCellValue(d1, 'O29', up(datosObj.parroquia_residencia));
-    setCellValue(d1, 'F32', up(datosObj.direccion));
+    const dirPartsS1 = splitDireccion(datosObj.direccion, 40);
+    setCellValue(d1, 'F32', up(dirPartsS1.l1));
+    setCellValue(d1, 'F33', up(dirPartsS1.l2 || datosObj.parroquia_residencia));
     setCellValue(d1, 'T32', datosObj.telefono || '');
     setCellValue(d1, 'F35', lugarProbInfeccion);
 
@@ -1637,9 +1688,11 @@ async function procesarFichaEpiExcelLocalmente(datosObj) {
     const d2 = s2Obj.doc;
     setCellValue(d2, 'N5', up(datosObj.diagnostico_cie10));
     setCellValue(d2, 'H7', estabUp);
-    setCellValue(d2, 'Y7', faDia);
-    setCellValue(d2, 'AA7', faMes);
-    setCellValue(d2, 'AC7', faAno);
+    setCellValue(d2, 'Y7', faDig.d1);
+    setCellValue(d2, 'Z7', faDig.d2);
+    setCellValue(d2, 'AA7', faDig.m1);
+    setCellValue(d2, 'AB7', faDig.m2);
+    setCellValue(d2, 'AC7', faDig.ano);
     setCellValue(d2, 'G9', provEstUp);
     setCellValue(d2, 'P9', cantEstUp);
     setCellValue(d2, 'X9', parrEstUp);
@@ -1662,18 +1715,24 @@ async function procesarFichaEpiExcelLocalmente(datosObj) {
     setCellValue(d2, 'G20', up(datosObj.prov_residencia));
     setCellValue(d2, 'P20', up(datosObj.canton_residencia));
     setCellValue(d2, 'X20', up(datosObj.parroquia_residencia));
-    setCellValue(d2, 'G23', up(datosObj.direccion));
+    const dirPartsS2 = splitDireccion(datosObj.direccion, 45);
+    setCellValue(d2, 'G23', up(dirPartsS2.l1));
+    setCellValue(d2, 'G24', up(dirPartsS2.l2 || datosObj.parroquia_residencia));
     setCellValue(d2, 'J26', up(datosObj.nombre_madre));
 
     setCellValue(d2, 'P28', datosObj.hora_inicio_sintomas || '');
-    setCellValue(d2, 'R28', fsDia);
-    setCellValue(d2, 'T28', fsMes);
-    setCellValue(d2, 'V28', fsAno);
+    setCellValue(d2, 'R28', fsDig.d1);
+    setCellValue(d2, 'S28', fsDig.d2);
+    setCellValue(d2, 'T28', fsDig.m1);
+    setCellValue(d2, 'U28', fsDig.m2);
+    setCellValue(d2, 'V28', fsDig.ano);
     setCellValue(d2, 'H31', `relevante: ${up(datosObj.cual_sintoma) || '_____________________'}`);
     setCellValue(d2, 'P31', datosObj.hora_sintoma_relevante || '');
-    setCellValue(d2, 'R31', frDia);
-    setCellValue(d2, 'T31', frMes);
-    setCellValue(d2, 'V31', frAno);
+    setCellValue(d2, 'R31', frDig.d1);
+    setCellValue(d2, 'S31', frDig.d2);
+    setCellValue(d2, 'T31', frDig.m1);
+    setCellValue(d2, 'U31', frDig.m2);
+    setCellValue(d2, 'V31', frDig.ano);
     setCellValue(d2, 'AB31', datosObj.num_dias_sintomas || '');
 
     const mapSintomasS2 = {
@@ -1716,9 +1775,11 @@ async function procesarFichaEpiExcelLocalmente(datosObj) {
     const hospSi = up(datosObj.hospitalizado) === 'SI';
     setCellValue(d2, 'F57', hospSi ? 'X' : '');
     setCellValue(d2, 'I57', up(datosObj.hospitalizado) === 'NO' ? 'X' : '');
-    setCellValue(d2, 'Q57', hospSi ? fhDia : '');
-    setCellValue(d2, 'S57', hospSi ? fhMes : '');
-    setCellValue(d2, 'U57', hospSi ? fhAno : '');
+    setCellValue(d2, 'Q57', hospSi ? fhDig.d1 : '');
+    setCellValue(d2, 'R57', hospSi ? fhDig.d2 : '');
+    setCellValue(d2, 'S57', hospSi ? fhDig.m1 : '');
+    setCellValue(d2, 'T57', hospSi ? fhDig.m2 : '');
+    setCellValue(d2, 'U57', hospSi ? fhDig.ano : '');
     setCellValue(d2, 'Y57', hospSi ? up(datosObj.hc_hosp) : '');
     setCellValue(d2, 'AC57', hospSi ? up(datosObj.servicio_hosp) : '');
     setCellValue(d2, 'F60', hospSi ? up(datosObj.nombre_hospital) : '');
@@ -1728,9 +1789,11 @@ async function procesarFichaEpiExcelLocalmente(datosObj) {
     const condEgUp = up(datosObj.condicion_egreso);
     setCellValue(d2, 'H62', condEgUp === 'VIVO' ? 'X' : '');
     setCellValue(d2, 'L62', (condEgUp === 'FALLECIDO' || condEgUp === 'MUERTO') ? 'X' : '');
-    setCellValue(d2, 'X62', ffDia);
-    setCellValue(d2, 'Z62', ffMes);
-    setCellValue(d2, 'AB62', ffAno);
+    setCellValue(d2, 'X62', ffDig.d1);
+    setCellValue(d2, 'Y62', ffDig.d2);
+    setCellValue(d2, 'Z62', ffDig.m1);
+    setCellValue(d2, 'AA62', ffDig.m2);
+    setCellValue(d2, 'AB62', ffDig.ano);
 
     const vacUp = up(datosObj.antecedente_vacunal);
     setCellValue(d2, 'H64', vacUp === 'SI' ? 'X' : '');
@@ -1746,9 +1809,11 @@ async function procesarFichaEpiExcelLocalmente(datosObj) {
       setCellValue(d2, cRef, datosObj[k] ? 'X' : '');
     });
     setCellValue(d2, 'AC68', datosObj.otras_vacunas ? `otras: ${up(datosObj.otras_vacunas)}` : 'otras____');
-    setCellValue(d2, 'E70', fvDia);
-    setCellValue(d2, 'G70', fvMes);
-    setCellValue(d2, 'I70', fvAno);
+    setCellValue(d2, 'E70', fvDig.d1);
+    setCellValue(d2, 'F70', fvDig.d2);
+    setCellValue(d2, 'G70', fvDig.m1);
+    setCellValue(d2, 'H70', fvDig.m2);
+    setCellValue(d2, 'I70', fvDig.ano);
     setCellValue(d2, 'Y70', datosObj.num_dosis || '');
 
     const fInfoUp = up(datosObj.fuente_info);
@@ -1771,9 +1836,11 @@ async function procesarFichaEpiExcelLocalmente(datosObj) {
     setCellValue(d2, 'C79', !expNinguno ? up(datosObj.lugar_contacto) : '');
     setCellValue(d2, 'J79', !expNinguno ? up(datosObj.forma_contacto) : '');
     setCellValue(d2, 'S79', !expNinguno ? up(datosObj.origen_objeto) : '');
-    setCellValue(d2, 'G82', !expNinguno ? fcDia : '');
-    setCellValue(d2, 'I82', !expNinguno ? fcMes : '');
-    setCellValue(d2, 'K82', !expNinguno ? fcAno : '');
+    setCellValue(d2, 'G82', !expNinguno ? fcDig.d1 : '');
+    setCellValue(d2, 'H82', !expNinguno ? fcDig.d2 : '');
+    setCellValue(d2, 'I82', !expNinguno ? fcDig.m1 : '');
+    setCellValue(d2, 'J82', !expNinguno ? fcDig.m2 : '');
+    setCellValue(d2, 'K82', !expNinguno ? fcDig.ano : '');
     setCellValue(d2, 'P82', !expNinguno ? (datosObj.hora_contacto || '') : '');
 
     s2Obj.entry.rawBytes = encoder.encode(serializer.serializeToString(d2));
@@ -1811,12 +1878,16 @@ async function procesarFichaEpiExcelLocalmente(datosObj) {
     setCellValue(d3, 'J12', viajeSi ? 'X' : '');
     setCellValue(d3, 'L12', up(datosObj.realizo_viaje) === 'NO' ? 'X' : '');
     setCellValue(d3, 'O12', viajeSi ? up(datosObj.lugar_viaje) : '');
-    setCellValue(d3, 'Y12', viajeSi ? fvdDia : '');
-    setCellValue(d3, 'AA12', viajeSi ? fvdMes : '');
-    setCellValue(d3, 'AC12', viajeSi ? fvdAno : '');
-    setCellValue(d3, 'Y13', viajeSi ? fvhDia : '');
-    setCellValue(d3, 'AA13', viajeSi ? fvhMes : '');
-    setCellValue(d3, 'AC13', viajeSi ? fvhAno : '');
+    setCellValue(d3, 'Y12', viajeSi ? fvdDig.d1 : '');
+    setCellValue(d3, 'Z12', viajeSi ? fvdDig.d2 : '');
+    setCellValue(d3, 'AA12', viajeSi ? fvdDig.m1 : '');
+    setCellValue(d3, 'AB12', viajeSi ? fvdDig.m2 : '');
+    setCellValue(d3, 'AC12', viajeSi ? fvdDig.ano : '');
+    setCellValue(d3, 'Y13', viajeSi ? fvhDig.d1 : '');
+    setCellValue(d3, 'Z13', viajeSi ? fvhDig.d2 : '');
+    setCellValue(d3, 'AA13', viajeSi ? fvhDig.m1 : '');
+    setCellValue(d3, 'AB13', viajeSi ? fvhDig.m2 : '');
+    setCellValue(d3, 'AC13', viajeSi ? fvhDig.ano : '');
 
     const partesFactores = [
       (up(datosObj.comorbilidades) === 'SI' && up(datosObj.especificar_comor)) ? `COMORBILIDADES: ${up(datosObj.especificar_comor)}` : '',
@@ -1857,12 +1928,23 @@ async function procesarFichaEpiExcelLocalmente(datosObj) {
     const broteUp = up(datosObj.tipo_caso_brote);
     setCellValue(d3, 'E55', broteUp.includes('AISLADO') ? 'X' : '');
     setCellValue(d3, 'N55', broteUp.includes('BROTE') ? 'X' : '');
-    setCellValue(d3, 'H78', up(datosObj.medico_tratante));
+    setCellValue(d3, 'H78', ''); // 36. Nombre responsable epid. debe ir vacío (lo llenan los epidemiólogos)
     setCellValue(d3, 'D80', '');
     setCellValue(d3, 'F80', '');
     setCellValue(d3, 'H80', '');
 
     s3Obj.entry.rawBytes = encoder.encode(serializer.serializeToString(d3));
+  }
+
+  // Sanitización defensiva de fuentes en styles.xml: normalizar Calibri1 / Calibri2 a Calibri
+  const stylesEntry = entries.find(e => e.name === 'xl/styles.xml');
+  if (stylesEntry) {
+    const stylesRaw = stylesEntry.method === 8 ? await inflateRawBytes(stylesEntry.compData) : stylesEntry.compData;
+    let stylesStr = decoder.decode(stylesRaw);
+    if (stylesStr.includes('Calibri1') || stylesStr.includes('Calibri2')) {
+      stylesStr = stylesStr.replace(/<name val="Calibri[12]"\/>/g, '<name val="Calibri"/>');
+      stylesEntry.rawBytes = encoder.encode(stylesStr);
+    }
   }
 
   return await construirZipDesdeEntries(entries);
