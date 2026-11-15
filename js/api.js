@@ -271,6 +271,23 @@ export function aplanarFormularioSeguro(pdfDoc) {
     const form = pdfDoc.getForm();
     const fields = form.getFields();
 
+    // Crear un mapa exacto de cada anotación a su respectiva página PDF
+    const annotToPageMap = new Map();
+    const pages = pdfDoc.getPages();
+    for (let p = 0; p < pages.length; p++) {
+      const page = pages[p];
+      const annotsRef = page.node.get(PDFName.of('Annots'));
+      const annots = pdfDoc.context.lookup(annotsRef);
+      if (annots && annots.size) {
+        for (let a = 0; a < annots.size(); a++) {
+          const aRef = annots.get(a);
+          if (aRef instanceof PDFRef) {
+            annotToPageMap.set(aRef.tag || `${aRef.objectNumber} ${aRef.generationNumber} R`, page);
+          }
+        }
+      }
+    }
+
     for (let i = 0; i < fields.length; i++) {
       const field = fields[i];
       try {
@@ -282,45 +299,65 @@ export function aplanarFormularioSeguro(pdfDoc) {
             let apRef = null;
 
             if (normalAp instanceof PDFRef) {
-              // Para TextFields: si el campo está vacío, NO estampar apariencias residuales de la plantilla
-              if (typeof field.getText === 'function') {
-                const txtVal = field.getText();
-                apRef = (txtVal && String(txtVal).trim() !== '') ? normalAp : null;
-              } else {
-                apRef = normalAp;
-              }
-            } else if (normalAp instanceof PDFDict) {
-              // Para CheckBoxes: si el campo está desmarcado, NO debemos sobreescribir el fondo de la plantilla
-              if (typeof field.isChecked === 'function' && !field.isChecked()) {
-                apRef = null;
-              } else {
-                const val = field.acroField.getValue();
-                if (val) {
-                  apRef = normalAp.get(val);
-                }
-                // Si la clave no coincidió y el checkbox está marcado, tomar la apariencia activa diferente de /Off
-                if (!apRef && typeof field.isChecked === 'function' && field.isChecked()) {
-                  const keys = normalAp.keys();
-                  for (let k = 0; k < keys.length; k++) {
-                    const keyStr = keys[k].asString();
-                    if (keyStr !== '/Off' && keyStr !== 'Off') {
-                      apRef = normalAp.get(keys[k]);
-                      break;
+              const apResolved = pdfDoc.context.lookup(normalAp);
+
+              // Si apunta a un diccionario de estados (CheckBox con /Off y estado activo)
+              if (apResolved instanceof PDFDict && typeof apResolved.getContents !== 'function') {
+                if (typeof field.isChecked === 'function' && field.isChecked()) {
+                  const onVal = (typeof widget.getOnValue === 'function') ? widget.getOnValue() : null;
+                  if (onVal && apResolved.get(onVal)) {
+                    apRef = apResolved.get(onVal);
+                  } else {
+                    const keys = apResolved.keys();
+                    for (let k = 0; k < keys.length; k++) {
+                      const keyStr = keys[k].asString();
+                      if (keyStr !== '/Off' && keyStr !== 'Off') {
+                        apRef = apResolved.get(keys[k]);
+                        break;
+                      }
                     }
                   }
+                } else {
+                  apRef = null;
                 }
+              } else if (typeof apResolved.getContents === 'function' || !apResolved) {
+                // Es un Appearance Stream directo (TextField u otro control)
+                if (typeof field.getText === 'function') {
+                  const txtVal = field.getText();
+                  apRef = (txtVal && String(txtVal).trim() !== '') ? normalAp : null;
+                } else if (typeof field.isChecked === 'function') {
+                  apRef = field.isChecked() ? normalAp : null;
+                } else {
+                  apRef = normalAp;
+                }
+              }
+            } else if (normalAp instanceof PDFDict) {
+              // Diccionario embebido directo
+              if (typeof field.isChecked === 'function' && field.isChecked()) {
+                const keys = normalAp.keys();
+                for (let k = 0; k < keys.length; k++) {
+                  const keyStr = keys[k].asString();
+                  if (keyStr !== '/Off' && keyStr !== 'Off') {
+                    apRef = normalAp.get(keys[k]);
+                    break;
+                  }
+                }
+              } else {
+                apRef = null;
               }
             }
 
-            // Solo se dibuja si el widget tiene un flujo de apariencia válido en memoria
+            // Si tenemos un flujo de apariencia válido (Stream XObject), estamparlo en la página
             if (apRef instanceof PDFRef) {
-              const pageRef = widget.P();
-              let page = pdfDoc.getPages().find(p => p.ref === pageRef);
+              const widgetRef = pdfDoc.context.getObjectRef(widget.dict);
+              const tag = widgetRef ? (widgetRef.tag || `${widgetRef.objectNumber} ${widgetRef.generationNumber} R`) : null;
+              let page = tag ? annotToPageMap.get(tag) : null;
               if (!page) {
-                const widgetRef = pdfDoc.context.getObjectRef(widget.dict);
-                if (widgetRef && typeof pdfDoc.findPageForAnnotationRef === 'function') {
-                  page = pdfDoc.findPageForAnnotationRef(widgetRef);
-                }
+                const pageRef = widget.P();
+                page = pages.find(p => p.ref === pageRef);
+              }
+              if (!page && widgetRef && typeof pdfDoc.findPageForAnnotationRef === 'function') {
+                page = pdfDoc.findPageForAnnotationRef(widgetRef);
               }
 
               if (page) {
@@ -339,8 +376,7 @@ export function aplanarFormularioSeguro(pdfDoc) {
       } catch (errField) {}
     }
 
-    // 1. Eliminar las anotaciones interactivas de todas las páginas para que Apple Preview y visores no muestren controles
-    const pages = pdfDoc.getPages();
+    // 1. Eliminar las anotaciones interactivas de todas las páginas para que visores no muestren controles
     for (let p = 0; p < pages.length; p++) {
       try {
         pages[p].node.delete(PDFName.of('Annots'));
@@ -348,7 +384,6 @@ export function aplanarFormularioSeguro(pdfDoc) {
     }
 
     // 2. Eliminar por completo el diccionario AcroForm del catálogo del documento
-    // para que Apple Preview, QuickLook y visores antiguos NO detecten ningún formulario interactivo
     try {
       pdfDoc.catalog.delete(PDFName.of('AcroForm'));
     } catch (e) {}
@@ -386,13 +421,34 @@ async function procesarFichaEpiLocalmente(datosObj) {
   // Todos los establecimientos utilizan un único formato oficial (./formato_epi.pdf)
   const epiPdfBytes = await obtenerBytesPlantilla("./formato_epi.pdf", "epi_pdf");
   const pdfDoc = await PDFDocument.load(epiPdfBytes, { ignoreEncryption: true });
-  const form = pdfDoc.getForm();
   const pages = pdfDoc.getPages();
   const page1 = pages[0]; // Clinica Epidemiolo (Anverso)
   const page2 = pages[1]; // Hoja Posterior (Reverso)
   const page3 = pages[2]; // EPI-1 Individual (Notificación y Cierre de Caso)
 
-  // 1. Cargar la fuente Negrita en memoria
+  // Asegurar que el catálogo contenga la estructura AcroForm con los campos de todas las páginas
+  if (!pdfDoc.catalog.get(PDFName.of('AcroForm'))) {
+    const allAnnotRefs = [];
+    for (let p = 0; p < pages.length; p++) {
+      const annotsRef = pages[p].node.get(PDFName.of('Annots'));
+      const annots = pdfDoc.context.lookup(annotsRef);
+      if (annots && annots.size) {
+        for (let i = 0; i < annots.size(); i++) {
+          allAnnotRefs.push(annots.get(i));
+        }
+      }
+    }
+    const acroFormDict = pdfDoc.context.obj({
+      Fields: pdfDoc.context.obj(allAnnotRefs),
+      SigFlags: 3
+    });
+    pdfDoc.catalog.set(PDFName.of('AcroForm'), pdfDoc.context.register(acroFormDict));
+  }
+
+  const form = pdfDoc.getForm();
+
+  // 1. Cargar las fuentes en memoria
+  const helvetica = await pdfDoc.embedFont(StandardFonts.Helvetica);
   const helveticaBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
   // 2. Indexar todos los 487 campos del formulario en un Map O(1) en una sola pasada
@@ -448,11 +504,7 @@ async function procesarFichaEpiLocalmente(datosObj) {
       campo.setFontSize(fs);
       campo.setAlignment(opciones.centrado ? TextAlignment.Center : TextAlignment.Left);
 
-      if (opciones.negrita) {
-        campo.updateAppearances(helveticaBold);
-      } else {
-        campo.updateAppearances();
-      }
+      campo.updateAppearances(opciones.negrita ? helveticaBold : helvetica);
     } catch (e) {}
   };
 
