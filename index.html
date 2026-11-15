@@ -720,12 +720,16 @@
 
               <div class="col-12"><hr class="my-2" style="border-color: var(--apple-border);"></div>
               
-              <div class="col-12 col-md-4">
+              <div class="col-12 col-md-6">
                 <label>Condición al Egreso:</label>
-                <div class="d-flex gap-4 mt-2">
+                <div class="d-flex flex-wrap gap-4 mt-2">
                   <div class="form-check">
                     <input class="form-check-input save-state" type="radio" name="cond_egreso" id="egreso_vivo" value="VIVO">
                     <label class="form-check-label" for="egreso_vivo">Vivo</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input save-state" type="radio" name="cond_egreso" id="egreso_discapacidad" value="CON DISCAPACIDAD">
+                    <label class="form-check-label" for="egreso_discapacidad">Con Discapacidad</label>
                   </div>
                   <div class="form-check">
                     <input class="form-check-input save-state" type="radio" name="cond_egreso" id="egreso_fallecido" value="FALLECIDO">
@@ -763,6 +767,8 @@
               <div class="col-6 col-md-3"><div class="form-check"><input class="form-check-input chk-exp save-state" type="checkbox" id="exp_basurales" disabled><label class="form-check-label" for="exp_basurales">Basurales</label></div></div>
               <div class="col-6 col-md-3"><div class="form-check"><input class="form-check-input chk-exp save-state" type="checkbox" id="exp_plaguicidas" disabled><label class="form-check-label" for="exp_plaguicidas">Plaguicidas</label></div></div>
               <div class="col-6 col-md-3"><div class="form-check"><input class="form-check-input chk-exp save-state" type="checkbox" id="exp_metanol" disabled><label class="form-check-label" for="exp_metanol">Metanol</label></div></div>
+              <div class="col-6 col-md-3"><div class="form-check"><input class="form-check-input chk-exp save-state" type="checkbox" id="exp_metales_pesados" disabled><label class="form-check-label" for="exp_metales_pesados">Metales pesados</label></div></div>
+              <div class="col-6 col-md-3"><div class="form-check"><input class="form-check-input chk-exp save-state" type="checkbox" id="exp_solventes" disabled><label class="form-check-label" for="exp_solventes">Solventes</label></div></div>
               <div class="col-md-3">
                 <div class="form-check mt-2">
                   <input class="form-check-input save-state" type="checkbox" id="exp_ninguno" checked onchange="toggleExposicion(this.checked)">
@@ -815,8 +821,11 @@
                 <label class="mb-3">Tipo de exposición:</label>
                 <div class="d-flex flex-wrap gap-4 align-items-center mb-3">
                   <div class="form-check"><input class="form-check-input rad-tipo-exp d-exp save-state" type="radio" name="rad_tipo_exp" id="tipo_ocupacional" value="Ocupacional" disabled><label class="form-check-label" for="tipo_ocupacional">Ocupacional</label></div>
-                  <div class="form-check"><input class="form-check-input rad-tipo-exp d-exp save-state" type="radio" name="rad_tipo_exp" id="tipo_desconocida" value="Desconocida" disabled><label class="form-check-label" for="tipo_desconocida">Desconocida</label></div>
                   <div class="form-check"><input class="form-check-input rad-tipo-exp d-exp save-state" type="radio" name="rad_tipo_exp" id="tipo_accidental" value="Accidental" disabled><label class="form-check-label" for="tipo_accidental">Accidental</label></div>
+                  <div class="form-check"><input class="form-check-input rad-tipo-exp d-exp save-state" type="radio" name="rad_tipo_exp" id="tipo_suicida" value="Intencional suicida" disabled><label class="form-check-label" for="tipo_suicida">Intencional suicida</label></div>
+                  <div class="form-check"><input class="form-check-input rad-tipo-exp d-exp save-state" type="radio" name="rad_tipo_exp" id="tipo_homicida" value="Intencional homicida" disabled><label class="form-check-label" for="tipo_homicida">Intencional homicida</label></div>
+                  <div class="form-check"><input class="form-check-input rad-tipo-exp d-exp save-state" type="radio" name="rad_tipo_exp" id="tipo_reaccion" value="Reacción adversa" disabled><label class="form-check-label" for="tipo_reaccion">Reacción adversa</label></div>
+                  <div class="form-check"><input class="form-check-input rad-tipo-exp d-exp save-state" type="radio" name="rad_tipo_exp" id="tipo_desconocida" value="Desconocida" disabled><label class="form-check-label" for="tipo_desconocida">Desconocida</label></div>
                   <div class="form-check"><input class="form-check-input rad-tipo-exp d-exp save-state" type="radio" name="rad_tipo_exp" id="tipo_otras" value="Otras" disabled><label class="form-check-label" for="tipo_otras">Otras:</label></div>
                 </div>
                 <div class="col-12 col-md-6">

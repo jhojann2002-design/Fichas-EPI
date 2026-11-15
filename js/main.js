@@ -331,8 +331,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.querySelectorAll('input[name="cond_egreso"]').forEach(r => {
     r.addEventListener('change', e => {
-      toggleElementos([document.getElementById('fecha_fallecimiento')], e.target.value !== 'VIVO');
-      if (e.target.value === 'VIVO') document.getElementById('fecha_fallecimiento').value = '';
+      toggleElementos([document.getElementById('fecha_fallecimiento')], e.target.value === 'FALLECIDO');
+      if (e.target.value !== 'FALLECIDO') document.getElementById('fecha_fallecimiento').value = '';
     });
   });
 

@@ -25,8 +25,8 @@ export function updSummary(el) {
 export function agregarContacto() {
   const tbody = document.getElementById('contactsBody');
 
-  if (tbody.children.length >= 14) { 
-    Swal.fire('Límite alcanzado', 'Se ha alcanzado el límite máximo de 14 contactos.', 'warning'); 
+  if (tbody.children.length >= 18) { 
+    Swal.fire('Límite alcanzado', 'Se ha alcanzado el límite máximo de 18 contactos.', 'warning'); 
     return; 
   }
 

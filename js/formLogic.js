@@ -520,6 +520,7 @@ export function recopilarDatos() {
     servicio_hosp: getVal('servicio_hosp'), ingreso_uci: getVal('ingreso_uci'), condicion_egreso: condEgreso, fecha_fallecimiento: getVal('fecha_fallecimiento'),
     exp_animal_vivo: getChk('exp_animal_vivo'), exp_animal_muerto: getChk('exp_animal_muerto'), exp_persona_sint: getChk('exp_persona_sint'), exp_agua_suelo: getChk('exp_agua_suelo'),
     exp_alimentos: getChk('exp_alimentos'), exp_basurales: getChk('exp_basurales'), exp_plaguicidas: getChk('exp_plaguicidas'), exp_metanol: getChk('exp_metanol'),
+    exp_metales_pesados: getChk('exp_metales_pesados'), exp_solventes: getChk('exp_solventes'),
     exp_ninguno: getChk('exp_ninguno'), exp_otros: getVal('exp_otros'), lugar_contacto: getVal('lugar_contacto'), forma_contacto: getVal('forma_contacto'),
     origen_objeto: getVal('origen_objeto'), fecha_contacto: getVal('fecha_contacto'), hora_contacto: getVal('hora_contacto'), procedencia_agua: radProc,
     procedencia_agua_otro: getVal('procedencia_agua_otro'), tipo_exposicion: radTipoExp, tipo_exposicion_otro: getVal('tipo_exposicion_otro'), transfusion: getVal('transfusion'),
