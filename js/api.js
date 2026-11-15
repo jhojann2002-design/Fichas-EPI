@@ -588,11 +588,17 @@ async function procesarFichaEpiLocalmente(datosObj) {
           lineas.push(actual);
           actual = pal;
         } else {
-          actual = candidato;
+          // Última línea permitida: solo añadir si entra cómodamente, no acumular indefinidamente
+          if (helveticaBold.widthOfTextAtSize(candidato, fontSize) <= anchoMaxPt) {
+            actual = candidato;
+          } else {
+            // No cabe en la última línea: truncar elegantemente evitando que se encoja la letra
+            break;
+          }
         }
       }
     }
-    if (actual) lineas.push(actual);
+    if (actual && lineas.length < numLineas) lineas.push(actual);
     return lineas.slice(0, numLineas);
   };
 
@@ -708,7 +714,17 @@ async function procesarFichaEpiLocalmente(datosObj) {
   setCampo("Lugar residencia_provincia", datosObj.prov_residencia);
   setCampo("Lugar residencia_canton", datosObj.canton_residencia);
   setCampo("Lugar residencia_parroquia", datosObj.parroquia_residencia);
-  setCampo("Direccion exacta", datosObj.direccion, { centrado: false, negrita: true });
+  const dirPartsP1 = splitDireccion(datosObj.direccion, 62);
+  setCampo("Direccion exacta", dirPartsP1.l1, { centrado: false, negrita: true });
+  setCampo("Direccion exacta linea 2", dirPartsP1.l2 || datosObj.parroquia_residencia, { centrado: false, negrita: true });
+  try {
+    page1.drawLine({
+      start: { x: 151.2, y: 607.0 },
+      end: { x: 568.3, y: 607.0 },
+      thickness: 0.5,
+      color: rgb(0, 0, 0)
+    });
+  } catch (e) {}
   setCampo("Nombre del paciente o responsable", datosObj.nombre_madre, { centrado: false, negrita: true });
 
   // Punto 13: Signos y Síntomas
@@ -1126,15 +1142,10 @@ async function procesarFichaEpiLocalmente(datosObj) {
   setCampo("resultado_agente_1", datosObj.agente, { centrado: false, negrita: true });
   setCampo("resultado_agente_2", datosObj.tecnica, { centrado: false, negrita: true });
 
-  // 25. Observaciones, 26. Se realizó investigación y 27. Fecha de investigación (estampado en Página 3)
+  // 25. Observaciones (estampado en Página 3)
+  // Nota: Sección 26 y 27 (Fecha de investigación) van vacías según normativa institucional (las llenan los epidemiólogos)
   if (up(datosObj.obs_epidemiologicas)) {
     dibujarTextoDirecto(page3, datosObj.obs_epidemiologicas, 125.4, 303.0, 5.8, 305);
-  }
-  if (datosObj.fecha_atencion) {
-    dibujarTextoDirecto(page3, "X", 198.5, 286.2, 7.0); // 26. Se realizó investigación: Sí
-    dibujarTextoDirecto(page3, fa.dia, 186.0, 261.8, 6.5);
-    dibujarTextoDirecto(page3, fa.mes, 225.0, 261.8, 6.5);
-    dibujarTextoDirecto(page3, fa.ano, 265.0, 261.8, 6.5);
   }
 
   // 28 al 36: Contactos sintomáticos, Evolución, Condición Final y Clasificación
@@ -1439,12 +1450,18 @@ async function procesarFichaEpiExcelLocalmente(datosObj) {
     } else {
       c.setAttribute('t', 'inlineStr');
       const isEl = doc.createElementNS(NS, 'is');
+      const rEl = doc.createElementNS(NS, 'r');
+      const rPrEl = doc.createElementNS(NS, 'rPr');
+      const bEl = doc.createElementNS(NS, 'b');
+      rPrEl.appendChild(bEl);
+      rEl.appendChild(rPrEl);
       const tEl = doc.createElementNS(NS, 't');
       if (strVal.startsWith(' ') || strVal.endsWith(' ')) {
         tEl.setAttribute('xml:space', 'preserve');
       }
       tEl.textContent = strVal;
-      isEl.appendChild(tEl);
+      rEl.appendChild(tEl);
+      isEl.appendChild(rEl);
       c.appendChild(isEl);
     }
   };
@@ -1454,6 +1471,35 @@ async function procesarFichaEpiExcelLocalmente(datosObj) {
     const p = String(dStr).trim().split('-');
     if (p.length !== 3) return ['', '', ''];
     return [String(parseInt(p[2], 10)), String(parseInt(p[1], 10)), String(parseInt(p[0], 10))];
+  };
+
+  const dividirTextoEnTrozos = (texto, maxLen = 75, maxLineas = 5) => {
+    const limpio = up(texto).replace(/\s+/g, ' ');
+    if (!limpio) return [];
+    const palabras = limpio.split(' ');
+    const lineas = [];
+    let actual = '';
+
+    for (let i = 0; i < palabras.length; i++) {
+      const pal = palabras[i];
+      const candidato = actual ? `${actual} ${pal}` : pal;
+      if (candidato.length <= maxLen || !actual) {
+        actual = candidato;
+      } else {
+        if (lineas.length < maxLineas - 1) {
+          lineas.push(actual);
+          actual = pal;
+        } else {
+          if (candidato.length <= maxLen) {
+            actual = candidato;
+          } else {
+            break;
+          }
+        }
+      }
+    }
+    if (actual && lineas.length < maxLineas) lineas.push(actual);
+    return lineas;
   };
 
   const splitDateDigits = (dStr) => {
@@ -1608,7 +1654,7 @@ async function procesarFichaEpiExcelLocalmente(datosObj) {
     setCellValue(d1, 'F29', up(datosObj.prov_residencia));
     setCellValue(d1, 'K29', up(datosObj.canton_residencia));
     setCellValue(d1, 'O29', up(datosObj.parroquia_residencia));
-    const dirPartsS1 = splitDireccion(datosObj.direccion, 40);
+    const dirPartsS1 = splitDireccion(datosObj.direccion, 62);
     setCellValue(d1, 'F32', up(dirPartsS1.l1));
     setCellValue(d1, 'F33', up(dirPartsS1.l2 || datosObj.parroquia_residencia));
     setCellValue(d1, 'T32', datosObj.telefono || '');
@@ -1645,10 +1691,11 @@ async function procesarFichaEpiExcelLocalmente(datosObj) {
     setCellValue(d1, 'T56', up(datosObj.agente));
     setCellValue(d1, 'D58', up(datosObj.obs_epidemiologicas));
 
-    setCellValue(d1, 'G60', datosObj.fecha_atencion ? 'X' : '');
-    setCellValue(d1, 'F62', faDia);
-    setCellValue(d1, 'H62', faMes);
-    setCellValue(d1, 'J62', faAno);
+    // 26 y 27: Se realizó investigación y Fecha de investigación van vacíos (lo llenan los epidemiólogos)
+    setCellValue(d1, 'G60', '');
+    setCellValue(d1, 'F62', '');
+    setCellValue(d1, 'H62', '');
+    setCellValue(d1, 'J62', '');
     setCellValue(d1, 'R62', String(totalSintomaticos), 'n');
 
     const hospUp = up(datosObj.hospitalizado);
@@ -1715,7 +1762,7 @@ async function procesarFichaEpiExcelLocalmente(datosObj) {
     setCellValue(d2, 'G20', up(datosObj.prov_residencia));
     setCellValue(d2, 'P20', up(datosObj.canton_residencia));
     setCellValue(d2, 'X20', up(datosObj.parroquia_residencia));
-    const dirPartsS2 = splitDireccion(datosObj.direccion, 45);
+    const dirPartsS2 = splitDireccion(datosObj.direccion, 70);
     setCellValue(d2, 'G23', up(dirPartsS2.l1));
     setCellValue(d2, 'G24', up(dirPartsS2.l2 || datosObj.parroquia_residencia));
     setCellValue(d2, 'J26', up(datosObj.nombre_madre));
@@ -1726,7 +1773,7 @@ async function procesarFichaEpiExcelLocalmente(datosObj) {
     setCellValue(d2, 'T28', fsDig.m1);
     setCellValue(d2, 'U28', fsDig.m2);
     setCellValue(d2, 'V28', fsDig.ano);
-    setCellValue(d2, 'H31', `relevante: ${up(datosObj.cual_sintoma) || '_____________________'}`);
+    setCellValue(d2, 'J31', up(datosObj.cual_sintoma));
     setCellValue(d2, 'P31', datosObj.hora_sintoma_relevante || '');
     setCellValue(d2, 'R31', frDig.d1);
     setCellValue(d2, 'S31', frDig.d2);
@@ -1755,7 +1802,12 @@ async function procesarFichaEpiExcelLocalmente(datosObj) {
       datosObj.oncocercomas ? 'ONCOCERCOMAS' : ''
     ].filter(Boolean);
     setCellValue(d2, 'G42', otrosSigArr.join(' '));
-    setCellValue(d2, 'C45', caracSignosTxt);
+    const caracChunks = dividirTextoEnTrozos(caracSignosTxt, 75, 5);
+    setCellValue(d2, 'C45', caracChunks[0] || '');
+    setCellValue(d2, 'C46', caracChunks[1] || '');
+    setCellValue(d2, 'C47', caracChunks[2] || '');
+    setCellValue(d2, 'C48', caracChunks[3] || '');
+    setCellValue(d2, 'C49', caracChunks[4] || '');
 
     const tratSi = up(datosObj.recibio_tratamiento) === 'SI';
     setCellValue(d2, 'H51', tratSi ? 'X' : '');
@@ -1878,15 +1930,11 @@ async function procesarFichaEpiExcelLocalmente(datosObj) {
     setCellValue(d3, 'J12', viajeSi ? 'X' : '');
     setCellValue(d3, 'L12', up(datosObj.realizo_viaje) === 'NO' ? 'X' : '');
     setCellValue(d3, 'O12', viajeSi ? up(datosObj.lugar_viaje) : '');
-    setCellValue(d3, 'Y12', viajeSi ? fvdDig.d1 : '');
-    setCellValue(d3, 'Z12', viajeSi ? fvdDig.d2 : '');
-    setCellValue(d3, 'AA12', viajeSi ? fvdDig.m1 : '');
-    setCellValue(d3, 'AB12', viajeSi ? fvdDig.m2 : '');
+    setCellValue(d3, 'Y12', viajeSi ? fvdDig.dia : '');
+    setCellValue(d3, 'AA12', viajeSi ? fvdDig.mes : '');
     setCellValue(d3, 'AC12', viajeSi ? fvdDig.ano : '');
-    setCellValue(d3, 'Y13', viajeSi ? fvhDig.d1 : '');
-    setCellValue(d3, 'Z13', viajeSi ? fvhDig.d2 : '');
-    setCellValue(d3, 'AA13', viajeSi ? fvhDig.m1 : '');
-    setCellValue(d3, 'AB13', viajeSi ? fvhDig.m2 : '');
+    setCellValue(d3, 'Y13', viajeSi ? fvhDig.dia : '');
+    setCellValue(d3, 'AA13', viajeSi ? fvhDig.mes : '');
     setCellValue(d3, 'AC13', viajeSi ? fvhDig.ano : '');
 
     const partesFactores = [
@@ -1936,13 +1984,23 @@ async function procesarFichaEpiExcelLocalmente(datosObj) {
     s3Obj.entry.rawBytes = encoder.encode(serializer.serializeToString(d3));
   }
 
-  // Sanitización defensiva de fuentes en styles.xml: normalizar Calibri1 / Calibri2 a Calibri
+  // Sanitización defensiva de fuentes en styles.xml: normalizar todas las fuentes a Calibri y negrita
   const stylesEntry = entries.find(e => e.name === 'xl/styles.xml');
   if (stylesEntry) {
     const stylesRaw = stylesEntry.method === 8 ? await inflateRawBytes(stylesEntry.compData) : stylesEntry.compData;
     let stylesStr = decoder.decode(stylesRaw);
-    if (stylesStr.includes('Calibri1') || stylesStr.includes('Calibri2')) {
-      stylesStr = stylesStr.replace(/<name val="Calibri[12]"\/>/g, '<name val="Calibri"/>');
+    let mod = false;
+    if (stylesStr.includes('Calibri1') || stylesStr.includes('Calibri2') || stylesStr.includes('Cambria')) {
+      stylesStr = stylesStr.replace(/<name val="Calibri[12]"\/>/g, '<name val="Calibri"/>')
+                           .replace(/<name val="Cambria"\/>/g, '<name val="Calibri"/>');
+      mod = true;
+    }
+    // Asegurar que cada <font> tenga <b/>
+    if (stylesStr.includes('<fonts')) {
+      stylesStr = stylesStr.replace(/<font>(?![\s\S]*?<b\/>)/g, '<font><b/>');
+      mod = true;
+    }
+    if (mod) {
       stylesEntry.rawBytes = encoder.encode(stylesStr);
     }
   }
