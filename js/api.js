@@ -1688,16 +1688,15 @@ async function procesarFichaEpiExcelLocalmente(datosObj) {
     setCellValue(d1, 'F29', up(datosObj.prov_residencia));
     setCellValue(d1, 'K29', up(datosObj.canton_residencia));
     setCellValue(d1, 'O29', up(datosObj.parroquia_residencia));
-    const dirPartsS1 = splitDireccion(datosObj.direccion, 45);
-    setCellValue(d1, 'F32', up(dirPartsS1.l1));
-    setCellValue(d1, 'F33', up(dirPartsS1.l2 || datosObj.parroquia_residencia));
+    const dirCompletaS1 = [up(datosObj.direccion), up(datosObj.parroquia_residencia)].filter(Boolean).join(' - ');
+    setCellValue(d1, 'F31', dirCompletaS1);
     setCellValue(d1, 'T32', datosObj.telefono || '');
     setCellValue(d1, 'F35', lugarProbInfeccion);
 
     setCellValue(d1, 'F39', fsDia);
     setCellValue(d1, 'H39', fsMes);
     setCellValue(d1, 'J39', fsAno);
-    setCellValue(d1, 'Q39', up(datosObj.diagnostico_cie10));
+    setCellValue(d1, 'Q40', up(datosObj.diagnostico_cie10));
 
     setCellValue(d1, 'G42', (sexoUp !== 'MASCULINO' && embUp === 'SI') ? 'X' : '');
     setCellValue(d1, 'I42', (sexoUp !== 'MASCULINO' && embUp === 'NO') ? 'X' : '');
@@ -1759,7 +1758,7 @@ async function procesarFichaEpiExcelLocalmente(datosObj) {
     setCellValue(d1, 'P82', '');
     setCellValue(d1, 'Q82', '');
     setCellValue(d1, 'R82', '');
-    setCellValue(d1, 'R84', '');
+    setCellValue(d1, 'Q84', '');
 
     s1Obj.entry.rawBytes = serializarHojaSegura(d1, s1Obj.rawStr);
   }
@@ -1771,29 +1770,25 @@ async function procesarFichaEpiExcelLocalmente(datosObj) {
     const d2 = s2Obj.doc;
     setCellValue(d2, 'N5', up(datosObj.diagnostico_cie10));
     setCellValue(d2, 'H7', estabUp);
-    setCellValue(d2, 'Y7', faDig.d1);
-    setCellValue(d2, 'Z7', faDig.d2);
-    setCellValue(d2, 'AA7', faDig.m1);
-    setCellValue(d2, 'AB7', faDig.m2);
+    setCellValue(d2, 'Y7', faDig.dia ? faDig.dia.padStart(2, '0') : '');
+    setCellValue(d2, 'AA7', faDig.mes ? faDig.mes.padStart(2, '0') : '');
     setCellValue(d2, 'AC7', faDig.ano);
     setCellValue(d2, 'G9', provEstUp);
     setCellValue(d2, 'P9', cantEstUp);
     setCellValue(d2, 'X9', parrEstUp);
 
     setCellValue(d2, 'D12', ape1);
-    setCellValue(d2, 'I12', ape2);
-    setCellValue(d2, 'N12', nom1);
-    setCellValue(d2, 'S12', nom2);
+    setCellValue(d2, 'J12', ape2);
+    setCellValue(d2, 'P12', nom1);
+    setCellValue(d2, 'T12', nom2);
     setCellValue(d2, 'AC12', sexoUp === 'MASCULINO' ? 'X' : '');
     setCellValue(d2, 'AD12', sexoUp === 'FEMENINO' ? 'X' : '');
 
     // Punto 6: Edad en DÍAS (D15, E15) | MESES (F15, G15) | AÑOS (H15:I15)
     const edDiaPad = edadDias !== '' ? edadDias.padStart(2, '0') : '';
     const edMesPad = edadMeses !== '' ? edadMeses.padStart(2, '0') : '';
-    setCellValue(d2, 'D15', edDiaPad ? edDiaPad[0] : '');
-    setCellValue(d2, 'E15', edDiaPad ? edDiaPad[1] : '');
-    setCellValue(d2, 'F15', edMesPad ? edMesPad[0] : '');
-    setCellValue(d2, 'G15', edMesPad ? edMesPad[1] : '');
+    setCellValue(d2, 'D15', edDiaPad);
+    setCellValue(d2, 'F15', edMesPad);
     setCellValue(d2, 'H15', edadAnos);
 
     setCellValue(d2, 'P15', up(datosObj.estado_civil));
@@ -1809,18 +1804,14 @@ async function procesarFichaEpiExcelLocalmente(datosObj) {
     setCellValue(d2, 'J26', up(datosObj.nombre_madre));
 
     setCellValue(d2, 'P28', datosObj.hora_inicio_sintomas || '');
-    setCellValue(d2, 'R28', fsDig.d1);
-    setCellValue(d2, 'S28', fsDig.d2);
-    setCellValue(d2, 'T28', fsDig.m1);
-    setCellValue(d2, 'U28', fsDig.m2);
+    setCellValue(d2, 'R28', fsDig.dia ? fsDig.dia.padStart(2, '0') : '');
+    setCellValue(d2, 'T28', fsDig.mes ? fsDig.mes.padStart(2, '0') : '');
     setCellValue(d2, 'V28', fsDig.ano);
     // H31 contiene la etiqueta impresa "relevante"; el valor va en la celda combinada J31:N31
     setCellValue(d2, 'J31', up(datosObj.cual_sintoma));
     setCellValue(d2, 'P31', datosObj.hora_sintoma_relevante || '');
-    setCellValue(d2, 'R31', frDig.d1);
-    setCellValue(d2, 'S31', frDig.d2);
-    setCellValue(d2, 'T31', frDig.m1);
-    setCellValue(d2, 'U31', frDig.m2);
+    setCellValue(d2, 'R31', frDig.dia ? frDig.dia.padStart(2, '0') : '');
+    setCellValue(d2, 'T31', frDig.mes ? frDig.mes.padStart(2, '0') : '');
     setCellValue(d2, 'V31', frDig.ano);
     setCellValue(d2, 'AB31', datosObj.num_dias_sintomas || '');
 
@@ -1845,12 +1836,8 @@ async function procesarFichaEpiExcelLocalmente(datosObj) {
     ].filter(Boolean);
     setCellValue(d2, 'G42', otrosSigArr.join(', '));
 
-    // Punto 14: Distribuir Caracterizar signos/síntomas en las 5 filas combinadas C45..C49
-    const lineasCaracS2 = dividirTextoPorPalabras(caracSignosTxt, 5, 88);
-    const filasCaracS2 = ['C45', 'C46', 'C47', 'C48', 'C49'];
-    for (let i = 0; i < filasCaracS2.length; i++) {
-      setCellValue(d2, filasCaracS2[i], lineasCaracS2[i] || '');
-    }
+    // Punto 14: Celda unificada C45:AD49 para Caracterizar signos/síntomas
+    setCellValue(d2, 'C45', caracSignosTxt);
 
     const tratSi = up(datosObj.recibio_tratamiento) === 'SI';
     setCellValue(d2, 'H51', tratSi ? 'X' : '');
@@ -1870,10 +1857,8 @@ async function procesarFichaEpiExcelLocalmente(datosObj) {
     const hospSi = up(datosObj.hospitalizado) === 'SI';
     setCellValue(d2, 'F57', hospSi ? 'X' : '');
     setCellValue(d2, 'I57', up(datosObj.hospitalizado) === 'NO' ? 'X' : '');
-    setCellValue(d2, 'Q57', hospSi ? fhDig.d1 : '');
-    setCellValue(d2, 'R57', hospSi ? fhDig.d2 : '');
-    setCellValue(d2, 'S57', hospSi ? fhDig.m1 : '');
-    setCellValue(d2, 'T57', hospSi ? fhDig.m2 : '');
+    setCellValue(d2, 'Q57', hospSi && fhDig.dia ? fhDig.dia.padStart(2, '0') : '');
+    setCellValue(d2, 'S57', hospSi && fhDig.mes ? fhDig.mes.padStart(2, '0') : '');
     setCellValue(d2, 'U57', hospSi ? fhDig.ano : '');
     setCellValue(d2, 'Y57', hospSi ? up(datosObj.hc_hosp) : '');
     setCellValue(d2, 'AC57', hospSi ? up(datosObj.servicio_hosp) : '');
@@ -1883,10 +1868,8 @@ async function procesarFichaEpiExcelLocalmente(datosObj) {
 
     setCellValue(d2, 'H62', condEgUp === 'VIVO' ? 'X' : '');
     setCellValue(d2, 'L62', esFallecido ? 'X' : '');
-    setCellValue(d2, 'X62', esFallecido ? ffDig.d1 : '');
-    setCellValue(d2, 'Y62', esFallecido ? ffDig.d2 : '');
-    setCellValue(d2, 'Z62', esFallecido ? ffDig.m1 : '');
-    setCellValue(d2, 'AA62', esFallecido ? ffDig.m2 : '');
+    setCellValue(d2, 'X62', esFallecido && ffDig.dia ? ffDig.dia.padStart(2, '0') : '');
+    setCellValue(d2, 'Z62', esFallecido && ffDig.mes ? ffDig.mes.padStart(2, '0') : '');
     setCellValue(d2, 'AB62', esFallecido ? ffDig.ano : '');
 
     const vacUp = up(datosObj.antecedente_vacunal);
@@ -1903,10 +1886,8 @@ async function procesarFichaEpiExcelLocalmente(datosObj) {
       setCellValue(d2, cRef, datosObj[k] ? 'X' : '');
     });
     setCellValue(d2, 'AC68', datosObj.otras_vacunas ? `OTRAS: ${up(datosObj.otras_vacunas)}` : 'otras____');
-    setCellValue(d2, 'E70', fvDig.d1);
-    setCellValue(d2, 'F70', fvDig.d2);
-    setCellValue(d2, 'G70', fvDig.m1);
-    setCellValue(d2, 'H70', fvDig.m2);
+    setCellValue(d2, 'E70', fvDig.dia ? fvDig.dia.padStart(2, '0') : '');
+    setCellValue(d2, 'G70', fvDig.mes ? fvDig.mes.padStart(2, '0') : '');
     setCellValue(d2, 'I70', fvDig.ano);
 
     // Punto 22: No. de dosis recibidas tiene 2 casillas de 1 dígito (Y70 y Z70)
@@ -1944,10 +1925,8 @@ async function procesarFichaEpiExcelLocalmente(datosObj) {
     setCellValue(d2, 'C79', !expNinguno ? up(datosObj.lugar_contacto) : '');
     setCellValue(d2, 'J79', !expNinguno ? up(datosObj.forma_contacto) : '');
     setCellValue(d2, 'S79', !expNinguno ? up(datosObj.origen_objeto) : '');
-    setCellValue(d2, 'G82', !expNinguno ? fcDig.d1 : '');
-    setCellValue(d2, 'H82', !expNinguno ? fcDig.d2 : '');
-    setCellValue(d2, 'I82', !expNinguno ? fcDig.m1 : '');
-    setCellValue(d2, 'J82', !expNinguno ? fcDig.m2 : '');
+    setCellValue(d2, 'G82', !expNinguno && fcDig.dia ? fcDig.dia.padStart(2, '0') : '');
+    setCellValue(d2, 'I82', !expNinguno && fcDig.mes ? fcDig.mes.padStart(2, '0') : '');
     setCellValue(d2, 'K82', !expNinguno ? fcDig.ano : '');
     setCellValue(d2, 'P82', !expNinguno ? (datosObj.hora_contacto || '') : '');
 
@@ -1993,28 +1972,20 @@ async function procesarFichaEpiExcelLocalmente(datosObj) {
     setCellValue(d3, 'J12', viajeSi ? 'X' : '');
     setCellValue(d3, 'L12', up(datosObj.realizo_viaje) === 'NO' ? 'X' : '');
     setCellValue(d3, 'O12', viajeSi ? up(datosObj.lugar_viaje) : '');
-    setCellValue(d3, 'Y12', viajeSi ? fvdDig.d1 : '');
-    setCellValue(d3, 'Z12', viajeSi ? fvdDig.d2 : '');
-    setCellValue(d3, 'AA12', viajeSi ? fvdDig.m1 : '');
-    setCellValue(d3, 'AB12', viajeSi ? fvdDig.m2 : '');
+    setCellValue(d3, 'Y12', viajeSi && fvdDig.dia ? fvdDig.dia.padStart(2, '0') : '');
+    setCellValue(d3, 'Z12', viajeSi && fvdDig.mes ? fvdDig.mes.padStart(2, '0') : '');
     setCellValue(d3, 'AC12', viajeSi ? fvdDig.ano : '');
-    setCellValue(d3, 'Y13', viajeSi ? fvhDig.d1 : '');
-    setCellValue(d3, 'Z13', viajeSi ? fvhDig.d2 : '');
-    setCellValue(d3, 'AA13', viajeSi ? fvhDig.m1 : '');
-    setCellValue(d3, 'AB13', viajeSi ? fvhDig.m2 : '');
+    setCellValue(d3, 'Y13', viajeSi && fvhDig.dia ? fvhDig.dia.padStart(2, '0') : '');
+    setCellValue(d3, 'Z13', viajeSi && fvhDig.mes ? fvhDig.mes.padStart(2, '0') : '');
     setCellValue(d3, 'AC13', viajeSi ? fvhDig.ano : '');
 
-    // Punto 31: Distribuir Caracterizar factores de riesgo en las 6 filas combinadas C16..C21
+    // Punto 31: Celda unificada C16:AD21 para Caracterizar factores de riesgo
     const partesFactores = [
       (up(datosObj.comorbilidades) === 'SI' && up(datosObj.especificar_comor)) ? `COMORBILIDADES: ${up(datosObj.especificar_comor)}` : '',
       up(datosObj.carac_factores),
       up(datosObj.obs_epidemiologicas)
     ].filter(Boolean).join(' | ');
-    const lineasFactS3 = dividirTextoPorPalabras(partesFactores, 6, 88);
-    const filasFactS3 = ['C16', 'C17', 'C18', 'C19', 'C20', 'C21'];
-    for (let i = 0; i < filasFactS3.length; i++) {
-      setCellValue(d3, filasFactS3[i], lineasFactS3[i] || '');
-    }
+    setCellValue(d3, 'C16', partesFactores);
 
     for (let i = 0; i < 18; i++) {
       const r3 = 28 + i;
@@ -2037,7 +2008,7 @@ async function procesarFichaEpiExcelLocalmente(datosObj) {
     setCellValue(d3, 'L47', up(datosObj.muestra) === 'NO' ? 'X' : '');
     setCellValue(d3, 'U47', (muestraSi && up(datosObj.antes_tratamiento) === 'SI') ? 'X' : '');
     setCellValue(d3, 'W47', (muestraSi && up(datosObj.antes_tratamiento) === 'NO') ? 'X' : '');
-    setCellValue(d3, 'F48', muestraSi ? up(datosObj.tipo_muestra) : '');
+    setCellValue(d3, 'F49', muestraSi ? up(datosObj.tipo_muestra) : '');
     const resLabTxt = muestraSi ? [up(datosObj.resultado), up(datosObj.agente), up(datosObj.tecnica)].filter(Boolean).join(' - ') : '';
     setCellValue(d3, 'G51', resLabTxt);
 
