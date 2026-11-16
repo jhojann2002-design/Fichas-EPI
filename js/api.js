@@ -539,16 +539,7 @@ async function procesarFichaEpiLocalmente(datosObj) {
 
       campo.setText(strVal);
 
-      const isMulti = typeof campo.isMultiline === "function" && campo.isMultiline();
-      let fs = 6.5;
-
-      if (!isMulti && isFinite(minW)) {
-        const usableW = Math.max(5.5, minW - 2.0);
-        while (fs > 4.5 && helveticaBold.widthOfTextAtSize(strVal, fs) > usableW) {
-          fs = Math.round((fs - 0.2) * 100) / 100;
-        }
-      }
-
+      const fs = 6.5;
       campo.setFontSize(fs);
       campo.setAlignment(TextAlignment.Center);
       campo.updateAppearances(helveticaBold);
@@ -614,12 +605,7 @@ async function procesarFichaEpiLocalmente(datosObj) {
   const dibujarTextoDirecto = (page, texto, x, y, size = 6.5, maxWidth = 0) => {
     const str = up(texto);
     if (!page || !str) return;
-    let fs = 6.5;
-    if (maxWidth > 0) {
-      while (fs > 4.5 && helveticaBold.widthOfTextAtSize(str, fs) > maxWidth) {
-        fs = Math.round((fs - 0.2) * 100) / 100;
-      }
-    }
+    const fs = 6.5;
     let drawX = x;
     if (maxWidth > 0) {
       const tw = helveticaBold.widthOfTextAtSize(str, fs);
@@ -1100,7 +1086,12 @@ async function procesarFichaEpiLocalmente(datosObj) {
     dibujarTextoDirecto(page2, "X", 264.6, 395.3, 6.5);
   }
 
-  setCampo("responsable nombre", ""); // Nombre responsable epid. debe ir vacío (lo llenan los epidemiólogos)
+  setCampo("responsable nombre", datosObj.medico_tratante);
+  setCampo("fecha_dia_1er digito", fa.d1);
+  setCampo("fecha_dia_2do digito", fa.d2);
+  setCampo("fecha_mes_1er digito", fa.m1);
+  setCampo("fecha_mes_2do digito", fa.m2);
+  setCampo("fecha_año", fa.ano);
 
   // =========================================================================
   // PÁGINA 3: FORMULARIO EPI-1 INDIVIDUAL (NOTIFICACIÓN Y CIERRE DE CASO)
@@ -2020,10 +2011,10 @@ async function procesarFichaEpiExcelLocalmente(datosObj) {
     const broteUp = up(datosObj.tipo_caso_brote);
     setCellValue(d3, 'E55', broteUp.includes('AISLADO') ? 'X' : '');
     setCellValue(d3, 'N55', broteUp.includes('BROTE') ? 'X' : '');
-    setCellValue(d3, 'H78', '');
-    setCellValue(d3, 'D80', '');
-    setCellValue(d3, 'F80', '');
-    setCellValue(d3, 'H80', '');
+    setCellValue(d3, 'H78', up(datosObj.medico_tratante));
+    setCellValue(d3, 'D80', faDia);
+    setCellValue(d3, 'F80', faMes);
+    setCellValue(d3, 'H80', faAno);
 
     s3Obj.entry.rawBytes = serializarHojaSegura(d3, s3Obj.rawStr);
   }
