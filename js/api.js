@@ -525,7 +525,7 @@ async function procesarFichaEpiLocalmente(datosObj) {
 
   const up = (v) => String(v === undefined || v === null ? "" : v).trim().toUpperCase();
 
-  // 3. Helper con TIPOGRAFÍA UNIFORME EN NEGRITA Y AUTO-AJUSTE HORIZONTAL
+  // 3. Helper con TIPOGRAFÍA UNIFORME EN NEGRITA (6.5pt), CENTRADO Y SIN DESBORDAMIENTO
   const aplicarTextoACampo = (campo, strVal, opciones = { centrado: true, negrita: true }) => {
     try {
       try { campo.acroField.dict.delete(PDFName.of('MaxLen')); } catch (e) {}
@@ -540,21 +540,18 @@ async function procesarFichaEpiLocalmente(datosObj) {
       campo.setText(strVal);
 
       const isMulti = typeof campo.isMultiline === "function" && campo.isMultiline();
-      let fs = opciones.fontSize || (minW < 25 ? 6.8 : 6.5);
+      let fs = 6.5;
 
       if (!isMulti && isFinite(minW)) {
         const usableW = Math.max(5.5, minW - 2.0);
-        while (fs > 2.8 && helveticaBold.widthOfTextAtSize(strVal, fs) > usableW) {
+        while (fs > 4.5 && helveticaBold.widthOfTextAtSize(strVal, fs) > usableW) {
           fs = Math.round((fs - 0.2) * 100) / 100;
         }
-      } else if (isMulti) {
-        if (strVal.length > 260) fs = Math.min(fs, 5.8);
-        else if (strVal.length > 140) fs = Math.min(fs, 6.2);
       }
 
       campo.setFontSize(fs);
-      campo.setAlignment(opciones.centrado ? TextAlignment.Center : TextAlignment.Left);
-      campo.updateAppearances(opciones.negrita ? helveticaBold : helvetica);
+      campo.setAlignment(TextAlignment.Center);
+      campo.updateAppearances(helveticaBold);
     } catch (e) {}
   };
 
@@ -590,7 +587,7 @@ async function procesarFichaEpiLocalmente(datosObj) {
         }
         if (pg) {
           const rect = w.getRectangle();
-          const xSize = 6.8;
+          const xSize = 6.5;
           const xW = helveticaBold.widthOfTextAtSize("X", xSize);
           const xH = xSize * 0.72;
           const drawX = rect.x + (rect.width - xW) / 2;
@@ -600,7 +597,7 @@ async function procesarFichaEpiLocalmente(datosObj) {
         }
       }
       if (!stamped && typeof campo.setText === "function") {
-        aplicarTextoACampo(campo, "X", { centrado: true, negrita: true, fontSize: 6.8 });
+        aplicarTextoACampo(campo, "X", { centrado: true, negrita: true, fontSize: 6.5 });
       }
     } catch (e) {}
   };
@@ -617,14 +614,19 @@ async function procesarFichaEpiLocalmente(datosObj) {
   const dibujarTextoDirecto = (page, texto, x, y, size = 6.5, maxWidth = 0) => {
     const str = up(texto);
     if (!page || !str) return;
-    let fs = size;
+    let fs = 6.5;
     if (maxWidth > 0) {
-      while (fs > 4.0 && helveticaBold.widthOfTextAtSize(str, fs) > maxWidth) {
+      while (fs > 4.5 && helveticaBold.widthOfTextAtSize(str, fs) > maxWidth) {
         fs = Math.round((fs - 0.2) * 100) / 100;
       }
     }
+    let drawX = x;
+    if (maxWidth > 0) {
+      const tw = helveticaBold.widthOfTextAtSize(str, fs);
+      drawX = x + Math.max(0, (maxWidth - tw) / 2);
+    }
     try {
-      page.drawText(str, { x, y, size: fs, font: helveticaBold });
+      page.drawText(str, { x: drawX, y, size: fs, font: helveticaBold });
     } catch (e) {}
   };
 
@@ -729,7 +731,7 @@ async function procesarFichaEpiLocalmente(datosObj) {
   // =========================================================================
   // PÁGINA 1: CLÍNICA EPIDEMIOLÓGICA (PUNTOS 1 AL 26)
   // =========================================================================
-  setCampo("Diagnostico inicial", datosObj.diagnostico_cie10, { centrado: false, negrita: true });
+  setCampo("Diagnostico inicial", datosObj.diagnostico_cie10, { centrado: true, negrita: true });
   setCampo("Nombre unidad que investiga", estabUp);
   setCampo("fecha investigacion_dia_1erdigito", fa.d1);
   setCampo("fecha investigacion_dia_2dodigito", fa.d2);
@@ -761,7 +763,7 @@ async function procesarFichaEpiLocalmente(datosObj) {
 
   setCampo("Estado Civil", datosObj.estado_civil);
   setCampo("Escolaridad", datosObj.escolaridad);
-  setCampo("Ocupacion", datosObj.ocupacion, { centrado: false, negrita: true });
+  setCampo("Ocupacion", datosObj.ocupacion, { centrado: true, negrita: true });
   setCampo("Telefono", datosObj.telefono);
   setCampo("Lugar residencia_provincia", datosObj.prov_residencia);
   setCampo("Lugar residencia_canton", datosObj.canton_residencia);
@@ -769,10 +771,10 @@ async function procesarFichaEpiLocalmente(datosObj) {
 
   // Punto 11: Dirección exacta (2 líneas)
   const dirP1 = splitDireccion(datosObj.direccion, 62);
-  setCampo("Direccion exacta", dirP1.l1, { centrado: false, negrita: true });
-  setCampo("Direccion exacta linea 2", dirP1.l2 || datosObj.parroquia_residencia, { centrado: false, negrita: true });
+  setCampo("Direccion exacta", dirP1.l1, { centrado: true, negrita: true });
+  setCampo("Direccion exacta linea 2", dirP1.l2 || datosObj.parroquia_residencia, { centrado: true, negrita: true });
 
-  setCampo("Nombre del paciente o responsable", datosObj.nombre_madre, { centrado: false, negrita: true });
+  setCampo("Nombre del paciente o responsable", datosObj.nombre_madre, { centrado: true, negrita: true });
 
   // Punto 13: Signos y Síntomas
   setCampo("fecha inicio cuadro clinico_hora", datosObj.hora_inicio_sintomas);
@@ -833,14 +835,14 @@ async function procesarFichaEpiLocalmente(datosObj) {
     datosObj.sudoracion ? "SUDORACIÓN NOCTURNA" : "",
     datosObj.oncocercomas ? "ONCOCERCOMAS" : ""
   ].filter(Boolean).join(", ");
-  setCampo("sintomas_otros signos y sintomas", otrosSignosP1, { centrado: false, negrita: true });
+  setCampo("sintomas_otros signos y sintomas", otrosSignosP1, { centrado: true, negrita: true });
 
   // Punto 14: Caracterizar signos/síntomas más relevantes (5 líneas)
   const textoCaracSignos = up(datosObj.aplica_caracterizar_signos) === "NO" ? "" : up(datosObj.caracterizar_signos);
   if (textoCaracSignos) {
     const lineasSignos = dividirEnLineas(textoCaracSignos, 5, 498, 6.5);
     for (let i = 0; i < lineasSignos.length; i++) {
-      setCampo(`caracterizas signos/sintomas mas relevantes_ linea ${i + 1}`, lineasSignos[i], { centrado: false, negrita: true, fontSize: 6.5 });
+      setCampo(`caracterizas signos/sintomas mas relevantes_ linea ${i + 1}`, lineasSignos[i], { centrado: true, negrita: true, fontSize: 6.5 });
     }
   }
 
@@ -848,7 +850,7 @@ async function procesarFichaEpiLocalmente(datosObj) {
   setCheck("recibio tratamiento_ si", tratSi);
   setCheck("recibio tratamiento_ no", up(datosObj.recibio_tratamiento) === "NO");
   if (tratSi && up(datosObj.especificar_tratamiento)) {
-    setCampo("especificar el tratamiento", datosObj.especificar_tratamiento, { centrado: false, negrita: true, fontSize: 6.5 });
+    setCampo("especificar el tratamiento", datosObj.especificar_tratamiento, { centrado: true, negrita: true, fontSize: 6.5 });
   }
 
   const evoUp = up(datosObj.evolucion);
@@ -876,7 +878,7 @@ async function procesarFichaEpiLocalmente(datosObj) {
     setCampo("Fecha de hospitalizacion_año", fh.ano);
     setCampo("Numero historia clinica", datosObj.hc_hosp);
     setCampo("Servicio", datosObj.servicio_hosp);
-    setCampo("Nombre del hospital donde fue hospitalizado", datosObj.nombre_hospital, { centrado: false, negrita: true });
+    setCampo("Nombre del hospital donde fue hospitalizado", datosObj.nombre_hospital, { centrado: true, negrita: true });
     setCheck("Ingreso a UCI_si", uciUp === "SI");
     setCheck("Ingreso a UCI_no", uciUp === "NO");
   }
@@ -927,7 +929,7 @@ async function procesarFichaEpiLocalmente(datosObj) {
     } catch (e) {}
   }
 
-  setCampo("vacuna_otras", datosObj.otras_vacunas, { centrado: false, negrita: true });
+  setCampo("vacuna_otras", datosObj.otras_vacunas, { centrado: true, negrita: true });
   setCampo("Fecha ultima dosis_dia_primer dia", fv.d1);
   setCampo("Fecha ultima dosis_dia_segundo dia", fv.d2);
   setCampo("Fecha ultima dosis_mes_primer dia", fv.m1);
@@ -965,7 +967,7 @@ async function procesarFichaEpiLocalmente(datosObj) {
 
   if (!expNinguno) {
     if (up(datosObj.exp_otros)) {
-      dibujarTextoDirecto(page1, datosObj.exp_otros, 516, 224.9, 5.8, 34);
+      dibujarTextoDirecto(page1, datosObj.exp_otros, 516, 224.9, 6.5, 34);
     }
     setCampo("antecedente de contacto_lugar geografico", datosObj.lugar_contacto);
     setCampo("antecedente de contacto_ forma de contacto", datosObj.forma_contacto);
@@ -991,7 +993,7 @@ async function procesarFichaEpiLocalmente(datosObj) {
     setCheck("procedencia agua/alimentos_ calle", procAguaVal === "CALLE");
     setCheck("procedencia agua/alimentos_ reunion social", procAguaVal === "REUNIÓN SOCIAL" || procAguaVal === "REUNION SOCIAL");
     if (procAguaVal && !esProcStd) {
-      setCampo("procedencia agua/alimentos_ otros", procAguaVal, { centrado: false, negrita: true });
+      setCampo("procedencia agua/alimentos_ otros", procAguaVal, { centrado: true, negrita: true });
     }
   }
 
@@ -1007,8 +1009,8 @@ async function procesarFichaEpiLocalmente(datosObj) {
     setCheck("tipo exposicion_ desconocida", tipoExpVal === "DESCONOCIDA");
     if (!esTipoStd) {
       const lineasTipo = dividirEnLineas(tipoExpVal, 2, 64, 6.5);
-      if (lineasTipo[0]) setCampo("tipo exposicion_ otros linea 1", lineasTipo[0], { centrado: false, negrita: true });
-      if (lineasTipo[1]) setCampo("tipo exposicion_ otros linea 2", lineasTipo[1], { centrado: false, negrita: true });
+      if (lineasTipo[0]) setCampo("tipo exposicion_ otros linea 1", lineasTipo[0], { centrado: true, negrita: true });
+      if (lineasTipo[1]) setCampo("tipo exposicion_ otros linea 2", lineasTipo[1], { centrado: true, negrita: true });
     }
   }
 
@@ -1045,7 +1047,7 @@ async function procesarFichaEpiLocalmente(datosObj) {
   if (partesFactores) {
     const lineasFactores = dividirEnLineas(partesFactores, 6, 508, 6.5);
     for (let i = 0; i < lineasFactores.length; i++) {
-      setCampo(`caracterizar fact riesgos linea ${i + 1}`, lineasFactores[i], { centrado: false, negrita: true, fontSize: 6.5 });
+      setCampo(`caracterizar fact riesgos linea ${i + 1}`, lineasFactores[i], { centrado: true, negrita: true, fontSize: 6.5 });
     }
   }
 
@@ -1056,14 +1058,14 @@ async function procesarFichaEpiLocalmente(datosObj) {
     const num = i + 1;
     const cont = todosContactos[i];
     if (cont && up(cont.nombre)) {
-      setCampo(`NombreRow${num}`, cont.nombre, { centrado: false, negrita: true, fontSize: 6.2 });
-      setCampo(`edadRow${num}`, cont.edad, { centrado: true, negrita: true, fontSize: 6.2 });
-      setCampo(`sexoRow${num}`, cont.sexo, { centrado: true, negrita: true, fontSize: 6.2 });
-      setCampo(`Relación con el casoRow${num}`, cont.relacion, { centrado: true, negrita: true, fontSize: 6.2 });
+      setCampo(`NombreRow${num}`, cont.nombre, { centrado: true, negrita: true, fontSize: 6.5 });
+      setCampo(`edadRow${num}`, cont.edad, { centrado: true, negrita: true, fontSize: 6.5 });
+      setCampo(`sexoRow${num}`, cont.sexo, { centrado: true, negrita: true, fontSize: 6.5 });
+      setCampo(`Relación con el casoRow${num}`, cont.relacion, { centrado: true, negrita: true, fontSize: 6.5 });
       const dirYTel = [up(cont.direccion), up(cont.lugar)].filter(Boolean).join(" - ");
-      setCampo(`Dirección domiciliariatelefRow${num}`, dirYTel, { centrado: false, negrita: true, fontSize: 6.2 });
-      setCampo(`fecha de inicio de síntomasRow${num}`, cont.fecha, { centrado: true, negrita: true, fontSize: 6.2 });
-      setCampo(`ObservacionesRow${num}`, cont.obs, { centrado: false, negrita: true, fontSize: 6.2 });
+      setCampo(`Dirección domiciliariatelefRow${num}`, dirYTel, { centrado: true, negrita: true, fontSize: 6.5 });
+      setCampo(`fecha de inicio de síntomasRow${num}`, cont.fecha, { centrado: true, negrita: true, fontSize: 6.5 });
+      setCampo(`ObservacionesRow${num}`, cont.obs, { centrado: true, negrita: true, fontSize: 6.5 });
 
       if (up(cont.enfermo) === "SI") {
         setCheck(`síRow${num}`, true);
@@ -1080,9 +1082,9 @@ async function procesarFichaEpiLocalmente(datosObj) {
   if (muestraSi) {
     setCheck("se tomo muestra antes de dar tt_si", up(datosObj.antes_tratamiento) === "SI");
     setCheck("se tomo muestra antes de dar tt_no", up(datosObj.antes_tratamiento) === "NO");
-    setCampo("tipo de muestra", datosObj.tipo_muestra, { centrado: false, negrita: true });
+    setCampo("tipo de muestra", datosObj.tipo_muestra, { centrado: true, negrita: true });
     const resLabP2 = [resUp, up(datosObj.agente), up(datosObj.tecnica)].filter(Boolean).join(" - ");
-    setCampo("Resultado de laboratorio", resLabP2, { centrado: false, negrita: true });
+    setCampo("Resultado de laboratorio", resLabP2, { centrado: true, negrita: true });
   }
 
   // NOTA: "diagnostico definitivo" y "fecha_dia_1er digito".."fecha_año" (Fecha de cierre) se dejan en blanco para Epidemiología
@@ -1093,9 +1095,9 @@ async function procesarFichaEpiLocalmente(datosObj) {
   // Punto 37: En caso aislado / Es parte de brote o epidemia (estampado directo en las casillas de Página 2)
   const broteUp = up(datosObj.tipo_caso_brote);
   if (broteUp.includes("AISLADO")) {
-    dibujarTextoDirecto(page2, "X", 120.2, 395.3, 6.8);
+    dibujarTextoDirecto(page2, "X", 120.2, 395.3, 6.5);
   } else if (broteUp.includes("BROTE")) {
-    dibujarTextoDirecto(page2, "X", 264.6, 395.3, 6.8);
+    dibujarTextoDirecto(page2, "X", 264.6, 395.3, 6.5);
   }
 
   setCampo("responsable nombre", ""); // Nombre responsable epid. debe ir vacío (lo llenan los epidemiólogos)
@@ -1105,7 +1107,7 @@ async function procesarFichaEpiLocalmente(datosObj) {
   // =========================================================================
   const fechaSemanaRef = datosObj.fecha_inicio_sintomas || datosObj.fecha_atencion;
   const numSemanaEpi = calcularSemanaEpidemiologica(fechaSemanaRef);
-  setCampo("Semana EPI", numSemanaEpi, { centrado: true, negrita: true, fontSize: 7.5 });
+  setCampo("Semana EPI", numSemanaEpi, { centrado: true, negrita: true, fontSize: 6.5 });
 
   // 1. Institución
   if (instUp === "MSP" || instUp.includes("SALUD PÚBLICA") || instUp.includes("SALUD PUBLICA")) {
@@ -1113,19 +1115,19 @@ async function procesarFichaEpiLocalmente(datosObj) {
   } else if (instUp === "IESS" || instUp.includes("SEGURIDAD SOCIAL")) {
     setCheck("Institucion_IESS", true);
   } else if (instUp === "FFAA" || instUp === "ISSFA" || instUp.includes("FUERZAS ARMADAS")) {
-    dibujarTextoDirecto(page3, "X", 156.5, 675.9, 6.8);
+    dibujarTextoDirecto(page3, "X", 156.5, 675.9, 6.5);
   } else if (instUp === "POL" || instUp === "ISSPOL" || instUp.includes("POLIC")) {
-    dibujarTextoDirecto(page3, "X", 179.3, 675.9, 6.8);
+    dibujarTextoDirecto(page3, "X", 179.3, 675.9, 6.5);
   } else if (instUp.includes("JBG") || instUp.includes("BENEFICENCIA")) {
-    dibujarTextoDirecto(page3, "X", 199.8, 675.9, 6.8);
+    dibujarTextoDirecto(page3, "X", 199.8, 675.9, 6.5);
   } else if (instUp === "MEC" || instUp.includes("EDUCAC")) {
-    dibujarTextoDirecto(page3, "X", 218.0, 675.9, 6.8);
+    dibujarTextoDirecto(page3, "X", 218.0, 675.9, 6.5);
   } else if (instUp === "DRS") {
-    dibujarTextoDirecto(page3, "X", 236.2, 675.9, 6.8);
+    dibujarTextoDirecto(page3, "X", 236.2, 675.9, 6.5);
   } else if (instUp.includes("PRIV")) {
-    dibujarTextoDirecto(page3, "X", 258.4, 675.9, 6.8);
+    dibujarTextoDirecto(page3, "X", 258.4, 675.9, 6.5);
   } else if (instUp === "ONG" || instUp.includes("FUNDAC")) {
-    dibujarTextoDirecto(page3, "X", 280.7, 675.9, 6.8);
+    dibujarTextoDirecto(page3, "X", 280.7, 675.9, 6.5);
   }
 
   // 2 al 5: Unidad y Médico notificante
@@ -1159,26 +1161,26 @@ async function procesarFichaEpiLocalmente(datosObj) {
   setCampo("lugar residencia_canton", datosObj.canton_residencia);
   setCampo("lugar residencia_parroquia", datosObj.parroquia_residencia);
   const dirP3 = splitDireccion(datosObj.direccion, 54);
-  setCampo("direccion exacta", dirP3.l1, { centrado: false, negrita: true });
-  setCampo("direccion exacta_barrio, localidad", dirP3.l2 || datosObj.parroquia_residencia, { centrado: false, negrita: true });
+  setCampo("direccion exacta", dirP3.l1, { centrado: true, negrita: true });
+  setCampo("direccion exacta_barrio, localidad", dirP3.l2 || datosObj.parroquia_residencia, { centrado: true, negrita: true });
   setCampo("Telf", datosObj.telefono);
-  setCampo("lugar probable de infeccion", lugarProbInfeccion, { centrado: false, negrita: true });
+  setCampo("lugar probable de infeccion", lugarProbInfeccion, { centrado: true, negrita: true });
 
   // 19 y 20: Cuadro Clínico y Embarazo
   setCampo("fecha inicio de sintomas_dia", fs.dia);
   setCampo("fecha inicio de sintomas_mes", fs.mes);
   setCampo("fecha inicio de sintomas_año", fs.ano);
-  setCampo("diagnostico inicial", datosObj.diagnostico_cie10, { centrado: false, negrita: true });
+  setCampo("diagnostico inicial", datosObj.diagnostico_cie10, { centrado: true, negrita: true });
 
   // 21 al 25: Laboratorio en EPI-1 Individual
   setCheck("muestra laboratorio_si", muestraSi);
   setCheck("muestra laboratorio_no", up(datosObj.muestra) === "NO");
   if (muestraSi) {
-    setCampo("tipo de muestra 1", datosObj.tipo_muestra, { centrado: false, negrita: true }); // Llena sección 21 y sección 23
+    setCampo("tipo de muestra 1", datosObj.tipo_muestra, { centrado: true, negrita: true }); // Llena sección 21 y sección 23
     setCampo("fecha toma muestra_dia 1", fm.dia);
     setCampo("fecha toma muestra_mes", fm.mes);
     setCampo("fecha toma muestra_año 1", fm.ano);
-    setCampo("Nombre y ubicacion del laboratorio", estabUp || instUp, { centrado: false, negrita: true, fontSize: 6.5 });
+    setCampo("Nombre y ubicacion del laboratorio", estabUp || instUp, { centrado: true, negrita: true, fontSize: 6.5 });
     setCampo("fecha recepcion muestra_dia_1", fm.dia);
     setCampo("fecha recepcion muestra_mes_1", fm.mes);
     setCampo("fecha recepcion muestra_año_1", fm.ano);
@@ -1189,8 +1191,8 @@ async function procesarFichaEpiLocalmente(datosObj) {
   setCheck("resultado_positivo", resUp === "POSITIVO");
   setCheck("resultado_negativo", resUp === "NEGATIVO");
   setCheck("resultado_dudoso", resUp === "DUDOSO");
-  setCampo("resultado_agente_1", datosObj.agente, { centrado: false, negrita: true });
-  setCampo("resultado_agente_2", datosObj.tecnica, { centrado: false, negrita: true });
+  setCampo("resultado_agente_1", datosObj.agente, { centrado: true, negrita: true });
+  setCampo("resultado_agente_2", datosObj.tecnica, { centrado: true, negrita: true });
 
   // 25. Observaciones (estampado directo en Página 3; secciones 26 y 27 quedan en blanco para Epidemiología)
   if (up(datosObj.obs_epidemiologicas)) {
@@ -1657,7 +1659,7 @@ async function procesarFichaEpiExcelLocalmente(datosObj) {
     setCellValue(d1, 'J13', instUp.includes('PRIV') ? 'X' : '');
     setCellValue(d1, 'K13', (instUp === 'ONG' || instUp.includes('FUNDAC')) ? 'X' : '');
 
-    setCellValue(d1, 'R12', estabUp);
+    setCellValue(d1, 'S12', estabUp);
     setCellValue(d1, 'E15', provEstUp);
     setCellValue(d1, 'K15', cantEstUp);
     setCellValue(d1, 'R15', parrEstUp);
@@ -1709,6 +1711,7 @@ async function procesarFichaEpiExcelLocalmente(datosObj) {
     setCellValue(d1, 'U46', muestraSi ? fmMes : '');
     setCellValue(d1, 'W46', muestraSi ? fmAno : '');
     // Punto 22: Nombre y ubicación del laboratorio va en la línea combinada B48:K48 (debajo de la etiqueta B47)
+    setCellValue(d1, 'G47', '');
     setCellValue(d1, 'B48', muestraSi ? (estabUp || instUp) : '');
     setCellValue(d1, 'C52', muestraSi ? up(datosObj.tipo_muestra) : '');
     setCellValue(d1, 'I52', muestraSi ? fmDia : '');
