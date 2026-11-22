@@ -14,6 +14,7 @@ let isInitializing = true; // Bandera para evitar autoguardados durante la carga
 
 export function obtenerClaveStorage(modoExplicito) {
   const modo = modoExplicito || window.modoAppActual || localStorage.getItem('modoAppActual') || 'epi';
+  if (modo === 'epicrisis') return 'epicrisisFormData';
   return modo === 'sppat' ? 'sppatFormData' : 'epiFormData';
 }
 
@@ -26,11 +27,13 @@ export function saveFormData(modoExplicito) {
   const data = {};
   document.querySelectorAll('.save-state').forEach(el => {
     const esCampoSppat = el.id?.startsWith('sppat_') || el.name?.startsWith('sppat_') || Boolean(el.closest('#contenedorSppat'));
+    const esCampoEpicrisis = el.id?.startsWith('epicrisis_') || el.name?.startsWith('epicrisis_') || Boolean(el.closest('#contenedorEpicrisis'));
     const esCampoExclusivoEpi = el.classList.contains('ocultar-en-sppat') || Boolean(el.closest('.ocultar-en-sppat')) || Boolean(el.closest('#contenedorEpiTb'));
 
     // Evitar mezclar campos entre formularios
-    if (modo === 'sppat' && esCampoExclusivoEpi) return;
-    if (modo === 'epi' && esCampoSppat) return;
+    if (modo === 'sppat' && (esCampoExclusivoEpi || esCampoEpicrisis)) return;
+    if (modo === 'epicrisis' && (esCampoExclusivoEpi || esCampoSppat)) return;
+    if (modo === 'epi' && (esCampoSppat || esCampoEpicrisis)) return;
 
     if (el.type === 'checkbox') {
       data[el.id] = el.checked; 
@@ -70,31 +73,33 @@ function resetearCamposBaseEnDOM(modo) {
   if (window.tomSelectSppatCie1) window.tomSelectSppatCie1.clear(true);
   if (window.tomSelectSppatCie2) window.tomSelectSppatCie2.clear(true);
 
-  let provDef = "MANABI";
-  const savedDefs = localStorage.getItem('epiUserDefaults');
-  if (savedDefs) {
-    try { provDef = JSON.parse(savedDefs).prov_residencia || "MANABI"; } catch(e) {}
-  }
+  if (modo !== 'epicrisis') {
+    let provDef = "MANABI";
+    const savedDefs = localStorage.getItem('epiUserDefaults');
+    if (savedDefs) {
+      try { provDef = JSON.parse(savedDefs).prov_residencia || "MANABI"; } catch(e) {}
+    }
 
-  const provEl = document.getElementById('prov_residencia');
-  if (provEl) {
-    provEl.value = provDef;
-    fillCantones(provDef);
+    const provEl = document.getElementById('prov_residencia');
+    if (provEl) {
+      provEl.value = provDef;
+      fillCantones(provDef);
+    }
+    const cantonEl = document.getElementById('canton_residencia');
+    if (cantonEl) cantonEl.value = '';
+    const parrEl = document.getElementById('parroquia_residencia');
+    if (parrEl) parrEl.innerHTML = '<option value="" selected disabled>Seleccione Parroquia...</option>';
+
+    setUnidadPredeterminada();
   }
-  const cantonEl = document.getElementById('canton_residencia');
-  if (cantonEl) cantonEl.value = '';
-  const parrEl = document.getElementById('parroquia_residencia');
-  if (parrEl) parrEl.innerHTML = '<option value="" selected disabled>Seleccione Parroquia...</option>';
 
   const civilEl = document.getElementById('estado_civil');
   if (civilEl) civilEl.innerHTML = '<option value="" selected disabled>Seleccione...</option>';
   const etniaEl = document.getElementById('etnia');
   if (etniaEl) etniaEl.innerHTML = '<option value="" selected disabled>Seleccione...</option>';
 
-  setUnidadPredeterminada();
-
-  // Si estamos en SPPAT, nunca arrastrar médico tratante de EPI
-  if (modo === 'sppat') {
+  // Si estamos en SPPAT o Epicrisis, no arrastrar médico de EPI
+  if (modo === 'sppat' || modo === 'epicrisis') {
     const medEpi = document.getElementById('medico_tratante');
     if (medEpi) medEpi.value = '';
     const tbResp = document.getElementById('tb_responsable');
@@ -115,6 +120,70 @@ function resetearCamposBaseEnDOM(modo) {
     if (chkAsegurado) chkAsegurado.checked = true;
     window.alternarQuienFirmaSppat?.('PACIENTE');
     window.sincronizarChipsRx?.();
+  } else if (modo === 'epicrisis') {
+    // R3: En modo epicrisis, asegurar inicialización limpia en blanco/cero de todos los campos demográficos y propios
+    const camposPaciente = [
+      'cedula', 'historia_clinica', 'primer_apellido', 'segundo_apellido',
+      'primer_nombre', 'segundo_nombre', 'fecha_nacimiento', 'sexo',
+      'edad', 'condicion_edad', 'telefono', 'direccion', 'nacionalidad',
+      'prov_residencia', 'canton_residencia', 'parroquia_residencia',
+      'estado_civil', 'etnia', 'escolaridad', 'ocupacion'
+    ];
+    camposPaciente.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        if (el.tagName === 'SELECT') {
+          el.value = '';
+          if (el.selectedIndex !== -1) el.selectedIndex = 0;
+        } else {
+          el.value = '';
+        }
+      }
+    });
+
+    const badgeEdad = document.getElementById('badge_edad_calculada');
+    if (badgeEdad) {
+      badgeEdad.style.display = 'none';
+      badgeEdad.textContent = '';
+      badgeEdad.innerHTML = '';
+    }
+
+    const inst = document.getElementById('institucion');
+    if (inst) inst.value = '';
+    const estab = document.getElementById('establecimiento');
+    if (estab) estab.value = '';
+
+    const camposEpicrisis = [
+      'epicrisis_unicodigo', 'epicrisis_hcu', 'epicrisis_archivo', 'epicrisis_num_hoja',
+      'epicrisis_servicio', 'epicrisis_sala', 'epicrisis_cama',
+      'epicrisis_fecha_ingreso', 'epicrisis_fecha_alta', 'epicrisis_dias_estada', 'epicrisis_dias_reposo',
+      'epicrisis_cuadro_clinico', 'epicrisis_evolucion', 'epicrisis_hallazgos',
+      'epicrisis_tratamiento', 'epicrisis_indicaciones_alta',
+      'epicrisis_diag_principal', 'epicrisis_cie_principal',
+      'epicrisis_diag_sec_1', 'epicrisis_cie_sec_1',
+      'epicrisis_diag_sec_2', 'epicrisis_cie_sec_2',
+      'epicrisis_diag_sec_3', 'epicrisis_cie_sec_3',
+      'epicrisis_diag_sec_4', 'epicrisis_cie_sec_4',
+      'epicrisis_diag_sec_5', 'epicrisis_cie_sec_5',
+      'epicrisis_diag_causa_ext', 'epicrisis_cie_causa_ext',
+      'epicrisis_med1_nombre', 'epicrisis_med1_periodo',
+      'epicrisis_med2_nombre', 'epicrisis_med2_periodo',
+      'epicrisis_resp_profesional', 'epicrisis_resp_codigo'
+    ];
+    camposEpicrisis.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+
+    const condVital = document.getElementById('epicrisis_cond_vital');
+    if (condVital) condVital.value = 'VIVO';
+    const tipoAlta = document.getElementById('epicrisis_tipo_alta');
+    if (tipoAlta) tipoAlta.value = 'ALTA_MEDICA';
+
+    const respFecha = document.getElementById('epicrisis_resp_fecha');
+    if (respFecha) respFecha.value = new Date().toISOString().slice(0, 10);
+    const respHora = document.getElementById('epicrisis_resp_hora');
+    if (respHora) respHora.value = new Date().toTimeString().slice(0, 5);
   } else {
     const tbody = document.getElementById('contactsBody');
     if (tbody) {
@@ -158,10 +227,12 @@ export function loadFormData(modoExplicito = null, desdeCambioModo = false) {
     const data = JSON.parse(savedData);
     document.querySelectorAll('.save-state').forEach(el => {
       const esCampoSppat = el.id?.startsWith('sppat_') || el.name?.startsWith('sppat_') || Boolean(el.closest('#contenedorSppat'));
+      const esCampoEpicrisis = el.id?.startsWith('epicrisis_') || el.name?.startsWith('epicrisis_') || Boolean(el.closest('#contenedorEpicrisis'));
       const esCampoExclusivoEpi = el.classList.contains('ocultar-en-sppat') || Boolean(el.closest('.ocultar-en-sppat')) || Boolean(el.closest('#contenedorEpiTb'));
 
-      if (modo === 'sppat' && esCampoExclusivoEpi) return;
-      if (modo === 'epi' && esCampoSppat) return;
+      if (modo === 'sppat' && (esCampoExclusivoEpi || esCampoEpicrisis)) return;
+      if (modo === 'epicrisis' && (esCampoExclusivoEpi || esCampoSppat)) return;
+      if (modo === 'epi' && (esCampoSppat || esCampoEpicrisis)) return;
 
       if (el.type === 'checkbox') {
         if (data[el.id] !== undefined) el.checked = data[el.id];
@@ -283,10 +354,12 @@ export function loadFormData(modoExplicito = null, desdeCambioModo = false) {
       const cieAct = document.getElementById('diagnostico_cie10').value;
       revisarCie10ParaTB(cieAct);
       toggleFormularioTB(true);
-    } else {
+    } else if (modo === 'sppat') {
       const quienFirma = data.sppat_quien_firma || (data.sppat_acom_nombre ? 'REPRESENTANTE' : 'PACIENTE');
       window.alternarQuienFirmaSppat?.(quienFirma);
       window.sincronizarChipsRx?.();
+    } else if (modo === 'epicrisis') {
+      window.actualizarBadgeEdad?.();
     }
 
     window.actualizarBadgeEdad?.();
@@ -302,11 +375,23 @@ export function loadFormData(modoExplicito = null, desdeCambioModo = false) {
 }
 
 export function limpiarFormulario() {
-  const esSppat = (window.modoAppActual === 'sppat');
-  const titulo = esSppat ? '¿Limpiar Formulario SPPAT?' : '¿Limpiar Ficha EPI?';
-  const texto = esSppat 
-    ? 'Se borrarán únicamente los datos del formulario SPPAT de accidentes de tránsito (la Ficha EPI no se verá afectada).' 
-    : 'Se borrarán únicamente los datos de la ficha epidemiológica (el Formulario SPPAT no se verá afectado).';
+  const modo = window.modoAppActual || 'epi';
+  const esSppat = (modo === 'sppat');
+  const esEpicrisis = (modo === 'epicrisis');
+  
+  let titulo = '¿Limpiar Ficha EPI?';
+  let texto = 'Se borrarán únicamente los datos de la ficha epidemiológica (el Formulario SPPAT y Epicrisis no se verán afectados).';
+  let confirmTitulo = 'Ficha EPI Limpia';
+
+  if (esSppat) {
+    titulo = '¿Limpiar Formulario SPPAT?';
+    texto = 'Se borrarán únicamente los datos del formulario SPPAT de accidentes de tránsito (la Ficha EPI y Epicrisis no se verán afectados).';
+    confirmTitulo = 'Formulario SPPAT Limpio';
+  } else if (esEpicrisis) {
+    titulo = '¿Limpiar Formulario Epicrisis?';
+    texto = 'Se borrarán únicamente los datos del Formulario 006 de Epicrisis (la Ficha EPI y SPPAT no se verán afectados).';
+    confirmTitulo = 'Formulario Epicrisis Limpio';
+  }
 
   Swal.fire({
     title: titulo, 
@@ -319,7 +404,6 @@ export function limpiarFormulario() {
     cancelButtonText: 'Cancelar'
   }).then((result) => {
     if (result.isConfirmed) {
-      const modo = esSppat ? 'sppat' : 'epi';
       localStorage.removeItem(obtenerClaveStorage(modo));
       isInitializing = true;
       resetearCamposBaseEnDOM(modo);
@@ -331,7 +415,7 @@ export function limpiarFormulario() {
 
       Swal.fire({
         icon: 'success',
-        title: esSppat ? 'Formulario SPPAT Limpio' : 'Ficha EPI Limpia',
+        title: confirmTitulo,
         text: 'Los campos han sido restablecidos correctamente.',
         timer: 1500,
         showConfirmButton: false
@@ -353,7 +437,9 @@ export function guardarBorradorLocal() {
   const nombre = `${data.primer_apellido || ''} ${data.primer_nombre || ''}`.trim() || 'Paciente sin nombre';
   const cie10 = modo === 'sppat'
     ? (`[SPPAT] ${data.sppat_diag_principal_cie || ''} ${data.sppat_diag_principal_txt || ''}`.trim() || '[SPPAT] Accidente de Tránsito')
-    : (data.diagnostico_cie10 || 'Sin diagnóstico');
+    : (modo === 'epicrisis'
+        ? (`[006] ${data.epicrisis_cie_principal || ''} ${data.epicrisis_diag_principal || ''}`.trim() || '[006] Epicrisis')
+        : (data.diagnostico_cie10 || 'Sin diagnóstico'));
   const idBorrador = `${modo}_${cedula}_${Date.now()}`;
 
   let borradores = [];
@@ -518,7 +604,7 @@ export function exportarRespaldoJSON() {
   const ced = data.cedula || 'SIN_CEDULA';
   const nombre = `${data.primer_apellido || ''}_${data.primer_nombre || ''}`.trim() || 'PACIENTE';
   const fecha = new Date().toISOString().slice(0, 10);
-  const prefijo = modo === 'sppat' ? 'FichaSPPAT' : 'FichaEPI';
+  const prefijo = modo === 'sppat' ? 'FichaSPPAT' : (modo === 'epicrisis' ? 'Epicrisis006' : 'FichaEPI');
   const fileName = `${prefijo}_${ced}_${nombre}_${fecha}.json`;
 
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });

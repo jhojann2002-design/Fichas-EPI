@@ -947,7 +947,13 @@ select option {
   color: var(--apple-text) !important;
 }
 
-body[data-modo="sppat"] .ocultar-en-sppat {
+body[data-modo="sppat"] .ocultar-en-sppat,
+body[data-modo="epicrisis"] .ocultar-en-sppat {
+  display: none !important;
+}
+
+body[data-modo="epicrisis"] #col_medico_tratante,
+body[data-modo="epicrisis"] #col_cie10 {
   display: none !important;
 }
 
@@ -1017,6 +1023,11 @@ body[data-modo="epi"] .ocultar-en-epi {
   background: rgba(255, 69, 58, 0.15);
   color: #ff453a;
   border: 1px solid rgba(255, 69, 58, 0.3);
+}
+.badge-form-mode.badge-epicrisis {
+  background: rgba(48, 209, 88, 0.15);
+  color: #30d158;
+  border: 1px solid rgba(48, 209, 88, 0.3);
 }
 
 .dropdown-menu-apple {
@@ -1105,6 +1116,11 @@ body[data-modo="epi"] .ocultar-en-epi {
   color: #ff453a;
 }
 
+.mobile-switcher-icon-wrap.icon-epicrisis {
+  background: rgba(48, 209, 88, 0.15);
+  color: #30d158;
+}
+
 [data-theme="dark"] .mobile-switcher-icon-wrap.icon-epi {
   background: rgba(41, 151, 255, 0.2);
   color: #2997ff;
@@ -1113,6 +1129,11 @@ body[data-modo="epi"] .ocultar-en-epi {
 [data-theme="dark"] .mobile-switcher-icon-wrap.icon-sppat {
   background: rgba(255, 69, 58, 0.25);
   color: #ff453a;
+}
+
+[data-theme="dark"] .mobile-switcher-icon-wrap.icon-epicrisis {
+  background: rgba(48, 209, 88, 0.25);
+  color: #30d158;
 }
 
 .mobile-switcher-title {
@@ -1176,4 +1197,72 @@ body[data-modo="sppat"] #col_cie10 {
 }
 body[data-modo="epi"] .app-container {
   border-top: 2px solid transparent;
+}
+
+/* ==========================================
+   AUTOCOMPLETE CIE-10 (EPICRISIS)
+   ========================================== */
+.cie10-autocomplete-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 1055;
+  background-color: var(--apple-card-bg, #ffffff);
+  border: 1px solid var(--apple-border, rgba(0, 0, 0, 0.15));
+  border-radius: 10px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  max-height: 280px;
+  overflow-y: auto;
+  margin-top: 4px;
+  padding: 4px 0;
+  display: none;
+}
+
+[data-theme="dark"] .cie10-autocomplete-menu {
+  background-color: #1c1c1e;
+  border-color: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.45);
+}
+
+.cie10-autocomplete-item {
+  padding: 8px 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: var(--apple-text, #1c1c1e);
+  transition: background-color 0.15s ease;
+}
+
+.cie10-autocomplete-item:hover,
+.cie10-autocomplete-item.active {
+  background-color: var(--apple-blue-tint, rgba(0, 122, 255, 0.1));
+  color: var(--apple-blue, #007aff);
+}
+
+.cie10-code-badge {
+  font-family: SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-weight: 700;
+  font-size: 0.78rem;
+  background-color: rgba(0, 122, 255, 0.12);
+  color: var(--apple-blue, #007aff);
+  padding: 2px 6px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.cie10-desc-text {
+  flex-grow: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cie10-no-results {
+  padding: 10px 14px;
+  font-size: 0.83rem;
+  color: var(--apple-text-muted, #8e8e93);
+  text-align: center;
 }

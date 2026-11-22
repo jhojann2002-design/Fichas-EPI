@@ -21,6 +21,7 @@ import {
 } from './medicos.js';
 import { recopilarDatosSppat, generarExpedienteSppatBlob } from './sppat.js';
 import { descargarFichaSegura } from './api.js';
+import { descargarEpicrisisSegura, inicializarEventosEpicrisis } from './epicrisis.js';
 
 // Inicializar configuración base
 initTheme();
@@ -658,24 +659,37 @@ if (isStandalone) {
 let modoAppActual = 'epi';
 try {
   const savedModo = localStorage.getItem('modoAppActual');
-  if (savedModo === 'sppat' || savedModo === 'epi') modoAppActual = savedModo;
+  if (savedModo === 'sppat' || savedModo === 'epi' || savedModo === 'epicrisis') modoAppActual = savedModo;
 } catch(e) {}
 window.modoAppActual = modoAppActual;
 
 export function alternarModoApp() {
-  const nuevoModo = (modoAppActual === 'sppat') ? 'epi' : 'sppat';
+  let nuevoModo = 'epi';
+  if (modoAppActual === 'epi') nuevoModo = 'sppat';
+  else if (modoAppActual === 'sppat') nuevoModo = 'epicrisis';
   abrirModalCambiarFormulario(nuevoModo);
 }
 
 export function abrirModalCambiarFormulario(modoDestino) {
-  const target = modoDestino || (modoAppActual === 'sppat' ? 'epi' : 'sppat');
+  const target = modoDestino || ((modoAppActual === 'epi') ? 'sppat' : (modoAppActual === 'sppat' ? 'epicrisis' : 'epi'));
   if (target === modoAppActual) return;
 
-  const esHaciaSppat = (target === 'sppat');
-  const nombreDestino = esHaciaSppat ? 'Expediente SPPAT' : 'Fichas Epidemiológicas';
-  const subtituloDestino = esHaciaSppat ? 'Accidentes de Tránsito / Emergencias' : 'Notificación EPI y TB';
-  const iconoDestino = esHaciaSppat ? '🚨' : '📋';
-  const colorBoton = esHaciaSppat ? '#ff453a' : '#0071e3';
+  let nombreDestino = 'Fichas Epidemiológicas';
+  let subtituloDestino = 'Notificación EPI y TB';
+  let iconoDestino = '📋';
+  let colorBoton = '#0071e3';
+
+  if (target === 'sppat') {
+    nombreDestino = 'Expediente SPPAT';
+    subtituloDestino = 'Accidentes de Tránsito / Emergencias';
+    iconoDestino = '🚨';
+    colorBoton = '#ff453a';
+  } else if (target === 'epicrisis') {
+    nombreDestino = 'Epicrisis (Formulario 006)';
+    subtituloDestino = 'Resumen de Egreso y Alta Hospitalaria MSP';
+    iconoDestino = '🏥';
+    colorBoton = '#30d158';
+  }
 
   Swal.fire({
     title: `¿Cambiar a ${nombreDestino}?`,
@@ -686,7 +700,7 @@ export function abrirModalCambiarFormulario(modoDestino) {
           Vas a ingresar al entorno de <b>${nombreDestino}</b> (${subtituloDestino}).
         </p>
         <p class="text-muted" style="font-size: 0.82rem; margin-bottom: 0;">
-          🔒 Ambos formularios son 100% independientes (no se mezclan ni sincronizan datos entre EPI y SPPAT).
+          🔒 Cada formulario es 100% independiente. Los datos de pacientes no se transfieren entre formularios (EPI, SPPAT y Epicrisis).
         </p>
       </div>
     `,
@@ -733,6 +747,7 @@ export function cambiarModoApp(modo, esCargaInicial = false) {
   const headerBadge = document.getElementById('headerBadgeFormulario');
   const optEpi = document.getElementById('optSwitchEpi');
   const optSppat = document.getElementById('optSwitchSppat');
+  const optEpicrisis = document.getElementById('optSwitchEpicrisis');
 
   // 2. Elementos del Switcher en Móvil
   const mobileTitulo = document.getElementById('mobileTituloFormulario');
@@ -746,10 +761,18 @@ export function cambiarModoApp(modo, esCargaInicial = false) {
   // 4. Contenedores y botones
   const contEpi = document.getElementById('contenedorEpiTb');
   const contSppat = document.getElementById('contenedorSppat');
+  const contEpicrisis = document.getElementById('contenedorEpicrisis');
+
   const btnExportHeader = document.getElementById('btnExportarHeader');
   const btnGenPdfBottom = document.getElementById('btnGenerarPdfBottom');
   const btnGenExcelBottom = document.getElementById('btnGenerarExcelBottom');
   const btnGenSppatBottom = document.getElementById('btnGenerarSppatBottom');
+  const btnGenEpicrisisExcelBottom = document.getElementById('btnGenerarEpicrisisExcelBottom');
+  const btnGenEpicrisisPdfBottom = document.getElementById('btnGenerarEpicrisisPdfBottom');
+
+  if (optEpi) optEpi.classList.remove('active');
+  if (optSppat) optSppat.classList.remove('active');
+  if (optEpicrisis) optEpicrisis.classList.remove('active');
 
   if (modo === 'sppat') {
     // Switcher Superior Izquierdo
@@ -758,7 +781,6 @@ export function cambiarModoApp(modo, esCargaInicial = false) {
       headerBadge.innerText = 'SPPAT / EMERGENCIA';
       headerBadge.className = 'badge-form-mode badge-sppat';
     }
-    if (optEpi) optEpi.classList.remove('active');
     if (optSppat) optSppat.classList.add('active');
 
     // Switcher Móvil
@@ -779,6 +801,7 @@ export function cambiarModoApp(modo, esCargaInicial = false) {
     // Visibilidad de secciones
     if (contEpi) contEpi.style.display = 'none';
     if (contSppat) contSppat.style.display = 'block';
+    if (contEpicrisis) contEpicrisis.style.display = 'none';
 
     if (btnExportHeader) {
       btnExportHeader.innerHTML = `
@@ -790,8 +813,51 @@ export function cambiarModoApp(modo, esCargaInicial = false) {
     if (btnGenPdfBottom) btnGenPdfBottom.style.display = 'none';
     if (btnGenExcelBottom) btnGenExcelBottom.style.display = 'none';
     if (btnGenSppatBottom) btnGenSppatBottom.style.display = 'flex';
+    if (btnGenEpicrisisExcelBottom) btnGenEpicrisisExcelBottom.style.display = 'none';
+    if (btnGenEpicrisisPdfBottom) btnGenEpicrisisPdfBottom.style.display = 'none';
 
     sincronizarChipsRx();
+  } else if (modo === 'epicrisis') {
+    // Switcher Superior Izquierdo
+    if (headerTitulo) headerTitulo.innerText = 'Epicrisis MSP';
+    if (headerBadge) {
+      headerBadge.innerText = 'FORM. 006';
+      headerBadge.className = 'badge-form-mode badge-epicrisis';
+    }
+    if (optEpicrisis) optEpicrisis.classList.add('active');
+
+    // Switcher Móvil
+    if (mobileTitulo) mobileTitulo.innerText = 'Epicrisis (006)';
+    if (mobileBadge) {
+      mobileBadge.innerText = 'FORM. 006';
+      mobileBadge.className = 'badge-form-mode badge-epicrisis';
+    }
+    if (mobileIconWrap) {
+      mobileIconWrap.className = 'mobile-switcher-icon-wrap icon-epicrisis';
+      mobileIconWrap.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>`;
+    }
+
+    // Títulos de tarjetas
+    if (txtTituloUnidad) txtTituloUnidad.innerText = 'Establecimiento Notificador (Epicrisis)';
+    if (txtTituloIdent) txtTituloIdent.innerText = 'Datos del Usuario / Paciente';
+
+    // Visibilidad de secciones
+    if (contEpi) contEpi.style.display = 'none';
+    if (contSppat) contSppat.style.display = 'none';
+    if (contEpicrisis) contEpicrisis.style.display = 'block';
+
+    if (btnExportHeader) {
+      btnExportHeader.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="13" x2="16" y2="17"></line><line x1="16" y1="13" x2="8" y2="17"></line></svg>
+        Exportar Epicrisis
+      `;
+      btnExportHeader.setAttribute('title', 'Descargar Epicrisis Oficial (Excel .xlsx)');
+    }
+    if (btnGenPdfBottom) btnGenPdfBottom.style.display = 'none';
+    if (btnGenExcelBottom) btnGenExcelBottom.style.display = 'none';
+    if (btnGenSppatBottom) btnGenSppatBottom.style.display = 'none';
+    if (btnGenEpicrisisExcelBottom) btnGenEpicrisisExcelBottom.style.display = 'flex';
+    if (btnGenEpicrisisPdfBottom) btnGenEpicrisisPdfBottom.style.display = 'flex';
   } else {
     // Switcher Superior Izquierdo
     if (headerTitulo) headerTitulo.innerText = 'Fichas EPI';
@@ -800,7 +866,6 @@ export function cambiarModoApp(modo, esCargaInicial = false) {
       headerBadge.className = 'badge-form-mode badge-epi';
     }
     if (optEpi) optEpi.classList.add('active');
-    if (optSppat) optSppat.classList.remove('active');
 
     // Switcher Móvil
     if (mobileTitulo) mobileTitulo.innerText = 'Fichas EPI';
@@ -820,6 +885,7 @@ export function cambiarModoApp(modo, esCargaInicial = false) {
     // Visibilidad de secciones
     if (contEpi) contEpi.style.display = 'block';
     if (contSppat) contSppat.style.display = 'none';
+    if (contEpicrisis) contEpicrisis.style.display = 'none';
 
     if (btnExportHeader) {
       btnExportHeader.innerHTML = `
@@ -831,12 +897,16 @@ export function cambiarModoApp(modo, esCargaInicial = false) {
     if (btnGenPdfBottom) btnGenPdfBottom.style.display = 'flex';
     if (btnGenExcelBottom) btnGenExcelBottom.style.display = 'flex';
     if (btnGenSppatBottom) btnGenSppatBottom.style.display = 'none';
+    if (btnGenEpicrisisExcelBottom) btnGenEpicrisisExcelBottom.style.display = 'none';
+    if (btnGenEpicrisisPdfBottom) btnGenEpicrisisPdfBottom.style.display = 'none';
   }
 }
 
 export async function ejecutarExportarHeader() {
   if (modoAppActual === 'sppat') {
     await descargarExpedienteSppat();
+  } else if (modoAppActual === 'epicrisis') {
+    await descargarEpicrisisSegura('excel');
   } else {
     await descargarFichaSegura('pdf', false);
   }
@@ -1076,6 +1146,7 @@ function inicializarModuloMedicos() {
 // Inicializar al cargar el DOM
 const initAppModoYMedicos = () => {
   inicializarModuloMedicos();
+  inicializarEventosEpicrisis();
   cambiarModoApp(modoAppActual, true);
 };
 
