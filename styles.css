@@ -616,6 +616,23 @@ select option {
   transform: scale(0.96);
 }
 
+#badge_edad_calculada {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.74rem;
+  font-weight: 600;
+  white-space: nowrap;
+  vertical-align: middle;
+  line-height: 1.2;
+}
+
+@media (max-width: 575.98px) {
+  #badge_edad_calculada {
+    font-size: 0.72rem;
+    padding: 2px 6px;
+  }
+}
+
 /* Optimización de tabla de contactos en escritorio / PC para prevenir desplazamiento horizontal */
 @media (min-width: 769px) {
   #tablaContactos {

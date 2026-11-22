@@ -41,7 +41,7 @@ export function agregarContacto() {
           <span class="sum-name">Nuevo Contacto</span>&nbsp;-&nbsp;<span class="sum-rel">Sin relación</span>
         </div>
         <div class="contact-input-wrapper">
-          <input type="text" class="form-control c-nombre save-state" style="font-size:0.85rem" oninput="updSummary(this)" onclick="event.stopPropagation()">
+          <input type="text" class="form-control c-nombre save-state" maxlength="50" style="font-size:0.85rem" oninput="updSummary(this)" onclick="event.stopPropagation()">
         </div>
       </td>
       <td data-label="Edad"><input type="number" class="form-control c-edad save-state numeric-input" style="font-size:0.85rem" onclick="event.stopPropagation()"></td>
@@ -71,7 +71,7 @@ export function agregarContacto() {
         </select>
       </td>
       <td data-label="Fecha Sínt."><input type="date" class="form-control c-fecha save-state" disabled style="font-size:0.85rem" onclick="event.stopPropagation()"></td>
-      <td data-label="Observaciones"><input type="text" class="form-control c-obs save-state" style="font-size:0.85rem" placeholder="Observaciones..." onclick="event.stopPropagation()"></td>
+      <td data-label="Observaciones"><input type="text" class="form-control c-obs save-state" disabled maxlength="45" style="font-size:0.85rem" placeholder="Observaciones (máx. 45 car.)..." onclick="event.stopPropagation()"></td>
       <td data-label="Acción" class="text-center align-middle">
         <button type="button" class="btn btn-sm btn-del-contacto p-1 border-0" onclick="eliminarContacto(this, event)" title="Eliminar este contacto">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
@@ -109,7 +109,7 @@ export function agregarContactoRestaurado(c, isFirst) {
           <span class="sum-name">${escAttr(c.nombre) || 'Nuevo Contacto'}</span>&nbsp;-&nbsp;<span class="sum-rel">${escAttr(c.relacion) || 'Sin relación'}</span>
         </div>
         <div class="contact-input-wrapper">
-          <input type="text" class="form-control c-nombre save-state" value="${escAttr(c.nombre)}" style="font-size:0.85rem" oninput="updSummary(this)" onclick="event.stopPropagation()">
+          <input type="text" class="form-control c-nombre save-state" value="${escAttr(c.nombre)}" maxlength="50" style="font-size:0.85rem" oninput="updSummary(this)" onclick="event.stopPropagation()">
         </div>
       </td>
       <td data-label="Edad"><input type="number" class="form-control c-edad save-state numeric-input" value="${escAttr(c.edad)}" style="font-size:0.85rem" onclick="event.stopPropagation()"></td>
@@ -140,8 +140,8 @@ export function agregarContactoRestaurado(c, isFirst) {
           <option value="SI" ${c.enfermo === 'SI' ? 'selected' : ''}>SI</option>
         </select>
       </td>
-      <td data-label="Fecha Sínt."><input type="date" class="form-control c-fecha save-state" value="${escAttr(c.fecha)}" ${c.enfermo !== 'SI' ? 'disabled' : ''} style="font-size:0.85rem" onclick="event.stopPropagation()"></td>
-      <td data-label="Observaciones"><input type="text" class="form-control c-obs save-state" value="${escAttr(c.obs)}" style="font-size:0.85rem" placeholder="Observaciones..." onclick="event.stopPropagation()"></td>
+      <td data-label="Fecha Sínt."><input type="date" class="form-control c-fecha save-state" value="${escAttr(c.enfermo === 'SI' ? c.fecha : '')}" ${c.enfermo !== 'SI' ? 'disabled' : ''} style="font-size:0.85rem" onclick="event.stopPropagation()"></td>
+      <td data-label="Observaciones"><input type="text" class="form-control c-obs save-state" value="${escAttr(c.enfermo === 'SI' ? c.obs : '')}" ${c.enfermo !== 'SI' ? 'disabled' : ''} maxlength="45" style="font-size:0.85rem" placeholder="Observaciones (máx. 45 car.)..." onclick="event.stopPropagation()"></td>
       <td data-label="Acción" class="text-center align-middle">
         <button type="button" class="btn btn-sm btn-del-contacto p-1 border-0" onclick="eliminarContacto(this, event)" title="Eliminar este contacto">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
@@ -168,7 +168,7 @@ export function eliminarContacto(btn, e) {
     const fecha = tr.querySelector('.c-fecha');
     const obs = tr.querySelector('.c-obs');
     if (fecha) { fecha.value = ''; fecha.disabled = true; }
-    if (obs) { obs.value = ''; obs.disabled = false; }
+    if (obs) { obs.value = ''; obs.disabled = true; }
   } else {
     tr.remove();
   }
@@ -199,15 +199,23 @@ export function updRelacion(sel) {
 }
 
 export function updCont(sel) {
-  const row = sel.closest('tr'); const isSi = sel.value === 'SI';
-  toggleElementos([row.querySelector('.c-fecha')], isSi);
-  if (!isSi) { row.querySelector('.c-fecha').value = ''; }
-  const obsInput = row.querySelector('.c-obs');
-  if (obsInput) toggleElementos([obsInput], true);
+  const row = sel.closest('tr');
+  const isSi = sel.value === 'SI';
+  toggleElementos([row.querySelector('.c-fecha'), row.querySelector('.c-obs')], isSi);
+  if (!isSi) {
+    const fInp = row.querySelector('.c-fecha');
+    if (fInp) fInp.value = '';
+    const obsInp = row.querySelector('.c-obs');
+    if (obsInp) obsInp.value = '';
+  }
 
-  let enfermos = 0; document.querySelectorAll('.c-enfermo').forEach(s => { if (s.value === 'SI') enfermos++; });
+  let enfermos = 0;
+  document.querySelectorAll('.c-enfermo').forEach(s => { if (s.value === 'SI') enfermos++; });
   const selectOtrosEnf = document.getElementById('otros_enfermos');
-  selectOtrosEnf.value = enfermos > 0 ? 'SI' : 'NO'; toggleDondeEnfermos(selectOtrosEnf.value);
+  if (selectOtrosEnf) {
+    selectOtrosEnf.value = enfermos > 0 ? 'SI' : 'NO';
+    toggleDondeEnfermos(selectOtrosEnf.value);
+  }
 }
 
 // CRÍTICO: Exponer funciones a Window para los eventos inline inyectados

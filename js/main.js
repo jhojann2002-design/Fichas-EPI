@@ -419,7 +419,7 @@ export function actualizarBadgeEdad() {
   const refDate = fAteVal ? new Date(fAteVal + 'T12:00:00') : new Date();
 
   if (isNaN(nac.getTime()) || isNaN(refDate.getTime()) || nac > refDate) {
-    badge.style.display = 'inline-block';
+    badge.style.display = 'inline-flex';
     badge.style.background = 'rgba(255, 59, 48, 0.1)';
     badge.style.color = 'var(--apple-red)';
     badge.style.borderColor = 'rgba(255, 59, 48, 0.2)';
@@ -449,7 +449,7 @@ export function actualizarBadgeEdad() {
     texto = `${Math.max(0, dias)} día${dias !== 1 ? 's' : ''}`;
   }
 
-  badge.style.display = 'inline-block';
+  badge.style.display = 'inline-flex';
   badge.style.background = 'var(--apple-blue-tint)';
   badge.style.color = 'var(--apple-blue)';
   badge.style.borderColor = 'rgba(0, 113, 227, 0.2)';

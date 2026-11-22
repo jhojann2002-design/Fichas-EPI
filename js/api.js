@@ -539,9 +539,18 @@ async function procesarFichaEpiLocalmente(datosObj) {
 
       campo.setText(strVal);
 
-      const fs = 6.5;
+      const isMulti = typeof campo.isMultiline === "function" && campo.isMultiline();
+      let fs = (opciones && typeof opciones.fontSize === "number") ? opciones.fontSize : 6.5;
+
+      if (!isMulti && isFinite(minW) && minW > 0) {
+        const usableW = Math.max(5.0, minW - 2.5);
+        while (fs > 3.8 && helveticaBold.widthOfTextAtSize(strVal, fs) > usableW) {
+          fs = Math.round((fs - 0.1) * 100) / 100;
+        }
+      }
+
       campo.setFontSize(fs);
-      campo.setAlignment(TextAlignment.Center);
+      campo.setAlignment((opciones && opciones.centrado === false) ? TextAlignment.Left : TextAlignment.Center);
       campo.updateAppearances(helveticaBold);
     } catch (e) {}
   };
@@ -605,7 +614,12 @@ async function procesarFichaEpiLocalmente(datosObj) {
   const dibujarTextoDirecto = (page, texto, x, y, size = 6.5, maxWidth = 0) => {
     const str = up(texto);
     if (!page || !str) return;
-    const fs = 6.5;
+    let fs = size;
+    if (maxWidth > 0) {
+      while (fs > 3.8 && helveticaBold.widthOfTextAtSize(str, fs) > maxWidth) {
+        fs = Math.round((fs - 0.1) * 100) / 100;
+      }
+    }
     let drawX = x;
     if (maxWidth > 0) {
       const tw = helveticaBold.widthOfTextAtSize(str, fs);
@@ -1037,7 +1051,7 @@ async function procesarFichaEpiLocalmente(datosObj) {
     }
   }
 
-  // Punto 32: Tabla de Contactos (18 filas: Row1 .. Row18) con tamaño uniforme 6.2pt
+  // Punto 32: Tabla de Contactos (18 filas: Row1 .. Row18) con tamaño uniforme 6.5pt y autoajuste tipográfico
   let sintomaticos = 0;
   const todosContactos = [...(datosObj.contactos || []), ...(datosObj.contactos_12_14 || [])].slice(0, 18);
   for (let i = 0; i < 18; i++) {
@@ -1050,11 +1064,11 @@ async function procesarFichaEpiLocalmente(datosObj) {
       setCampo(`Relación con el casoRow${num}`, cont.relacion, { centrado: true, negrita: true, fontSize: 6.5 });
       const dirYTel = [up(cont.direccion), up(cont.lugar)].filter(Boolean).join(" - ");
       setCampo(`Dirección domiciliariatelefRow${num}`, dirYTel, { centrado: true, negrita: true, fontSize: 6.5 });
-      setCampo(`fecha de inicio de síntomasRow${num}`, cont.fecha, { centrado: true, negrita: true, fontSize: 6.5 });
-      setCampo(`ObservacionesRow${num}`, cont.obs, { centrado: true, negrita: true, fontSize: 6.5 });
 
       if (up(cont.enfermo) === "SI") {
         setCheck(`síRow${num}`, true);
+        setCampo(`fecha de inicio de síntomasRow${num}`, cont.fecha, { centrado: true, negrita: true, fontSize: 5.2 });
+        setCampo(`ObservacionesRow${num}`, cont.obs, { centrado: true, negrita: true, fontSize: 6.5 });
         sintomaticos++;
       } else {
         setCheck(`noRow${num}`, true);
@@ -1983,15 +1997,16 @@ async function procesarFichaEpiExcelLocalmente(datosObj) {
       const c = todosContactos[i] || {};
       const hasNom = Boolean(c.nombre && String(c.nombre).trim());
       const dirYTel = [up(c.direccion), up(c.lugar)].filter(Boolean).join(' - ');
+      const enfermoSi = Boolean(hasNom && up(c.enfermo) === 'SI');
       setCellValue(d3, `C${r3}`, hasNom ? up(c.nombre) : '');
       setCellValue(d3, `I${r3}`, hasNom ? (c.edad || '') : '');
       setCellValue(d3, `J${r3}`, hasNom ? up(c.sexo) : '');
       setCellValue(d3, `L${r3}`, hasNom ? up(c.relacion) : '');
       setCellValue(d3, `P${r3}`, hasNom ? dirYTel : '');
-      setCellValue(d3, `U${r3}`, (hasNom && up(c.enfermo) === 'SI') ? 'X' : '');
-      setCellValue(d3, `V${r3}`, (hasNom && up(c.enfermo || 'NO') === 'NO') ? 'X' : '');
-      setCellValue(d3, `W${r3}`, hasNom ? (c.fecha || '') : '');
-      setCellValue(d3, `Y${r3}`, hasNom ? up(c.obs) : '');
+      setCellValue(d3, `U${r3}`, enfermoSi ? 'X' : '');
+      setCellValue(d3, `V${r3}`, (hasNom && !enfermoSi) ? 'X' : '');
+      setCellValue(d3, `W${r3}`, enfermoSi ? (c.fecha || '') : '');
+      setCellValue(d3, `Y${r3}`, enfermoSi ? up(c.obs) : '');
     }
 
     const muestraSi = up(datosObj.muestra) === 'SI';

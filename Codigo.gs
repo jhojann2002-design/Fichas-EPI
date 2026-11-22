@@ -256,10 +256,11 @@ function generarExcelNuevoFormato(d) {
     for (let i = 0; i < 11; i++) {
       const c = todosContactos[i] || {};
       const ok = Boolean(c.nombre && String(c.nombre).trim());
+      const enfermoSi = ok && up(c.enfermo) === 'SI';
       filas1a11.push([
         ok ? up(c.nombre) : '', ok ? (c.edad || '') : '', ok ? up(c.sexo) : '',
         ok ? up(c.relacion) : '', ok ? up(c.direccion) : '', ok ? up(c.lugar) : '',
-        ok ? up(c.enfermo || 'NO') : '', ok ? (c.fecha || '') : '', ok ? up(c.obs) : ''
+        ok ? (enfermoSi ? 'SI' : 'NO') : '', enfermoSi ? (c.fecha || '') : '', enfermoSi ? up(c.obs) : ''
       ]);
     }
     shDatos.getRange('B52:J62').setValues(filas1a11);
@@ -268,10 +269,11 @@ function generarExcelNuevoFormato(d) {
     for (let i = 11; i < 18; i++) {
       const c = todosContactos[i] || {};
       const ok = Boolean(c.nombre && String(c.nombre).trim());
+      const enfermoSi = ok && up(c.enfermo) === 'SI';
       filas12a18.push([
         ok ? up(c.nombre) : '', ok ? (c.edad || '') : '', ok ? up(c.sexo) : '',
         ok ? up(c.relacion) : '', ok ? up(c.direccion) : '', ok ? up(c.lugar) : '',
-        ok ? up(c.enfermo || 'NO') : '', ok ? (c.fecha || '') : '', ok ? up(c.obs) : ''
+        ok ? (enfermoSi ? 'SI' : 'NO') : '', enfermoSi ? (c.fecha || '') : '', enfermoSi ? up(c.obs) : ''
       ]);
     }
     shDatos.getRange('R52:Z58').setValues(filas12a18);

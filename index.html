@@ -277,14 +277,14 @@
                 <label>Historia Clínica:</label>
                 <input type="tel" id="historia_clinica" class="form-control save-state numeric-input">
               </div>
-              <div class="col-6 col-md-3">
-                <div class="d-flex justify-content-between align-items-center mb-1">
+              <div class="col-12 col-sm-6 col-md-3">
+                <div class="d-flex justify-content-between align-items-center mb-1 flex-wrap gap-1">
                   <label class="mb-0" for="fecha_nacimiento">Fecha Nacimiento:</label>
-                  <span id="badge_edad_calculada" class="badge rounded-pill" style="display: none; font-size: 0.72rem; font-weight: 600; background: var(--apple-blue-tint); color: var(--apple-blue); border: 1px solid rgba(0, 113, 227, 0.2);"></span>
+                  <span id="badge_edad_calculada" class="badge rounded-pill" style="display: none; font-size: 0.75rem; font-weight: 600; background: var(--apple-blue-tint); color: var(--apple-blue); border: 1px solid rgba(0, 113, 227, 0.2); padding: 3px 8px;"></span>
                 </div>
                 <input type="date" id="fecha_nacimiento" class="form-control save-state">
               </div>
-              <div class="col-6 col-md-3">
+              <div class="col-12 col-sm-6 col-md-3">
                 <label>Sexo:</label>
                 <select id="sexo" class="form-select save-state">
                   <option value="" selected disabled>Seleccione...</option>
@@ -1698,6 +1698,6 @@
 <!-- Tom Select JS -->
 <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
 <!-- Tu lógica separada -->
-<script type="module" src="./js/main.js?v=6.1"></script>
+<script type="module" src="./js/main.js?v=6.2"></script>
 </body>
 </html>
