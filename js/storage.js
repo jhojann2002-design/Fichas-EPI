@@ -179,6 +179,10 @@ function resetearCamposBaseEnDOM(modo) {
     if (condVital) condVital.value = 'VIVO';
     const tipoAlta = document.getElementById('epicrisis_tipo_alta');
     if (tipoAlta) tipoAlta.value = 'ALTA_MEDICA';
+    const numHojaEl = document.getElementById('epicrisis_num_hoja');
+    if (numHojaEl) numHojaEl.value = '1';
+    const indAlta = document.getElementById('epicrisis_indicaciones_alta');
+    if (indAlta) indAlta.value = 'PACIENTE HEMODINAMICAMENTE INESTABLE';
 
     const respFecha = document.getElementById('epicrisis_resp_fecha');
     if (respFecha) respFecha.value = new Date().toISOString().slice(0, 10);
@@ -267,6 +271,17 @@ export function loadFormData(modoExplicito = null, desdeCambioModo = false) {
         const estabSelect = document.getElementById('establecimiento');
         estabSelect.value = data.establecimiento;
         estabSelect.dispatchEvent(new Event('change'));
+      }
+    } else if (modo === 'epicrisis') {
+      const instSelect = document.getElementById('institucion');
+      if (instSelect) {
+        instSelect.value = 'Instituto Ecuatoriano de Seguridad Social';
+        instSelect.dispatchEvent(new Event('change'));
+        const estabSelect = document.getElementById('establecimiento');
+        if (estabSelect) {
+          estabSelect.value = 'HOSPITAL GENERAL PORTOVIEJO';
+          estabSelect.dispatchEvent(new Event('change'));
+        }
       }
     } else {
       setUnidadPredeterminada();

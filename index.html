@@ -289,7 +289,7 @@
                 <label>Historia Clínica:</label>
                 <input type="tel" id="historia_clinica" class="form-control save-state numeric-input">
               </div>
-              <div class="col-12 col-sm-6 col-md-3">
+              <div class="col-12 col-sm-6 col-md-3 ocultar-en-epicrisis">
                 <div class="d-flex justify-content-between align-items-center mb-1 flex-wrap gap-1">
                   <label class="mb-0" for="fecha_nacimiento">Fecha Nacimiento:</label>
                   <span id="badge_edad_calculada" class="badge rounded-pill" style="display: none; font-size: 0.75rem; font-weight: 600; background: var(--apple-blue-tint); color: var(--apple-blue); border: 1px solid rgba(0, 113, 227, 0.2); padding: 3px 8px;"></span>
@@ -302,6 +302,21 @@
                   <option value="" selected disabled>Seleccione...</option>
                   <option value="MASCULINO">MASCULINO</option>
                   <option value="FEMENINO">FEMENINO</option>
+                </select>
+              </div>
+
+              <!-- CAMPOS EXCLUSIVOS DE EDAD PARA EPICRISIS -->
+              <div class="col-6 col-md-3 mostrar-solo-epicrisis">
+                <label for="edad_epicrisis">Edad:</label>
+                <input type="number" id="edad_epicrisis" class="form-control save-state text-center" min="0" max="130" placeholder="Ej: 45">
+              </div>
+              <div class="col-6 col-md-3 mostrar-solo-epicrisis">
+                <label for="condicion_edad_epicrisis">Condición Edad:</label>
+                <select id="condicion_edad_epicrisis" class="form-select save-state">
+                  <option value="A" selected>AÑOS</option>
+                  <option value="M">MESES</option>
+                  <option value="D">DÍAS</option>
+                  <option value="H">HORAS</option>
                 </select>
               </div>
 
@@ -322,52 +337,52 @@
                 <input type="text" id="segundo_nombre" class="form-control save-state">
               </div>
 
-              <div class="col-6 col-md-6">
+              <div class="col-6 col-md-6 ocultar-en-epicrisis">
                 <label>Teléfono / Celular:</label>
                 <input type="tel" id="telefono" class="form-control save-state numeric-input">
               </div>
-              <div class="col-6 col-md-6">
+              <div class="col-6 col-md-6 ocultar-en-epicrisis">
                 <label>Nacionalidad:</label>
                 <input type="text" id="nacionalidad" class="form-control save-state" value="ECUATORIANA">
               </div>
 
-              <div class="col-4 col-md-4 px-1">
+              <div class="col-4 col-md-4 px-1 ocultar-en-epicrisis">
                 <label style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; width: 100%;">Provincia:</label>
                 <select id="prov_residencia" class="form-select save-state px-1 text-truncate">
                   <option value="" selected disabled>Sel...</option>
                 </select>
               </div>
-              <div class="col-4 col-md-4 px-1">
+              <div class="col-4 col-md-4 px-1 ocultar-en-epicrisis">
                 <label style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; width: 100%;">Cantón:</label>
                 <select id="canton_residencia" class="form-select save-state px-1 text-truncate">
                   <option value="" selected disabled>Sel...</option>
                 </select>
               </div>
-              <div class="col-4 col-md-4 px-1">
+              <div class="col-4 col-md-4 px-1 ocultar-en-epicrisis">
                 <label style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; width: 100%;">Parroquia:</label>
                 <select id="parroquia_residencia" class="form-select save-state px-1 text-truncate">
                   <option value="" selected disabled>Sel...</option>
                 </select>
               </div>
               
-              <div class="col-12 col-md-12">
+              <div class="col-12 col-md-12 ocultar-en-epicrisis">
                 <label>Dirección Domiciliaria:</label>
                 <input type="text" id="direccion" class="form-control save-state">
               </div>
 
-              <div class="col-6 col-md-3">
+              <div class="col-6 col-md-3 ocultar-en-epicrisis">
                 <label>Est. Civil:</label>
                 <select id="estado_civil" class="form-select save-state">
                   <option value="" selected disabled>Sel...</option>
                 </select>
               </div>
-              <div class="col-6 col-md-3">
+              <div class="col-6 col-md-3 ocultar-en-epicrisis">
                 <label>Etnia:</label>
                 <select id="etnia" class="form-select save-state">
                   <option value="" selected disabled>Sel...</option>
                 </select>
               </div>
-              <div class="col-6 col-md-3">
+              <div class="col-6 col-md-3 ocultar-en-epicrisis">
                 <label>Escolaridad:</label>
                 <select id="escolaridad" class="form-select save-state">
                   <option value="" selected disabled>Sel...</option>
@@ -378,7 +393,7 @@
                   <option value="POSTGRADO">POSTGRADO</option>
                 </select>
               </div>
-              <div class="col-6 col-md-3">
+              <div class="col-6 col-md-3 ocultar-en-epicrisis">
                 <label>Ocupación:</label>
                 <input type="text" id="ocupacion" class="form-control save-state">
               </div>
@@ -1696,52 +1711,67 @@
         <!-- TARJETA HOJA 1: RESUMEN CLÍNICO (B, C, D) -->
         <div class="apple-card mb-4">
           <div class="mb-4">
-            <div class="d-flex align-items-center justify-content-between mb-2">
+            <div class="d-flex align-items-center justify-content-between mb-2 flex-wrap gap-2">
               <h5 class="fw-bold mb-0 text-primary d-flex align-items-center gap-2">
                 <span class="badge bg-primary text-white rounded-circle p-1" style="width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem;">B</span>
                 Resumen del Cuadro Clínico
               </h5>
-              <small class="text-muted" style="font-size: 0.78rem;">Se replica automáticamente en C (Evolución)</small>
+              <div class="d-flex align-items-center gap-2">
+                <button type="button" class="btn btn-sm btn-outline-secondary btn-limpiar-as400" onclick="window.limpiarTextoAS400EnTextarea('epicrisis_cuadro_clinico')" title="Eliminar saltos de línea copiados del AS400">🧹 Limpiar AS400</button>
+                <small class="text-muted" style="font-size: 0.78rem;">Se replica en C (Evolución)</small>
+              </div>
             </div>
-            <textarea id="epicrisis_cuadro_clinico" class="form-control save-state" rows="4" placeholder="Describa el cuadro clínico de ingreso, motivo de consulta y condición del paciente..." style="border-radius: 12px; font-size: 0.9rem; line-height: 1.4;"></textarea>
+            <textarea id="epicrisis_cuadro_clinico" class="form-control save-state" rows="8" placeholder="Describa el cuadro clínico de ingreso, motivo de consulta y condición del paciente..." style="border-radius: 12px; font-size: 0.9rem; line-height: 1.4; min-height: 180px;"></textarea>
           </div>
 
           <div class="mb-4">
-            <div class="d-flex align-items-center justify-content-between mb-2">
+            <div class="d-flex align-items-center justify-content-between mb-2 flex-wrap gap-2">
               <h5 class="fw-bold mb-0 text-primary d-flex align-items-center gap-2">
                 <span class="badge bg-primary text-white rounded-circle p-1" style="width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem;">C</span>
                 Resumen de Evolución y Complicaciones
               </h5>
-              <small class="text-success" style="font-size: 0.78rem;">Editable de forma independiente si lo requiere</small>
+              <div class="d-flex align-items-center gap-2">
+                <button type="button" class="btn btn-sm btn-outline-secondary btn-limpiar-as400" onclick="window.limpiarTextoAS400EnTextarea('epicrisis_evolucion')" title="Eliminar saltos de línea copiados del AS400">🧹 Limpiar AS400</button>
+                <small class="text-success" style="font-size: 0.78rem;">Editable de forma independiente</small>
+              </div>
             </div>
-            <textarea id="epicrisis_evolucion" class="form-control save-state" rows="4" placeholder="Evolución clínica durante la estancia hospitalaria y complicaciones si existieron..." style="border-radius: 12px; font-size: 0.9rem; line-height: 1.4;"></textarea>
+            <textarea id="epicrisis_evolucion" class="form-control save-state" rows="8" placeholder="Evolución clínica durante la estancia hospitalaria y complicaciones si existieron..." style="border-radius: 12px; font-size: 0.9rem; line-height: 1.4; min-height: 180px;"></textarea>
           </div>
 
           <div>
-            <h5 class="fw-bold mb-2 text-primary d-flex align-items-center gap-2">
-              <span class="badge bg-primary text-white rounded-circle p-1" style="width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem;">D</span>
-              Hallazgos Relevantes de Exámenes y Procedimientos Diagnósticos
-            </h5>
-            <textarea id="epicrisis_hallazgos" class="form-control save-state" rows="4" placeholder="Laboratorios, ecografías, tomografías, radiografías y hallazgos diagnósticos significativos..." style="border-radius: 12px; font-size: 0.9rem; line-height: 1.4;"></textarea>
+            <div class="d-flex align-items-center justify-content-between mb-2 flex-wrap gap-2">
+              <h5 class="fw-bold mb-0 text-primary d-flex align-items-center gap-2">
+                <span class="badge bg-primary text-white rounded-circle p-1" style="width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem;">D</span>
+                Hallazgos Relevantes de Exámenes y Procedimientos Diagnósticos
+              </h5>
+              <button type="button" class="btn btn-sm btn-outline-secondary btn-limpiar-as400" onclick="window.limpiarTextoAS400EnTextarea('epicrisis_hallazgos')" title="Eliminar saltos de línea copiados del AS400">🧹 Limpiar AS400</button>
+            </div>
+            <textarea id="epicrisis_hallazgos" class="form-control save-state" rows="8" placeholder="Laboratorios, ecografías, tomografías, radiografías y hallazgos diagnósticos significativos..." style="border-radius: 12px; font-size: 0.9rem; line-height: 1.4; min-height: 180px;"></textarea>
           </div>
         </div>
 
         <!-- TARJETA HOJA 2: TRATAMIENTO E INDICACIONES (E, F) -->
         <div class="apple-card mb-4">
           <div class="mb-4">
-            <h5 class="fw-bold mb-2 text-primary d-flex align-items-center gap-2">
-              <span class="badge bg-primary text-white rounded-circle p-1" style="width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem;">E</span>
-              Resumen de Tratamiento y Procedimientos Terapéuticos
-            </h5>
-            <textarea id="epicrisis_tratamiento" class="form-control save-state" rows="4" placeholder="Medicación administrada, cirugías, esquemas terapéuticos aplicados..." style="border-radius: 12px; font-size: 0.9rem; line-height: 1.4;"></textarea>
+            <div class="d-flex align-items-center justify-content-between mb-2 flex-wrap gap-2">
+              <h5 class="fw-bold mb-0 text-primary d-flex align-items-center gap-2">
+                <span class="badge bg-primary text-white rounded-circle p-1" style="width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem;">E</span>
+                Resumen de Tratamiento y Procedimientos Terapéuticos
+              </h5>
+              <button type="button" class="btn btn-sm btn-outline-secondary btn-limpiar-as400" onclick="window.limpiarTextoAS400EnTextarea('epicrisis_tratamiento')" title="Eliminar saltos de línea copiados del AS400">🧹 Limpiar AS400</button>
+            </div>
+            <textarea id="epicrisis_tratamiento" class="form-control save-state" rows="8" placeholder="Medicación administrada, cirugías, esquemas terapéuticos aplicados..." style="border-radius: 12px; font-size: 0.9rem; line-height: 1.4; min-height: 180px;"></textarea>
           </div>
 
           <div>
-            <h5 class="fw-bold mb-2 text-primary d-flex align-items-center gap-2">
-              <span class="badge bg-primary text-white rounded-circle p-1" style="width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem;">F</span>
-              Indicaciones de Alta / Egreso
-            </h5>
-            <textarea id="epicrisis_indicaciones_alta" class="form-control save-state" rows="3" placeholder="Recomendaciones farmacológicas al egreso, dieta, cuidados en domicilio, signos de alarma..." style="border-radius: 12px; font-size: 0.9rem; line-height: 1.4;"></textarea>
+            <div class="d-flex align-items-center justify-content-between mb-2 flex-wrap gap-2">
+              <h5 class="fw-bold mb-0 text-primary d-flex align-items-center gap-2">
+                <span class="badge bg-primary text-white rounded-circle p-1" style="width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem;">F</span>
+                Indicaciones de Alta / Egreso
+              </h5>
+              <button type="button" class="btn btn-sm btn-outline-secondary btn-limpiar-as400" onclick="window.limpiarTextoAS400EnTextarea('epicrisis_indicaciones_alta')" title="Eliminar saltos de línea copiados del AS400">🧹 Limpiar AS400</button>
+            </div>
+            <textarea id="epicrisis_indicaciones_alta" class="form-control save-state" rows="5" placeholder="Recomendaciones farmacológicas al egreso, dieta, cuidados en domicilio, signos de alarma..." style="border-radius: 12px; font-size: 0.9rem; line-height: 1.4; min-height: 130px;">PACIENTE HEMODINAMICAMENTE INESTABLE</textarea>
           </div>
         </div>
 
@@ -1880,107 +1910,117 @@
           </div>
         </div>
 
-        <!-- TARJETA I: MÉDICOS TRATANTES -->
+        <!-- TARJETA I: MÉDICO TRATANTE Y PROFESIONAL RESPONSABLE -->
         <div class="apple-card mb-4">
-          <h5 class="fw-bold mb-3 text-primary d-flex align-items-center gap-2">
-            <span class="badge bg-primary text-white rounded-circle p-1" style="width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem;">I</span>
-            Médicos Tratantes
-          </h5>
+          <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+            <h5 class="fw-bold mb-0 text-primary d-flex align-items-center gap-2">
+              <span class="badge bg-primary text-white rounded-circle p-1" style="width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem;">I</span>
+              Médico Tratante y Profesional Responsable
+            </h5>
+            <button class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMedicosOpcionales" aria-expanded="false" aria-controls="collapseMedicosOpcionales" style="font-size: 0.8rem;">
+              <span>➕ Agregar más médicos tratantes (opcional)</span>
+            </button>
+          </div>
 
-          <!-- Médico 1 -->
-          <div class="p-3 mb-2 rounded-3" style="background: var(--apple-input-bg); border: 1px solid var(--apple-border);">
-            <div class="fw-bold text-dark mb-2" style="font-size: 0.85rem;">Médico Tratante 1:</div>
-            <div class="row g-2">
-              <div class="col-12 col-md-4">
-                <input type="text" id="epicrisis_med1_nombre" class="form-control form-control-sm save-state" placeholder="Nombres y Apellidos">
+          <!-- Médico Principal (Se reparte a todo el documento automáticamente) -->
+          <div class="p-3 mb-3 rounded-3" style="background: var(--apple-input-bg); border: 1px solid var(--apple-border);">
+            <div class="row g-2 mb-2">
+              <div class="col-12 col-md-5">
+                <label for="epicrisis_med1_nombre" class="form-label text-muted" style="font-size: 0.8rem; font-weight: 600;">NOMBRES Y APELLIDOS DEL MÉDICO:</label>
+                <input type="text" id="epicrisis_med1_nombre" class="form-control form-control-sm save-state" placeholder="Ej: Dr. Juan Carlos Pérez Zambrano">
               </div>
               <div class="col-6 col-md-3">
-                <input type="text" id="epicrisis_med1_esp" class="form-control form-control-sm save-state" placeholder="Especialidad">
+                <label for="epicrisis_med1_doc" class="form-label text-muted" style="font-size: 0.8rem; font-weight: 600;">CÉDULA / IDENTIFICACIÓN:</label>
+                <input type="text" id="epicrisis_med1_doc" class="form-control form-control-sm save-state" placeholder="Cédula del médico">
               </div>
-              <div class="col-6 col-md-3">
-                <input type="text" id="epicrisis_med1_doc" class="form-control form-control-sm save-state" placeholder="Cédula / Documento">
+              <div class="col-6 col-md-2">
+                <label for="epicrisis_med1_esp" class="form-label text-muted" style="font-size: 0.8rem; font-weight: 600;">ESPECIALIDAD:</label>
+                <input type="text" id="epicrisis_med1_esp" class="form-control form-control-sm save-state" placeholder="Ej: Emergencia / Cirugía">
               </div>
               <div class="col-12 col-md-2">
-                <input type="text" id="epicrisis_med1_periodo" class="form-control form-control-sm save-state" placeholder="Período Resp.">
+                <label for="epicrisis_med1_periodo" class="form-label text-muted" style="font-size: 0.8rem; font-weight: 600;">PERÍODO / SERVICIO:</label>
+                <input type="text" id="epicrisis_med1_periodo" class="form-control form-control-sm save-state" placeholder="Ej: Hospitalización">
               </div>
             </div>
-          </div>
 
-          <!-- Médico 2 -->
-          <div class="p-3 rounded-3" style="background: var(--apple-input-bg); border: 1px solid var(--apple-border);">
-            <div class="fw-bold text-dark mb-2" style="font-size: 0.85rem;">Médico Tratante 2 (Opcional):</div>
-            <div class="row g-2">
-              <div class="col-12 col-md-4">
-                <input type="text" id="epicrisis_med2_nombre" class="form-control form-control-sm save-state" placeholder="Nombres y Apellidos">
+            <div class="row g-2 align-items-center pt-2 border-top">
+              <div class="col-6 col-md-3">
+                <label for="epicrisis_resp_fecha" class="form-label text-muted" style="font-size: 0.8rem; font-weight: 600;">FECHA:</label>
+                <input type="date" id="epicrisis_resp_fecha" class="form-control form-control-sm save-state">
               </div>
               <div class="col-6 col-md-3">
-                <input type="text" id="epicrisis_med2_esp" class="form-control form-control-sm save-state" placeholder="Especialidad">
+                <label for="epicrisis_resp_hora" class="form-label text-muted" style="font-size: 0.8rem; font-weight: 600;">HORA:</label>
+                <input type="time" id="epicrisis_resp_hora" class="form-control form-control-sm save-state">
               </div>
-              <div class="col-6 col-md-3">
-                <input type="text" id="epicrisis_med2_doc" class="form-control form-control-sm save-state" placeholder="Cédula / Documento">
-              </div>
-              <div class="col-12 col-md-2">
-                <input type="text" id="epicrisis_med2_periodo" class="form-control form-control-sm save-state" placeholder="Período Resp.">
+              <div class="col-12 col-md-6">
+                <label class="form-label text-muted" style="font-size: 0.8rem; font-weight: 600;">ROL EN EL FORMULARIO:</label>
+                <select id="epicrisis_resp_rol" class="form-select form-select-sm save-state">
+                  <option value="ELABORADO" selected>ELABORADO POR</option>
+                  <option value="REVISADO">REVISADO POR</option>
+                </select>
               </div>
             </div>
           </div>
-        </div>
 
-        <!-- TARJETA J: PROFESIONAL RESPONSABLE -->
-        <div class="apple-card mb-4">
-          <h5 class="fw-bold mb-3 text-primary d-flex align-items-center gap-2">
-            <span class="badge bg-primary text-white rounded-circle p-1" style="width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem;">J</span>
-            Datos del Profesional Responsable
-          </h5>
-
-          <div class="row g-2 mb-3">
-            <div class="col-6 col-md-2">
-              <label for="epicrisis_resp_fecha" class="form-label text-muted" style="font-size: 0.8rem; font-weight: 600;">FECHA:</label>
-              <input type="date" id="epicrisis_resp_fecha" class="form-control form-control-sm save-state">
-            </div>
-            <div class="col-6 col-md-2">
-              <label for="epicrisis_resp_hora" class="form-label text-muted" style="font-size: 0.8rem; font-weight: 600;">HORA:</label>
-              <input type="time" id="epicrisis_resp_hora" class="form-control form-control-sm save-state">
-            </div>
-            <div class="col-12 col-md-3">
-              <label for="epicrisis_resp_nombre" class="form-label text-muted" style="font-size: 0.8rem; font-weight: 600;">PRIMER NOMBRE:</label>
-              <input type="text" id="epicrisis_resp_nombre" class="form-control form-control-sm save-state" placeholder="Primer Nombre">
-            </div>
-            <div class="col-6 col-md-2">
-              <label for="epicrisis_resp_primer_ape" class="form-label text-muted" style="font-size: 0.8rem; font-weight: 600;">1er APELLIDO:</label>
-              <input type="text" id="epicrisis_resp_primer_ape" class="form-control form-control-sm save-state" placeholder="Primer Apellido">
-            </div>
-            <div class="col-6 col-md-3">
-              <label for="epicrisis_resp_segundo_ape" class="form-label text-muted" style="font-size: 0.8rem; font-weight: 600;">2do APELLIDO:</label>
-              <input type="text" id="epicrisis_resp_segundo_ape" class="form-control form-control-sm save-state" placeholder="Segundo Apellido">
-            </div>
+          <!-- Campos desglosados (se auto-llenan solos al escribir el nombre del médico arriba) -->
+          <div class="row g-2 mb-2 d-none">
+            <input type="hidden" id="epicrisis_resp_nombre">
+            <input type="hidden" id="epicrisis_resp_primer_ape">
+            <input type="hidden" id="epicrisis_resp_segundo_ape">
+            <input type="hidden" id="epicrisis_resp_doc">
           </div>
 
-          <div class="row g-2 align-items-center">
-            <div class="col-12 col-md-4">
-              <label for="epicrisis_resp_doc" class="form-label text-muted" style="font-size: 0.8rem; font-weight: 600;">No. IDENTIFICACIÓN:</label>
-              <input type="text" id="epicrisis_resp_doc" class="form-control form-control-sm save-state" placeholder="Cédula / Registro profesional">
-            </div>
-            <div class="col-12 col-md-4">
-              <label class="form-label text-muted" style="font-size: 0.8rem; font-weight: 600;">ROL EN EL FORMULARIO:</label>
-              <select id="epicrisis_resp_rol" class="form-select form-select-sm save-state">
-                <option value="ELABORADO" selected>ELABORADO POR</option>
-                <option value="REVISADO">REVISADO POR</option>
-              </select>
+          <!-- Médicos adicionales colapsados (opcional, no ocupa espacio por defecto) -->
+          <div class="collapse mt-2" id="collapseMedicosOpcionales">
+            <div class="p-3 rounded-3" style="background: rgba(0,0,0,0.02); border: 1px dashed var(--apple-border);">
+              <div class="text-muted fw-bold mb-2" style="font-size: 0.82rem;">Médicos Tratantes Adicionales:</div>
+              <!-- Médico 2 -->
+              <div class="row g-2 mb-2">
+                <div class="col-12 col-md-4">
+                  <input type="text" id="epicrisis_med2_nombre" class="form-control form-control-sm save-state" placeholder="Médico 2: Nombres y Apellidos">
+                </div>
+                <div class="col-6 col-md-3">
+                  <input type="text" id="epicrisis_med2_esp" class="form-control form-control-sm save-state" placeholder="Especialidad">
+                </div>
+                <div class="col-6 col-md-3">
+                  <input type="text" id="epicrisis_med2_doc" class="form-control form-control-sm save-state" placeholder="Cédula / Documento">
+                </div>
+                <div class="col-12 col-md-2">
+                  <input type="text" id="epicrisis_med2_periodo" class="form-control form-control-sm save-state" placeholder="Período">
+                </div>
+              </div>
+              <!-- Médico 3 -->
+              <div class="row g-2 mb-2">
+                <div class="col-12 col-md-4">
+                  <input type="text" id="epicrisis_med3_nombre" class="form-control form-control-sm save-state" placeholder="Médico 3: Nombres y Apellidos">
+                </div>
+                <div class="col-6 col-md-3">
+                  <input type="text" id="epicrisis_med3_esp" class="form-control form-control-sm save-state" placeholder="Especialidad">
+                </div>
+                <div class="col-6 col-md-3">
+                  <input type="text" id="epicrisis_med3_doc" class="form-control form-control-sm save-state" placeholder="Cédula / Documento">
+                </div>
+                <div class="col-12 col-md-2">
+                  <input type="text" id="epicrisis_med3_periodo" class="form-control form-control-sm save-state" placeholder="Período">
+                </div>
+              </div>
+              <!-- Médico 4 -->
+              <div class="row g-2">
+                <div class="col-12 col-md-4">
+                  <input type="text" id="epicrisis_med4_nombre" class="form-control form-control-sm save-state" placeholder="Médico 4: Nombres y Apellidos">
+                </div>
+                <div class="col-6 col-md-3">
+                  <input type="text" id="epicrisis_med4_esp" class="form-control form-control-sm save-state" placeholder="Especialidad">
+                </div>
+                <div class="col-6 col-md-3">
+                  <input type="text" id="epicrisis_med4_doc" class="form-control form-control-sm save-state" placeholder="Cédula / Documento">
+                </div>
+                <div class="col-12 col-md-2">
+                  <input type="text" id="epicrisis_med4_periodo" class="form-control form-control-sm save-state" placeholder="Período">
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-
-        <!-- BOTONES DE EXPORTACIÓN DIRECTA EPICRISIS -->
-        <div class="d-flex flex-column flex-md-row justify-content-center align-items-center gap-3 mb-5">
-          <button type="button" class="btn-apple-excel btn-lg shadow-sm d-flex align-items-center gap-2 px-4 py-3" style="font-size: 1.05rem;" onclick="window.descargarEpicrisisSegura('excel')">
-            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="13" x2="16" y2="17"></line><line x1="16" y1="13" x2="8" y2="17"></line></svg>
-            Exportar Epicrisis Oficial (Excel .xlsx)
-          </button>
-          <button type="button" class="btn-apple btn-lg shadow-sm d-flex align-items-center gap-2 px-4 py-3" style="font-size: 1.05rem;" onclick="window.descargarEpicrisisSegura('pdf')">
-            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-            Exportar Epicrisis Oficial (PDF)
-          </button>
         </div>
 
       </div> <!-- FIN contenedorEpicrisis -->

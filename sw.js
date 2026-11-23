@@ -1,5 +1,5 @@
 // Service Worker para Fichas EPI - Capacidad Offline y PWA
-const CACHE_NAME = 'fichas-epi-cache-v38';
+const CACHE_NAME = 'fichas-epi-cache-v39';
 
 const STATIC_ASSETS = [
   './',
@@ -12,6 +12,7 @@ const STATIC_ASSETS = [
   './cie10.json',
   './plantilla_epi_nuevo.xlsx',
   './plantilla_epicrisis.xlsx',
+  './plantilla_epicrisis.pdf',
   './formato_epi.pdf',
   './formato_tb.pdf',
   './plantillas_sppat/acta_y_autorizacion.pdf',

@@ -948,8 +948,24 @@ select option {
 }
 
 body[data-modo="sppat"] .ocultar-en-sppat,
-body[data-modo="epicrisis"] .ocultar-en-sppat {
+body[data-modo="epicrisis"] .ocultar-en-sppat,
+body[data-modo="epicrisis"] .ocultar-en-epicrisis {
   display: none !important;
+}
+
+body:not([data-modo="epicrisis"]) .mostrar-solo-epicrisis {
+  display: none !important;
+}
+
+.btn-limpiar-as400 {
+  font-size: 0.75rem;
+  font-weight: 500;
+  border-radius: 6px;
+  padding: 2px 8px;
+  transition: all 0.2s ease;
+}
+.btn-limpiar-as400:hover {
+  transform: translateY(-1px);
 }
 
 body[data-modo="epicrisis"] #col_medico_tratante,

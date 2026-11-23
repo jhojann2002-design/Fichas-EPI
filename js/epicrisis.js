@@ -1,15 +1,21 @@
-// js/epicrisis.js - Lógica, Generación de Excel y PDF para Formulario 006 (Epicrisis MSP)
-let PDFDocument, StandardFonts, rgb;
+// js/epicrisis.js - Lógica, Generación de Excel y PDF Oficial para Formulario 006 (Epicrisis MSP)
+let PDFDocument, StandardFonts, rgb, TextAlignment, PDFName, PDFNumber, PDFString;
+
 async function asegurarPdfLib() {
-  if (PDFDocument) return { PDFDocument, StandardFonts, rgb };
+  if (PDFDocument) return { PDFDocument, StandardFonts, rgb, TextAlignment, PDFName, PDFNumber, PDFString };
   if (typeof window !== 'undefined') {
     const mod = await import('https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/+esm');
     PDFDocument = mod.PDFDocument;
     StandardFonts = mod.StandardFonts;
     rgb = mod.rgb;
+    TextAlignment = mod.TextAlignment;
+    PDFName = mod.PDFName;
+    PDFNumber = mod.PDFNumber;
+    PDFString = mod.PDFString;
   }
-  return { PDFDocument, StandardFonts, rgb };
+  return { PDFDocument, StandardFonts, rgb, TextAlignment, PDFName, PDFNumber, PDFString };
 }
+
 import { mostrarLoader, ocultarLoader, enfocarElementoSeguro } from './ui.js';
 
 function getVal(id) {
@@ -24,17 +30,27 @@ function getChk(id) {
   return el ? Boolean(el.checked) : false;
 }
 
+// -------------------------------------------------------------
+// CACHÉ DE PLANTILLAS EN MEMORIA
+// -------------------------------------------------------------
 let _cacheEpicrisisXlsxBytes = null;
+let _cacheEpicrisisPdfBytes = null;
 
-/**
- * Obtiene los bytes de la plantilla XLSX (con caché en memoria)
- */
-async function obtenerBytesPlantillaEpicrisis() {
+async function obtenerBytesPlantillaEpicrisisXlsx() {
   if (_cacheEpicrisisXlsxBytes) return _cacheEpicrisisXlsxBytes;
   const res = await fetch('./plantilla_epicrisis.xlsx');
   if (!res.ok) throw new Error('No se pudo cargar la plantilla plantilla_epicrisis.xlsx');
   const buf = await res.arrayBuffer();
   _cacheEpicrisisXlsxBytes = buf;
+  return buf;
+}
+
+async function obtenerBytesPlantillaEpicrisisPdf() {
+  if (_cacheEpicrisisPdfBytes) return _cacheEpicrisisPdfBytes;
+  const res = await fetch('./plantilla_epicrisis.pdf');
+  if (!res.ok) throw new Error('No se pudo cargar la plantilla plantilla_epicrisis.pdf');
+  const buf = await res.arrayBuffer();
+  _cacheEpicrisisPdfBytes = buf;
   return buf;
 }
 
@@ -133,47 +149,47 @@ async function construirZipDesdeEntries(entries) {
     const nameBytes = encoder.encode(entry.name);
     let method = entry.method;
     let compData = entry.compData;
-    let compSize = entry.compSize;
-    const uncompSize = entry.uncompSize;
-    const crc = entry.crc;
+    let uncompSize = entry.uncompSize;
+    let crc = entry.crc;
 
-    if (entry.isModified) {
-      const def = await deflateRawBytes(entry.rawBytes);
-      if (def && def.length < entry.rawBytes.length) {
+    if (entry.rawBytes) {
+      uncompSize = entry.rawBytes.length;
+      crc = crc32Bytes(entry.rawBytes);
+      const deflated = await deflateRawBytes(entry.rawBytes);
+      if (deflated) {
         method = 8;
-        compData = def;
-        compSize = def.length;
+        compData = deflated;
       } else {
         method = 0;
         compData = entry.rawBytes;
-        compSize = entry.rawBytes.length;
       }
     }
 
-    const localHdr = new Uint8Array(30 + nameBytes.length);
-    const ldv = new DataView(localHdr.buffer);
+    const compSize = compData.length;
+    const localHeader = new Uint8Array(30 + nameBytes.length);
+    const ldv = new DataView(localHeader.buffer);
     ldv.setUint32(0, 0x04034b50, true);
     ldv.setUint16(4, 20, true);
     ldv.setUint16(6, 0, true);
     ldv.setUint16(8, method, true);
     ldv.setUint16(10, 0, true);
-    ldv.setUint16(12, 0, true);
+    ldv.setUint16(12, 0x21, true); // Fecha DOS válida (1980-01-01)
     ldv.setUint32(14, crc, true);
     ldv.setUint32(18, compSize, true);
     ldv.setUint32(22, uncompSize, true);
     ldv.setUint16(26, nameBytes.length, true);
     ldv.setUint16(28, 0, true);
-    localHdr.set(nameBytes, 30);
+    localHeader.set(nameBytes, 30);
 
-    const cdHdr = new Uint8Array(46 + nameBytes.length);
-    const cdv = new DataView(cdHdr.buffer);
+    const cdHeader = new Uint8Array(46 + nameBytes.length);
+    const cdv = new DataView(cdHeader.buffer);
     cdv.setUint32(0, 0x02014b50, true);
     cdv.setUint16(4, 20, true);
     cdv.setUint16(6, 20, true);
     cdv.setUint16(8, 0, true);
     cdv.setUint16(10, method, true);
     cdv.setUint16(12, 0, true);
-    cdv.setUint16(14, 0, true);
+    cdv.setUint16(14, 0x21, true); // Fecha DOS válida (1980-01-01)
     cdv.setUint32(16, crc, true);
     cdv.setUint32(20, compSize, true);
     cdv.setUint32(24, uncompSize, true);
@@ -184,32 +200,124 @@ async function construirZipDesdeEntries(entries) {
     cdv.setUint16(36, 0, true);
     cdv.setUint32(38, 0, true);
     cdv.setUint32(42, offset, true);
-    cdHdr.set(nameBytes, 46);
+    cdHeader.set(nameBytes, 46);
 
-    localParts.push(localHdr, compData);
-    cdParts.push(cdHdr);
-    offset += localHdr.length + compData.length;
+    localParts.push(localHeader, compData);
+    cdParts.push(cdHeader);
+    offset += localHeader.length + compSize;
   }
 
-  const cdStart = offset;
   let cdSize = 0;
-  for (const c of cdParts) cdSize += c.length;
+  cdParts.forEach(p => { cdSize += p.length; });
 
-  const validEntriesCount = entries.filter(e => !e.name.endsWith('/')).length;
   const eocd = new Uint8Array(22);
   const edv = new DataView(eocd.buffer);
   edv.setUint32(0, 0x06054b50, true);
-  edv.setUint16(4, 0, true);
-  edv.setUint16(6, 0, true);
-  edv.setUint16(8, validEntriesCount, true);
-  edv.setUint16(10, validEntriesCount, true);
+  edv.setUint16(8, cdParts.length, true);
+  edv.setUint16(10, cdParts.length, true);
   edv.setUint32(12, cdSize, true);
-  edv.setUint32(16, cdStart, true);
-  edv.setUint16(20, 0, true);
+  edv.setUint32(16, offset, true);
 
   return new Blob([...localParts, ...cdParts, eocd], {
     type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
   });
+}
+
+// -------------------------------------------------------------
+// FUNCIÓN PARA LIMPIEZA DE TEXTOS COPIADOS DE AS400
+// -------------------------------------------------------------
+export function limpiarTextoAS400(texto) {
+  if (!texto) return '';
+  let str = String(texto);
+
+  // 1. Normalizar saltos de línea a \n
+  str = str.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+
+  // 2. Eliminar caracteres de control invisibles que provienen del emulador de terminal
+  str = str.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
+
+  // 3. Unir palabras separadas con guion al final de línea (ej: "HIPERTEN-\nSION" -> "HIPERTENSION")
+  str = str.replace(/([A-Za-z0-9áéíóúüñÁÉÍÓÚÜÑ]+)-\n\s*([A-Za-z0-9áéíóúüñÁÉÍÓÚÜÑ]+)/gu, '$1$2');
+
+  // 4. Dividir por dobles saltos de línea para preservar párrafos reales
+  const bloques = str.split(/\n{2,}/);
+
+  const bloquesLimpios = bloques.map(bloque => {
+    const lineas = bloque.split('\n');
+    let resultado = '';
+
+    for (let i = 0; i < lineas.length; i++) {
+      let linea = lineas[i].trim();
+      if (!linea) continue;
+
+      // Colapsar espacios múltiples dentro de la línea
+      linea = linea.replace(/[ \t]{2,}/g, ' ');
+
+      if (!resultado) {
+        resultado = linea;
+      } else {
+        // Preservar estructura si la línea anterior termina en dos puntos o la actual es viñeta/número
+        const esInicioLista = /^([0-9]+[.)\-]|[-*•])\s+/.test(linea);
+        const terminaEnDosPuntos = /:\s*$/.test(resultado);
+
+        if (esInicioLista || terminaEnDosPuntos) {
+          resultado += '\n' + linea;
+        } else {
+          resultado += ' ' + linea;
+        }
+      }
+    }
+    return resultado;
+  });
+
+  return bloquesLimpios.filter(Boolean).join('\n\n').trim();
+}
+
+export function limpiarTextoAS400EnTextarea(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const original = el.value;
+  const limpio = limpiarTextoAS400(original);
+  if (limpio !== original) {
+    el.value = limpio;
+    el.dispatchEvent(new Event('input', { bubbles: true }));
+    el.dispatchEvent(new Event('change', { bubbles: true }));
+    if (typeof Swal !== 'undefined') {
+      const Toast = Swal.mixin({
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 1600
+      });
+      Toast.fire({ icon: 'success', title: 'Saltos de línea AS400 limpiados' });
+    }
+  }
+}
+
+// -------------------------------------------------------------
+// DESGLOSE INTELIGENTE DE NOMBRE DE MÉDICO
+// -------------------------------------------------------------
+export function desglosarNombreMedico(nombreCompleto) {
+  if (!nombreCompleto) return { primerNombre: '', primerApellido: '', segundoApellido: '' };
+  let limpio = String(nombreCompleto).replace(/^(DR\.|DRA\.|MED\.|MD\.)\s+/i, '').trim();
+  const partes = limpio.split(/\s+/).filter(Boolean);
+  if (partes.length === 0) {
+    return { primerNombre: '', primerApellido: '', segundoApellido: '' };
+  }
+  if (partes.length === 1) {
+    return { primerNombre: partes[0], primerApellido: '', segundoApellido: '' };
+  }
+  if (partes.length === 2) {
+    return { primerNombre: partes[0], primerApellido: partes[1], segundoApellido: '' };
+  }
+  if (partes.length === 3) {
+    return { primerNombre: partes[0], primerApellido: partes[1], segundoApellido: partes[2] };
+  }
+  // 4 o más palabras: ej "JUAN CARLOS PEREZ LOPEZ" -> "JUAN CARLOS", "PEREZ", "LOPEZ"
+  const segundoApellido = partes[partes.length - 1];
+  const primerApellido = partes[partes.length - 2];
+  const primerNombre = partes.slice(0, partes.length - 2).join(' ');
+  return { primerNombre, primerApellido, segundoApellido };
 }
 
 // -------------------------------------------------------------
@@ -218,30 +326,31 @@ async function construirZipDesdeEntries(entries) {
 export function recopilarDatosEpicrisis() {
   const d = {};
 
-  // 1. Datos Generales (reutilizados del formulario base)
-  d.institucion = getVal('institucion');
-  d.establecimiento = getVal('establecimiento');
+  // 1. Datos Generales (Predeterminados IESS y Hospital Portoviejo)
+  d.institucion = getVal('institucion') || 'IESS';
+  d.establecimiento = getVal('establecimiento') || 'HOSPITAL GENERAL PORTOVIEJO';
   d.unicodigo = getVal('epicrisis_unicodigo') || '';
-  d.hcu = getVal('epicrisis_hcu') || getVal('cedula');
-  d.archivo = getVal('epicrisis_archivo') || getVal('cedula');
+  d.hcu = getVal('epicrisis_hcu') || getVal('historia_clinica') || getVal('cedula');
+  d.archivo = getVal('epicrisis_archivo') || getVal('historia_clinica') || getVal('cedula');
   d.numero_hoja = getVal('epicrisis_num_hoja') || '1';
 
   d.primer_apellido = getVal('primer_apellido');
   d.segundo_apellido = getVal('segundo_apellido');
   d.primer_nombre = getVal('primer_nombre');
   d.segundo_nombre = getVal('segundo_nombre');
-  d.sexo = getVal('sexo'); // M o F
-  d.edad = getVal('edad');
-  d.condicion_edad = getVal('condicion_edad') || 'A'; // H, D, M, A
+  d.sexo = getVal('sexo');
+  d.edad = getVal('edad_epicrisis') || getVal('edad');
+  d.condicion_edad = getVal('condicion_edad_epicrisis') || getVal('condicion_edad') || 'A';
 
   // 2. Secciones Clínicas Hoja 1
   d.cuadro_clinico = getVal('epicrisis_cuadro_clinico');
-  d.evolucion = getVal('epicrisis_evolucion');
+  d.evolucion = getVal('epicrisis_evolucion') || d.cuadro_clinico;
   d.hallazgos = getVal('epicrisis_hallazgos');
 
   // 3. Secciones Clínicas Hoja 2
   d.tratamiento = getVal('epicrisis_tratamiento');
-  d.indicaciones_alta = getVal('epicrisis_indicaciones_alta');
+  // Indicaciones predeterminadas solicitadas por el usuario
+  d.indicaciones_alta = getVal('epicrisis_indicaciones_alta') || 'PACIENTE HEMODINAMICAMENTE INESTABLE';
 
   // 4. Diagnósticos y CIE
   d.diag_principal = getVal('epicrisis_diag_principal');
@@ -262,19 +371,37 @@ export function recopilarDatosEpicrisis() {
   d.cie_causa_ext = getVal('epicrisis_cie_causa_ext');
 
   // 5. Condición de Alta / Egreso
-  d.cond_vivo = getVal('epicrisis_cond_vital') === 'VIVO' || !getVal('epicrisis_cond_vital');
-  d.cond_fallecido = getVal('epicrisis_cond_vital') === 'FALLECIDO';
+  const condVital = (getVal('epicrisis_cond_vital') || 'VIVO').toUpperCase();
+  d.cond_vital = condVital;
+  d.cond_vivo = condVital === 'VIVO';
+  d.cond_fallecido = condVital === 'FALLECIDO';
 
-  d.tipo_alta = getVal('epicrisis_tipo_alta') || 'ALTA_MEDICA'; // ALTA_MEDICA, ALTA_VOLUNTARIA, ASINTOMATICO, DISCAPACIDAD, RETIRO_NO_AUTORIZADO, DEFUNCION_MENOS_48, DEFUNCION_MAS_48
+  d.tipo_alta = getVal('epicrisis_tipo_alta') || 'ALTA_MEDICA';
   d.dias_estada = getVal('epicrisis_dias_estada') || '';
   d.dias_reposo = getVal('epicrisis_dias_reposo') || '';
 
-  // 6. Médicos Tratantes (hasta 4)
-  d.medico_1_nombre = getVal('epicrisis_med1_nombre');
-  d.medico_1_esp = getVal('epicrisis_med1_esp');
-  d.medico_1_doc = getVal('epicrisis_med1_doc');
-  d.medico_1_periodo = getVal('epicrisis_med1_periodo');
+  // 6. Médico Tratante Principal (repartido automáticamente)
+  const medicoNombre = getVal('epicrisis_med1_nombre') || getVal('epicrisis_medico_nombre') || getVal('medico_tratante');
+  const medicoDoc = getVal('epicrisis_med1_doc') || getVal('epicrisis_medico_doc');
+  const medicoEsp = getVal('epicrisis_med1_esp') || getVal('epicrisis_medico_esp');
+  const medicoPeriodo = getVal('epicrisis_med1_periodo') || getVal('epicrisis_medico_periodo');
 
+  d.medico_1_nombre = medicoNombre;
+  d.medico_1_esp = medicoEsp;
+  d.medico_1_doc = medicoDoc;
+  d.medico_1_periodo = medicoPeriodo;
+
+  // Desglosar nombres para campos individuales de responsable
+  const desglosado = desglosarNombreMedico(medicoNombre);
+  d.resp_nombre = getVal('epicrisis_resp_nombre') || desglosado.primerNombre;
+  d.resp_primer_ape = getVal('epicrisis_resp_primer_ape') || desglosado.primerApellido;
+  d.resp_segundo_ape = getVal('epicrisis_resp_segundo_ape') || desglosado.segundoApellido;
+  d.resp_doc = getVal('epicrisis_resp_doc') || medicoDoc;
+  d.resp_fecha = getVal('epicrisis_resp_fecha') || new Date().toISOString().slice(0, 10);
+  d.resp_hora = getVal('epicrisis_resp_hora') || new Date().toTimeString().slice(0, 5);
+  d.resp_rol = getVal('epicrisis_resp_rol') || 'ELABORADO';
+
+  // Médicos opcionales adicionales
   d.medico_2_nombre = getVal('epicrisis_med2_nombre');
   d.medico_2_esp = getVal('epicrisis_med2_esp');
   d.medico_2_doc = getVal('epicrisis_med2_doc');
@@ -290,15 +417,6 @@ export function recopilarDatosEpicrisis() {
   d.medico_4_doc = getVal('epicrisis_med4_doc');
   d.medico_4_periodo = getVal('epicrisis_med4_periodo');
 
-  // 7. Profesional Responsable
-  d.resp_fecha = getVal('epicrisis_resp_fecha') || new Date().toISOString().slice(0, 10);
-  d.resp_hora = getVal('epicrisis_resp_hora') || new Date().toTimeString().slice(0, 5);
-  d.resp_nombre = getVal('epicrisis_resp_nombre');
-  d.resp_primer_ape = getVal('epicrisis_resp_primer_ape');
-  d.resp_segundo_ape = getVal('epicrisis_resp_segundo_ape');
-  d.resp_doc = getVal('epicrisis_resp_doc');
-  d.resp_rol = getVal('epicrisis_resp_rol') || 'ELABORADO'; // ELABORADO o REVISADO
-
   return d;
 }
 
@@ -306,7 +424,7 @@ export function recopilarDatosEpicrisis() {
 // GENERADOR LOCAL ULTRA-RÁPIDO DE EXCEL PARA EPICRISIS (.XLSX)
 // -------------------------------------------------------------
 export async function procesarEpicrisisExcelLocalmente(d) {
-  const arrayBuffer = await obtenerBytesPlantillaEpicrisis();
+  const arrayBuffer = await obtenerBytesPlantillaEpicrisisXlsx();
   const entries = await leerEntriesZip(arrayBuffer);
 
   const decoder = new TextDecoder('utf-8');
@@ -370,7 +488,8 @@ export async function procesarEpicrisisExcelLocalmente(d) {
   const setCellValue = (doc, ref, val, forceType = null) => {
     const c = getOrCreateCell(doc, ref);
     const fEl = c.getElementsByTagNameNS(NS, 'f')[0];
-    const strVal = (val === undefined || val === null) ? '' : String(val);
+    let strVal = (val === undefined || val === null) ? '' : String(val);
+    strVal = strVal.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, '');
 
     if (fEl) {
       let vEl = c.getElementsByTagNameNS(NS, 'v')[0];
@@ -404,7 +523,7 @@ export async function procesarEpicrisisExcelLocalmente(d) {
       c.setAttribute('t', 'inlineStr');
       const isEl = doc.createElementNS(NS, 'is');
       const tEl = doc.createElementNS(NS, 't');
-      if (strVal.startsWith(' ') || strVal.endsWith(' ')) {
+      if (strVal.includes('\n') || strVal.startsWith(' ') || strVal.endsWith(' ')) {
         tEl.setAttribute('xml:space', 'preserve');
       }
       tEl.textContent = strVal;
@@ -419,9 +538,9 @@ export async function procesarEpicrisisExcelLocalmente(d) {
       const xmlDoc = parser.parseFromString(decoder.decode(xmlBytes), 'application/xml');
 
       // A. DATOS DEL ESTABLECIMIENTO Y USUARIO / PACIENTE
-      setCellValue(xmlDoc, 'A3', (d.institucion || '').toUpperCase());
-      setCellValue(xmlDoc, 'N3', (d.unicodigo || '').toUpperCase());
-      setCellValue(xmlDoc, 'T3', (d.establecimiento || '').toUpperCase());
+      setCellValue(xmlDoc, 'A3', (d.institucion || 'IESS').toUpperCase());
+      setCellValue(xmlDoc, 'N3', (d.unicodigo || '13D01').toUpperCase());
+      setCellValue(xmlDoc, 'T3', (d.establecimiento || 'HOSPITAL GENERAL PORTOVIEJO').toUpperCase());
       setCellValue(xmlDoc, 'AH3', d.hcu || '');
       setCellValue(xmlDoc, 'AZ3', d.archivo || '');
       setCellValue(xmlDoc, 'BK3', d.numero_hoja || '1');
@@ -430,7 +549,7 @@ export async function procesarEpicrisisExcelLocalmente(d) {
       setCellValue(xmlDoc, 'R6', (d.segundo_apellido || '').toUpperCase());
       setCellValue(xmlDoc, 'AF6', (d.primer_nombre || '').toUpperCase());
       setCellValue(xmlDoc, 'AP6', (d.segundo_nombre || '').toUpperCase());
-      setCellValue(xmlDoc, 'BA6', (d.sexo || '').toUpperCase());
+      setCellValue(xmlDoc, 'BA6', (d.sexo ? d.sexo.charAt(0) : '').toUpperCase());
       setCellValue(xmlDoc, 'BD6', d.edad || '');
 
       // Condición edad: H, D, M, A -> BN6 (A), BL6 (M), BJ6 (D), BH6 (H)
@@ -446,11 +565,7 @@ export async function procesarEpicrisisExcelLocalmente(d) {
       setCellValue(xmlDoc, 'A47', d.hallazgos || '');
 
       const modifiedXml = serializer.serializeToString(xmlDoc);
-      const rawBytes = encoder.encode(modifiedXml);
-      entry.rawBytes = rawBytes;
-      entry.crc = crc32Bytes(rawBytes);
-      entry.uncompSize = rawBytes.length;
-      entry.isModified = true;
+      entry.rawBytes = encoder.encode(modifiedXml);
 
     } else if (entry.name === 'xl/worksheets/sheet2.xml') {
       const xmlBytes = entry.method === 8 ? await inflateRawBytes(entry.compData) : entry.compData;
@@ -465,7 +580,7 @@ export async function procesarEpicrisisExcelLocalmente(d) {
 
       // E y F
       setCellValue(xmlDoc, 'A6', d.tratamiento || '');
-      setCellValue(xmlDoc, 'A25', d.indicaciones_alta || '');
+      setCellValue(xmlDoc, 'A25', d.indicaciones_alta || 'PACIENTE HEMODINAMICAMENTE INESTABLE');
 
       // G. Diagnósticos
       setCellValue(xmlDoc, 'P38', (d.diag_principal || '').toUpperCase());
@@ -504,7 +619,7 @@ export async function procesarEpicrisisExcelLocalmente(d) {
       setCellValue(xmlDoc, 'BL47', d.dias_estada || '');
       setCellValue(xmlDoc, 'BL48', d.dias_reposo || '');
 
-      // I. Médicos tratantes
+      // I. Médicos tratantes (repartidos)
       setCellValue(xmlDoc, 'B54', (d.medico_1_nombre || '').toUpperCase());
       setCellValue(xmlDoc, 'AD54', (d.medico_1_esp || '').toUpperCase());
       setCellValue(xmlDoc, 'AO54', d.medico_1_doc || '');
@@ -540,11 +655,7 @@ export async function procesarEpicrisisExcelLocalmente(d) {
       }
 
       const modifiedXml = serializer.serializeToString(xmlDoc);
-      const rawBytes = encoder.encode(modifiedXml);
-      entry.rawBytes = rawBytes;
-      entry.crc = crc32Bytes(rawBytes);
-      entry.uncompSize = rawBytes.length;
-      entry.isModified = true;
+      entry.rawBytes = encoder.encode(modifiedXml);
     }
   }
 
@@ -553,294 +664,195 @@ export async function procesarEpicrisisExcelLocalmente(d) {
 
 // -------------------------------------------------------------
 // GENERADOR DE PDF OFICIAL FORMULARIO 006 CON PDF-LIB
+// Llenando directamente la plantilla oficial AcroForm
 // -------------------------------------------------------------
-function wrapText(text, maxWidth, font, fontSize) {
-  if (!text) return [];
-  const lines = [];
-  const paragraphs = String(text).split('\n');
-  for (const para of paragraphs) {
-    const words = para.trim().split(/\s+/);
-    let currentLine = '';
-    for (const w of words) {
-      if (!w) continue;
-      const testLine = currentLine ? `${currentLine} ${w}` : w;
-      if (font.widthOfTextAtSize(testLine, fontSize) <= maxWidth) {
-        currentLine = testLine;
-      } else {
-        if (currentLine) lines.push(currentLine);
-        currentLine = w;
-      }
-    }
-    if (currentLine) lines.push(currentLine);
-  }
-  return lines;
-}
-
 export async function generarEpicrisisPdf(d) {
-  await asegurarPdfLib();
+  const { PDFDocument, StandardFonts, rgb, TextAlignment, PDFName, PDFNumber, PDFString } = await asegurarPdfLib();
   if (!PDFDocument) throw new Error('pdf-lib no está disponible en este entorno');
-  const pdfDoc = await PDFDocument.create();
-  const fontRegular = await pdfDoc.embedFont(StandardFonts.Helvetica);
-  const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
-  const PAGE_WIDTH = 595.28;  // A4
-  const PAGE_HEIGHT = 841.89; // A4
-  const MARGIN_X = 25;
-  const CONTENT_WIDTH = PAGE_WIDTH - (MARGIN_X * 2); // 545.28
+  const pdfBytes = await obtenerBytesPlantillaEpicrisisPdf();
+  const pdfDoc = await PDFDocument.load(pdfBytes, { ignoreEncryption: true });
+  const form = pdfDoc.getForm();
 
-  const COLOR_HEADER_BG = rgb(0.92, 0.94, 0.96);
-  const COLOR_BORDER = rgb(0.2, 0.2, 0.2);
-  const COLOR_TEXT = rgb(0, 0, 0);
+  const helvetica = await pdfDoc.embedFont(StandardFonts.Helvetica);
+  const helveticaBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
-  // Helper para dibujar celdas con etiqueta y valor
-  const drawCell = (page, x, y, w, h, label, val, isBoldVal = true, fontSizeVal = 8) => {
-    page.drawRectangle({
-      x, y: y - h, width: w, height: h,
-      borderWidth: 0.5, borderColor: COLOR_BORDER
-    });
-    if (label) {
-      page.drawText(label, {
-        x: x + 2, y: y - 7,
-        size: 5.5, font: fontBold, color: COLOR_TEXT
-      });
+  // Helper para asignar valor a TextField con cálculo de fuente y tamaño
+  const setTextField = (name, val, options = {}) => {
+    try {
+      const field = form.getTextField(name);
+      if (!field) return;
+      const strVal = String(val ?? '');
+      if (typeof field.disableCombing === 'function') field.disableCombing();
+      if (field.acroField?.dict) {
+        field.acroField.dict.delete(PDFName.of('MaxLen'));
+      }
+
+      const isMulti = options.multiline || false;
+      if (isMulti) {
+        if (typeof field.enableMultiline === 'function') field.enableMultiline();
+      }
+
+      const align = options.align || (isMulti ? TextAlignment.Left : TextAlignment.Center);
+      if (typeof field.setAlignment === 'function') field.setAlignment(align);
+
+      const widgets = (field.acroField && field.acroField.getWidgets) ? field.acroField.getWidgets() : [];
+      let minW = 200;
+      let minH = 14;
+      if (widgets.length > 0) {
+        widgets.forEach(w => {
+          try {
+            w.dict.delete(PDFName.of('MaxLen'));
+            const r = w.getRectangle();
+            if (r && r.width > 0 && r.height > 0) {
+              if (r.width < minW) minW = r.width;
+              if (r.height < minH) minH = r.height;
+            }
+          } catch (_) {}
+        });
+      }
+
+      let fs = options.fontSize || (isMulti ? 7.5 : 7.0);
+      const minFs = options.minFontSize || 4.5;
+      const fontUse = options.bold ? helveticaBold : helvetica;
+
+      if (!isMulti && strVal.length > 0) {
+        const dispW = Math.max(5, minW - 3);
+        while (fs > minFs && fontUse.widthOfTextAtSize(strVal, fs) > dispW) {
+          fs = Number((fs - 0.2).toFixed(1));
+        }
+      }
+
+      field.setText(strVal);
+      field.setFontSize(fs);
+      field.updateAppearances(fontUse);
+    } catch (e) {
+      console.warn(`Aviso al establecer campo ${name}:`, e);
     }
-    if (val !== undefined && val !== null && val !== '') {
-      page.drawText(String(val), {
-        x: x + 3, y: y - h + 3,
-        size: fontSizeVal, font: isBoldVal ? fontBold : fontRegular, color: COLOR_TEXT
-      });
+  };
+
+  // Helper para checkboxes
+  const setCheckBox = (name, isChecked) => {
+    try {
+      const cb = form.getCheckBox(name);
+      if (cb) {
+        if (isChecked) cb.check();
+        else cb.uncheck();
+      }
+    } catch (e) {
+      try {
+        const tf = form.getTextField(name);
+        if (tf) tf.setText(isChecked ? 'X' : '');
+      } catch (_) {}
     }
   };
 
-  const drawSectionHeader = (page, y, title) => {
-    page.drawRectangle({
-      x: MARGIN_X, y: y - 14, width: CONTENT_WIDTH, height: 14,
-      color: COLOR_HEADER_BG, borderWidth: 0.6, borderColor: COLOR_BORDER
-    });
-    page.drawText(title, {
-      x: MARGIN_X + 5, y: y - 10,
-      size: 7.5, font: fontBold, color: COLOR_TEXT
-    });
-    return y - 14;
-  };
+  // 1. Hoja 1 - Encabezado
+  setTextField('INSTITUCIÓN DEL SISTEMARow1', (d.institucion || 'IESS').toUpperCase(), { bold: true });
+  setTextField('UNICÓDIGORow1', (d.unicodigo || '13D01').toUpperCase(), { bold: true });
+  setTextField('ESTABLECIMIENTO DE SALUDRow1', (d.establecimiento || 'HOSPITAL GENERAL PORTOVIEJO').toUpperCase(), { bold: true });
+  setTextField('NÚMERO DE HISTORIA CLÍNICA ÚNICARow1', d.hcu || '', { bold: true });
+  setTextField('NÚMERO DE ARCHIVORow1', d.archivo || '', { bold: true });
+  setTextField('No HOJARow1', d.numero_hoja || '1', { bold: true });
 
-  const drawTextAreaBlock = (page, y, height, text) => {
-    page.drawRectangle({
-      x: MARGIN_X, y: y - height, width: CONTENT_WIDTH, height,
-      borderWidth: 0.5, borderColor: COLOR_BORDER
-    });
-    const lines = wrapText(text, CONTENT_WIDTH - 8, fontRegular, 8);
-    let curY = y - 10;
-    for (const line of lines) {
-      if (curY < y - height + 4) break; // no desbordar
-      page.drawText(line, {
-        x: MARGIN_X + 4, y: curY,
-        size: 8, font: fontRegular, color: COLOR_TEXT
-      });
-      curY -= 10;
-    }
-    return y - height;
-  };
+  setTextField('PRIMER APELLIDORow1', (d.primer_apellido || '').toUpperCase(), { bold: true });
+  setTextField('SEGUNDO APELLIDORow1', (d.segundo_apellido || '').toUpperCase(), { bold: true });
+  setTextField('PRIMER NOMBRERow1', (d.primer_nombre || '').toUpperCase(), { bold: true });
+  setTextField('SEGUNDO NOMBRERow1', (d.segundo_nombre || '').toUpperCase(), { bold: true });
+  setTextField('SEXORow1', (d.sexo ? d.sexo.charAt(0) : '').toUpperCase(), { bold: true });
+  setTextField('EDADRow1', d.edad || '', { bold: true });
 
-  // ==========================================
-  // HOJA 1
-  // ==========================================
-  const page1 = pdfDoc.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
-  let y = PAGE_HEIGHT - 25;
+  // Condición de edad (checkboxes)
+  const condEdad = (d.condicion_edad || 'A').toUpperCase();
+  setCheckBox('condicion edad_años', condEdad === 'A');
+  setCheckBox('condicion edad_meses', condEdad === 'M');
+  setCheckBox('condicion edad_dias', condEdad === 'D');
+  setCheckBox('condicion edad_horas', condEdad === 'H');
 
-  // Título Formulario
-  page1.drawText("SNS-MSP / HCU-form.006 / 2021", {
-    x: MARGIN_X, y: y, size: 7, font: fontRegular, color: COLOR_TEXT
-  });
-  page1.drawText("EPICRISIS (1)", {
-    x: PAGE_WIDTH - MARGIN_X - 70, y: y, size: 9, font: fontBold, color: COLOR_TEXT
-  });
-  y -= 12;
+  // 2. Hoja 1 - Secciones Clínicas
+  setTextField('resumen cuadro clinico', d.cuadro_clinico || '', { multiline: true, fontSize: 7.5 });
+  setTextField('resumen de evolucion y complicaciones', d.evolucion || d.cuadro_clinico || '', { multiline: true, fontSize: 7.5 });
+  setTextField('hallazgos relevantes de examenes', d.hallazgos || '', { multiline: true, fontSize: 7.5 });
 
-  // Sección A
-  y = drawSectionHeader(page1, y, "A. DATOS DEL ESTABLECIMIENTO Y USUARIO / PACIENTE");
-  
-  // Fila 1 de A: Institución, Unicódigo, Establecimiento, HCU, Archivo, No. Hoja
-  const wA1 = CONTENT_WIDTH;
-  drawCell(page1, MARGIN_X, y, 110, 20, "INSTITUCIÓN DEL SISTEMA", (d.institucion || '').toUpperCase(), true, 7.5);
-  drawCell(page1, MARGIN_X + 110, y, 60, 20, "UNICÓDIGO", (d.unicodigo || '').toUpperCase(), true, 7.5);
-  drawCell(page1, MARGIN_X + 170, y, 150, 20, "ESTABLECIMIENTO DE SALUD", (d.establecimiento || '').toUpperCase(), true, 7.5);
-  drawCell(page1, MARGIN_X + 320, y, 95, 20, "No. HISTORIA CLÍNICA", d.hcu || '', true, 8);
-  drawCell(page1, MARGIN_X + 415, y, 90, 20, "No. ARCHIVO", d.archivo || '', true, 8);
-  drawCell(page1, MARGIN_X + 505, y, 40.28, 20, "No. HOJA", d.numero_hoja || '1', true, 8);
-  y -= 20;
+  // 3. Hoja 2 - Encabezado
+  setTextField('PRIMER APELLIDORow1_2', (d.primer_apellido || '').toUpperCase(), { bold: true });
+  setTextField('PRIMER NOMBRERow1_2', (d.primer_nombre || '').toUpperCase(), { bold: true });
+  setTextField('EDADRow1_2', d.edad || '', { bold: true });
+  setTextField('NÚMERO DE HISTORIA CLÍNICA ÚNICARow1_2', d.hcu || '', { bold: true });
+  setTextField('NÚMERO DE ARCHIVORow1_2', d.archivo || '', { bold: true });
 
-  // Fila 2 de A: Apellidos, Nombres, Sexo, Edad, Condición
-  drawCell(page1, MARGIN_X, y, 130, 20, "PRIMER APELLIDO", (d.primer_apellido || '').toUpperCase(), true, 8);
-  drawCell(page1, MARGIN_X + 130, y, 130, 20, "SEGUNDO APELLIDO", (d.segundo_apellido || '').toUpperCase(), true, 8);
-  drawCell(page1, MARGIN_X + 260, y, 110, 20, "PRIMER NOMBRE", (d.primer_nombre || '').toUpperCase(), true, 8);
-  drawCell(page1, MARGIN_X + 370, y, 90, 20, "SEGUNDO NOMBRE", (d.segundo_nombre || '').toUpperCase(), true, 8);
-  drawCell(page1, MARGIN_X + 460, y, 35, 20, "SEXO", (d.sexo || '').toUpperCase(), true, 8);
-  drawCell(page1, MARGIN_X + 495, y, 50.28, 20, `EDAD (${d.condicion_edad || 'A'})`, `${d.edad || ''}`, true, 8);
-  y -= 26;
+  // 4. Hoja 2 - Tratamiento e Indicaciones
+  setTextField('resumen de tratamiento', d.tratamiento || '', { multiline: true, fontSize: 7.5 });
+  setTextField('indicaciones de alta/egreso', d.indicaciones_alta || 'PACIENTE HEMODINAMICAMENTE INESTABLE', { multiline: true, fontSize: 7.5 });
 
-  // Sección B: Resumen del Cuadro Clínico
-  y = drawSectionHeader(page1, y, "B. RESUMEN DEL CUADRO CLÍNICO");
-  y = drawTextAreaBlock(page1, y, 220, d.cuadro_clinico || '');
-  y -= 8;
+  // 5. Hoja 2 - Diagnósticos y CIE-10
+  setTextField('DIAGNÓSTICO PRINCIPAL', (d.diag_principal || '').toUpperCase(), { align: TextAlignment.Left });
+  setTextField('CIEDIAGNÓSTICO PRINCIPAL', (d.cie_principal || '').toUpperCase(), { bold: true });
 
-  // Sección C: Resumen de Evolución y Complicaciones
-  y = drawSectionHeader(page1, y, "C. RESUMEN DE EVOLUCIÓN Y COMPLICACIONES");
-  y = drawTextAreaBlock(page1, y, 220, d.evolucion || d.cuadro_clinico || '');
-  y -= 8;
+  setTextField('DIAGNÓSTICO SECUNDARIO', (d.diag_sec_1 || '').toUpperCase(), { align: TextAlignment.Left });
+  setTextField('CIEDIAGNÓSTICO SECUNDARIO', (d.cie_sec_1 || '').toUpperCase(), { bold: true });
 
-  // Sección D: Hallazgos Relevantes
-  y = drawSectionHeader(page1, y, "D. HALLAZGOS RELEVANTES DE EXÁMENES Y PROCEDIMIENTOS DIAGNÓSTICOS");
-  y = drawTextAreaBlock(page1, y, 225, d.hallazgos || '');
+  setTextField('DIAGNÓSTICO SECUNDARIO_2', (d.diag_sec_2 || '').toUpperCase(), { align: TextAlignment.Left });
+  setTextField('CIEDIAGNÓSTICO SECUNDARIO_2', (d.cie_sec_2 || '').toUpperCase(), { bold: true });
 
-  // Pie de Hoja 1
-  page1.drawText("SNS-MSP / HCU-form.006 / 2021", {
-    x: MARGIN_X, y: 15, size: 6.5, font: fontRegular, color: rgb(0.4, 0.4, 0.4)
-  });
-  page1.drawText("EPICRISIS (1)", {
-    x: PAGE_WIDTH - MARGIN_X - 60, y: 15, size: 7, font: fontBold, color: rgb(0.4, 0.4, 0.4)
-  });
+  setTextField('DIAGNÓSTICO SECUNDARIO_3', (d.diag_sec_3 || '').toUpperCase(), { align: TextAlignment.Left });
+  setTextField('CIEDIAGNÓSTICO SECUNDARIO_3', (d.cie_sec_3 || '').toUpperCase(), { bold: true });
 
-  // ==========================================
-  // HOJA 2
-  // ==========================================
-  const page2 = pdfDoc.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
-  y = PAGE_HEIGHT - 25;
+  setTextField('DIAGNÓSTICO SECUNDARIO_4', (d.diag_sec_4 || '').toUpperCase(), { align: TextAlignment.Left });
+  setTextField('CIEDIAGNÓSTICO SECUNDARIO_4', (d.cie_sec_4 || '').toUpperCase(), { bold: true });
 
-  page2.drawText("DATOS DEL USUARIO / PACIENTE", {
-    x: MARGIN_X, y: y, size: 7, font: fontBold, color: COLOR_TEXT
-  });
-  page2.drawText("EPICRISIS (2)", {
-    x: PAGE_WIDTH - MARGIN_X - 70, y: y, size: 9, font: fontBold, color: COLOR_TEXT
-  });
-  y -= 12;
+  setTextField('DIAGNÓSTICO SECUNDARIO_5', (d.diag_sec_5 || '').toUpperCase(), { align: TextAlignment.Left });
+  setTextField('CIEDIAGNÓSTICO SECUNDARIO_5', (d.cie_sec_5 || '').toUpperCase(), { bold: true });
 
-  // Encabezado Hoja 2
-  drawCell(page2, MARGIN_X, y, 140, 18, "PRIMER APELLIDO", (d.primer_apellido || '').toUpperCase(), true, 7.5);
-  drawCell(page2, MARGIN_X + 140, y, 140, 18, "PRIMER NOMBRE", (d.primer_nombre || '').toUpperCase(), true, 7.5);
-  drawCell(page2, MARGIN_X + 280, y, 40, 18, "EDAD", d.edad || '', true, 7.5);
-  drawCell(page2, MARGIN_X + 320, y, 115, 18, "No. HISTORIA CLÍNICA", d.hcu || '', true, 7.5);
-  drawCell(page2, MARGIN_X + 435, y, 110.28, 18, "No. ARCHIVO", d.archivo || '', true, 7.5);
-  y -= 24;
+  setTextField('CAUSA EXTERNA', (d.diag_causa_ext || '').toUpperCase(), { align: TextAlignment.Left });
+  setTextField('CIECAUSA EXTERNA', (d.cie_causa_ext || '').toUpperCase(), { bold: true });
 
-  // Sección E: Tratamiento y Procedimientos
-  y = drawSectionHeader(page2, y, "E. RESUMEN DE TRATAMIENTO Y PROCEDIMIENTOS TERAPÉUTICOS");
-  y = drawTextAreaBlock(page2, y, 145, d.tratamiento || '');
-  y -= 8;
+  // 6. Hoja 2 - Condición al Egreso
+  setCheckBox('vivo', d.cond_vivo !== false);
+  setCheckBox('fallecido', d.cond_fallecido === true);
 
-  // Sección F: Indicaciones de Alta
-  y = drawSectionHeader(page2, y, "F. INDICACIONES DE ALTA / EGRESO");
-  y = drawTextAreaBlock(page2, y, 120, d.indicaciones_alta || '');
-  y -= 8;
+  // 7. Hoja 2 - Médicos Tratantes
+  setTextField('medico tratante_1_nombre', (d.medico_1_nombre || '').toUpperCase(), { align: TextAlignment.Left });
+  setTextField('medico tratante_1_especialidad', (d.medico_1_esp || '').toUpperCase());
+  setTextField('medico tratante_1_cedula', d.medico_1_doc || '');
+  setTextField('medico tratante_1_periodo responsabilidad', d.medico_1_periodo || '');
 
-  // Sección G: Diagnóstico de Alta / Egreso
-  y = drawSectionHeader(page2, y, "G. DIAGNÓSTICO DE ALTA / EGRESO");
-  
-  // Encabezados tabla G
-  page2.drawRectangle({
-    x: MARGIN_X, y: y - 12, width: CONTENT_WIDTH, height: 12,
-    color: rgb(0.96, 0.96, 0.96), borderWidth: 0.5, borderColor: COLOR_BORDER
-  });
-  page2.drawText("TIPO DE DIAGNÓSTICO", { x: MARGIN_X + 4, y: y - 9, size: 6, font: fontBold });
-  page2.drawText("DESCRIPCIÓN DEL DIAGNÓSTICO", { x: MARGIN_X + 120, y: y - 9, size: 6, font: fontBold });
-  page2.drawText("CIE-10", { x: PAGE_WIDTH - MARGIN_X - 50, y: y - 9, size: 6, font: fontBold });
-  y -= 12;
+  setTextField('medico tratante_2_nombre', (d.medico_2_nombre || '').toUpperCase(), { align: TextAlignment.Left });
+  setTextField('medico tratante_2_especialidad', (d.medico_2_esp || '').toUpperCase());
+  setTextField('medico tratante_2_cedula', d.medico_2_doc || '');
+  setTextField('medico tratante_2_periodo responsabilidad', d.medico_2_periodo || '');
 
-  const drawDiagRow = (tipoLabel, desc, cie) => {
-    drawCell(page2, MARGIN_X, y, 115, 15, null, tipoLabel, false, 7);
-    drawCell(page2, MARGIN_X + 115, y, CONTENT_WIDTH - 170, 15, null, (desc || '').toUpperCase(), true, 7);
-    drawCell(page2, PAGE_WIDTH - MARGIN_X - 55, y, 55, 15, null, (cie || '').toUpperCase(), true, 7.5);
-    y -= 15;
-  };
+  setTextField('medico tratante_3_nombre', (d.medico_3_nombre || '').toUpperCase(), { align: TextAlignment.Left });
+  setTextField('medico tratante_3_especialidad', (d.medico_3_esp || '').toUpperCase());
+  setTextField('medico tratante_3_cedula', d.medico_3_doc || '');
+  setTextField('medico tratante_3_periodo responsabilidad', d.medico_3_periodo || '');
 
-  drawDiagRow("DIAGNÓSTICO PRINCIPAL", d.diag_principal, d.cie_principal);
-  drawDiagRow("DIAGNÓSTICO SECUNDARIO 1", d.diag_sec_1, d.cie_sec_1);
-  drawDiagRow("DIAGNÓSTICO SECUNDARIO 2", d.diag_sec_2, d.cie_sec_2);
-  drawDiagRow("DIAGNÓSTICO SECUNDARIO 3", d.diag_sec_3, d.cie_sec_3);
-  if (d.diag_sec_4 || d.cie_sec_4) {
-    drawDiagRow("DIAGNÓSTICO SECUNDARIO 4", d.diag_sec_4, d.cie_sec_4);
+  setTextField('medico tratante_4_nombre', (d.medico_4_nombre || '').toUpperCase(), { align: TextAlignment.Left });
+  setTextField('medico tratante_4_especialidad', (d.medico_4_esp || '').toUpperCase());
+  setTextField('medico tratante_4_cedula', d.medico_4_doc || '');
+  setTextField('medico tratante_4_periodo responsabilidad', d.medico_4_periodo || '');
+
+  // 8. Hoja 2 - Profesional Responsable
+  const fechaFmt = d.resp_fecha ? d.resp_fecha.replace(/-/g, '') : '';
+  const horaFmt = d.resp_hora ? d.resp_hora.replace(':', '') : '';
+  setTextField('FECHA aaaammddRow1', fechaFmt);
+  setTextField('HORA hhmmRow1', horaFmt);
+  setTextField('PRIMER NOMBRE medico', (d.resp_nombre || '').toUpperCase());
+  setTextField('PRIMER apellido medico', (d.resp_primer_ape || '').toUpperCase());
+  setTextField('segundo apellido medico', (d.resp_segundo_ape || '').toUpperCase());
+  setTextField('NÚMERO DE DOCUMENTO DE IDENTIFICACIÓN medico', d.resp_doc || '');
+  setTextField('ELABORADO POR', d.resp_rol === 'ELABORADO' ? 'X' : '');
+  setTextField('REVISADO POR', d.resp_rol === 'REVISADO' ? 'X' : '');
+
+  // Aplanar formulario para máxima fidelidad visual oficial
+  try {
+    form.flatten();
+  } catch (errFlatten) {
+    console.warn('Aviso al aplanar formulario PDF:', errFlatten);
   }
-  if (d.diag_sec_5 || d.cie_sec_5) {
-    drawDiagRow("DIAGNÓSTICO SECUNDARIO 5", d.diag_sec_5, d.cie_sec_5);
-  }
-  drawDiagRow("CAUSA EXTERNA", d.diag_causa_ext, d.cie_causa_ext);
-  y -= 6;
 
-  // Sección H: Condición de Alta / Egreso
-  y = drawSectionHeader(page2, y, "H. CONDICIÓN DE ALTA / EGRESO");
-  const condVitalStr = d.cond_fallecido ? "[   ] VIVO      [ X ] FALLECIDO" : "[ X ] VIVO      [   ] FALLECIDO";
-  page2.drawRectangle({
-    x: MARGIN_X, y: y - 32, width: CONTENT_WIDTH, height: 32,
-    borderWidth: 0.5, borderColor: COLOR_BORDER
-  });
-  page2.drawText(`ESTADO VITAL:   ${condVitalStr}`, {
-    x: MARGIN_X + 6, y: y - 10, size: 7.5, font: fontBold
-  });
-
-  const altaMedicaChk = d.tipo_alta === 'ALTA_MEDICA' ? '[X]' : '[ ]';
-  const altaVolunChk = d.tipo_alta === 'ALTA_VOLUNTARIA' ? '[X]' : '[ ]';
-  const asintoChk = d.tipo_alta === 'ASINTOMATICO' ? '[X]' : '[ ]';
-  const discapChk = d.tipo_alta === 'DISCAPACIDAD' ? '[X]' : '[ ]';
-  const retiroChk = d.tipo_alta === 'RETIRO_NO_AUTORIZADO' ? '[X]' : '[ ]';
-  
-  page2.drawText(`${altaMedicaChk} ALTA MÉDICA    ${altaVolunChk} ALTA VOLUNTARIA    ${asintoChk} ASINTOMÁTICO    ${discapChk} DISCAPACIDAD    ${retiroChk} RETIRO NO AUTORIZADO`, {
-    x: MARGIN_X + 6, y: y - 22, size: 6.8, font: fontRegular
-  });
-  page2.drawText(`DÍAS DE ESTADA: ${d.dias_estada || '0'}         DÍAS DE REPOSO: ${d.dias_reposo || '0'}`, {
-    x: MARGIN_X + 340, y: y - 10, size: 7, font: fontBold
-  });
-  y -= 38;
-
-  // Sección I: Médicos Tratantes
-  y = drawSectionHeader(page2, y, "I. MÉDICOS TRATANTES");
-  drawCell(page2, MARGIN_X, y, 210, 14, null, "NOMBRE Y APELLIDOS", true, 6);
-  drawCell(page2, MARGIN_X + 210, y, 120, 14, null, "ESPECIALIDAD", true, 6);
-  drawCell(page2, MARGIN_X + 330, y, 110, 14, null, "No. IDENTIFICACIÓN", true, 6);
-  drawCell(page2, MARGIN_X + 440, y, CONTENT_WIDTH - 440, 14, null, "PERÍODO RESPONSABILIDAD", true, 6);
-  y -= 14;
-
-  const drawMedRow = (num, nom, esp, doc, per) => {
-    drawCell(page2, MARGIN_X, y, 210, 13, null, nom ? `${num}. ${nom}` : `${num}.`, false, 6.5);
-    drawCell(page2, MARGIN_X + 210, y, 120, 13, null, esp || '', false, 6.5);
-    drawCell(page2, MARGIN_X + 330, y, 110, 13, null, doc || '', false, 6.5);
-    drawCell(page2, MARGIN_X + 440, y, CONTENT_WIDTH - 440, 13, null, per || '', false, 6.5);
-    y -= 13;
-  };
-  drawMedRow(1, d.medico_1_nombre, d.medico_1_esp, d.medico_1_doc, d.medico_1_periodo);
-  drawMedRow(2, d.medico_2_nombre, d.medico_2_esp, d.medico_2_doc, d.medico_2_periodo);
-  y -= 6;
-
-  // Sección J: Profesional Responsable
-  y = drawSectionHeader(page2, y, "J. DATOS DEL PROFESIONAL RESPONSABLE");
-  drawCell(page2, MARGIN_X, y, 70, 20, "FECHA", d.resp_fecha || '', true, 7.5);
-  drawCell(page2, MARGIN_X + 70, y, 50, 20, "HORA", d.resp_hora || '', true, 7.5);
-  drawCell(page2, MARGIN_X + 120, y, 130, 20, "PRIMER NOMBRE", (d.resp_nombre || '').toUpperCase(), true, 7.5);
-  drawCell(page2, MARGIN_X + 250, y, 120, 20, "PRIMER APELLIDO", (d.resp_primer_ape || '').toUpperCase(), true, 7.5);
-  drawCell(page2, MARGIN_X + 370, y, 100, 20, "SEGUNDO APELLIDO", (d.resp_segundo_ape || '').toUpperCase(), true, 7.5);
-  drawCell(page2, MARGIN_X + 470, y, CONTENT_WIDTH - 470, 20, "No. IDENTIFICACIÓN", d.resp_doc || '', true, 7.5);
-  y -= 20;
-
-  // Rol elaborado/revisado
-  const elabChk = d.resp_rol === 'REVISADO' ? '[   ] ELABORADO POR' : '[ X ] ELABORADO POR';
-  const revChk = d.resp_rol === 'REVISADO' ? '[ X ] REVISADO POR' : '[   ] REVISADO POR';
-  page2.drawRectangle({
-    x: MARGIN_X, y: y - 18, width: CONTENT_WIDTH, height: 18,
-    borderWidth: 0.5, borderColor: COLOR_BORDER
-  });
-  page2.drawText(`${elabChk}                 ${revChk}                 FIRMA Y SELLO: ________________________________`, {
-    x: MARGIN_X + 10, y: y - 12, size: 7.5, font: fontBold, color: COLOR_TEXT
-  });
-
-  // Pie de Hoja 2
-  page2.drawText("SNS-MSP / HCU-form.006 / 2021", {
-    x: MARGIN_X, y: 15, size: 6.5, font: fontRegular, color: rgb(0.4, 0.4, 0.4)
-  });
-  page2.drawText("EPICRISIS (2)", {
-    x: PAGE_WIDTH - MARGIN_X - 60, y: 15, size: 7, font: fontBold, color: rgb(0.4, 0.4, 0.4)
-  });
-
-  const pdfBytes = await pdfDoc.save();
-  return new Blob([pdfBytes], { type: 'application/pdf' });
+  const pdfSalidaBytes = await pdfDoc.save();
+  return new Blob([pdfSalidaBytes], { type: 'application/pdf' });
 }
 
 // -------------------------------------------------------------
@@ -916,18 +928,46 @@ export function inicializarEventosEpicrisis() {
 
   if (txtCuadro && txtEvolucion) {
     txtEvolucion.addEventListener('input', () => {
-      // Si el usuario borra todo o escribe algo distinto, marcamos que hubo edición manual
       _usuarioEditoEvolucionManualmente = (txtEvolucion.value !== txtCuadro.value);
     });
 
     txtCuadro.addEventListener('input', () => {
       if (!_usuarioEditoEvolucionManualmente) {
         txtEvolucion.value = txtCuadro.value;
-        // Notificar guardado automático si aplica
+        txtEvolucion.dispatchEvent(new Event('input', { bubbles: true }));
         txtEvolucion.dispatchEvent(new Event('change', { bubbles: true }));
       }
     });
   }
+
+  // Sincronización automática de médico tratante principal hacia datos del médico
+  const medNombre = document.getElementById('epicrisis_med1_nombre');
+  const medDoc = document.getElementById('epicrisis_med1_doc');
+  if (medNombre) {
+    medNombre.addEventListener('input', () => {
+      const { primerNombre, primerApellido, segundoApellido } = desglosarNombreMedico(medNombre.value);
+      const respNom = document.getElementById('epicrisis_resp_nombre');
+      const respApe1 = document.getElementById('epicrisis_resp_primer_ape');
+      const respApe2 = document.getElementById('epicrisis_resp_segundo_ape');
+      if (respNom && !respNom.dataset.edited) respNom.value = primerNombre;
+      if (respApe1 && !respApe1.dataset.edited) respApe1.value = primerApellido;
+      if (respApe2 && !respApe2.dataset.edited) respApe2.value = segundoApellido;
+    });
+  }
+  if (medDoc) {
+    medDoc.addEventListener('input', () => {
+      const respDoc = document.getElementById('epicrisis_resp_doc');
+      if (respDoc && !respDoc.dataset.edited) respDoc.value = medDoc.value;
+    });
+  }
+
+  // Marcar si el usuario edita manualmente los campos desglosados de responsable
+  ['epicrisis_resp_nombre', 'epicrisis_resp_primer_ape', 'epicrisis_resp_segundo_ape', 'epicrisis_resp_doc'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.addEventListener('input', () => { el.dataset.edited = 'true'; });
+    }
+  });
 
   inicializarBuscadorCie10Epicrisis();
 }
@@ -1033,7 +1073,6 @@ export function buscarCie10(query, maxResultados = 30) {
       } else if (!esUnSoloCaracter && item.searchDesc.includes(qNorm)) {
         terciarios.push({ ...item, score: 50 });
       } else if (esUnSoloCaracter && (item.searchDesc.startsWith(qNorm) || item.searchDesc.includes(' ' + qNorm))) {
-        // Para 1 carácter, solo palabras que inician con ese carácter, NUNCA subcadenas intermedias
         terciarios.push({ ...item, score: 40 });
       }
     } else {
@@ -1064,7 +1103,6 @@ const PAREJAS_DIAGNOSTICO_EPICRISIS = [
 ];
 
 export function inicializarBuscadorCie10Epicrisis() {
-  // Pre-cargar catálogo de forma asíncrona en segundo plano
   cargarCatalogoCie10Local();
 
   PAREJAS_DIAGNOSTICO_EPICRISIS.forEach(({ descId, cieId }) => {
@@ -1072,13 +1110,9 @@ export function inicializarBuscadorCie10Epicrisis() {
     const cieInput = document.getElementById(cieId);
     if (!descInput || !cieInput) return;
 
-    // Configurar autocompletado en el campo de descripción
     configurarAutocompleteInput(descInput, descInput, cieInput);
-
-    // Configurar autocompletado en el campo de código CIE
     configurarAutocompleteInput(cieInput, descInput, cieInput);
 
-    // Al salir del campo de código, formatear automáticamente si se ingresó sin punto
     cieInput.addEventListener('blur', () => {
       const val = cieInput.value.trim();
       const fmt = formatearCie10Codigo(val);
@@ -1095,7 +1129,6 @@ function configurarAutocompleteInput(inputElement, descInput, cieInput) {
   const container = inputElement.parentElement;
   if (!container) return;
 
-  // Evitar duplicar menú
   let menu = container.querySelector('.cie10-autocomplete-menu');
   if (!menu) {
     menu = document.createElement('div');
@@ -1135,7 +1168,7 @@ function configurarAutocompleteInput(inputElement, descInput, cieInput) {
       row.appendChild(desc);
 
       row.addEventListener('mousedown', (e) => {
-        e.preventDefault(); // Prevenir blur antes de procesar selección
+        e.preventDefault();
         seleccionarItem(item);
       });
 
@@ -1227,7 +1260,7 @@ function configurarAutocompleteInput(inputElement, descInput, cieInput) {
   });
 }
 
-// Exponer en window para llamadas desde botones inline
+// Exponer en window para llamadas desde botones inline y eventos DOM
 if (typeof window !== 'undefined') {
   window.descargarEpicrisisSegura = descargarEpicrisisSegura;
   window.recopilarDatosEpicrisis = recopilarDatosEpicrisis;
@@ -1235,4 +1268,7 @@ if (typeof window !== 'undefined') {
   window.buscarCie10 = buscarCie10;
   window.formatearCie10Codigo = formatearCie10Codigo;
   window.inicializarBuscadorCie10Epicrisis = inicializarBuscadorCie10Epicrisis;
+  window.limpiarTextoAS400 = limpiarTextoAS400;
+  window.limpiarTextoAS400EnTextarea = limpiarTextoAS400EnTextarea;
+  window.desglosarNombreMedico = desglosarNombreMedico;
 }
