@@ -164,14 +164,21 @@ assert(epicrisisJs.includes('registrarFichaGenerada'), 'epicrisis.js must import
 assert(epicrisisJs.includes("modo: 'epicrisis'"), 'epicrisis.js must pass modo: "epicrisis"');
 console.log('✓ PASS: epicrisis.js successfully hooked to document counter for Epicrisis PDF & Excel');
 
-// 4. Verify UI elements in index.html
+// 4. Verify discreet UI in index.html and dblclick trigger
 const html = fs.readFileSync(path.resolve(__dirname, '../index.html'), 'utf8');
-assert(html.includes('id="btnStatsHeader"'), 'index.html must contain #btnStatsHeader button');
-assert(html.includes('id="badgeTotalFichas"'), 'index.html must contain #badgeTotalFichas');
-assert(html.includes('id="btnStatsMenu"'), 'index.html must contain #btnStatsMenu in offcanvas');
-assert(html.includes('id="lblConteoFooter"'), 'index.html must contain #lblConteoFooter in footer');
-assert(html.includes('mostrarModalEstadisticas()'), 'index.html must bind click to mostrarModalEstadisticas()');
-console.log('✓ PASS: UI elements (header button, badge, offcanvas item, footer counter) verified in index.html');
+assert(!html.includes('id="btnStatsHeader"'), 'index.html must not show visible counter button in header');
+assert(!html.includes('id="btnStatsMenu"'), 'index.html must not show visible stats menu button');
+assert(html.includes('id="devSignature"'), 'index.html must contain #devSignature in footer');
+assert(
+  html.includes('id="devSignature"') && html.includes('ondblclick="window.mostrarModalEstadisticas()"'),
+  '#devSignature must bind ondblclick to mostrarModalEstadisticas()'
+);
+assert(
+  html.includes('Desarrollado por Jhojann Demera') && !html.includes('fichas generadas</span> (Ver estadísticas)'),
+  '#devSignature must only display "Desarrollado por Jhojann Demera" without visible counter or stats text'
+);
+assert(apiJs.includes("devSig.addEventListener('dblclick'"), 'api.js must listen to dblclick event on #devSignature');
+console.log('✓ PASS: Discreet footer signature verified with double-click stats trigger and clean text');
 
 // 5. Verify styles in styles.css
 const stylesCss = fs.readFileSync(path.resolve(__dirname, '../styles.css'), 'utf8');

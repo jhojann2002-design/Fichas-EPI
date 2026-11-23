@@ -100,13 +100,6 @@
 
   <!-- DERECHA: Acciones Rápidas (Tema, Limpiar, Exportar) -->
   <div class="d-flex align-items-center gap-2">
-    <!-- Contador y Estadísticas de Fichas -->
-    <button type="button" id="btnStatsHeader" class="btn-apple-stats" onclick="window.mostrarModalEstadisticas()" title="Ver estadísticas y conteo de fichas generadas">
-      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
-      <span class="d-none d-sm-inline" style="font-size: 0.8rem; font-weight: 500;">Fichas:</span>
-      <span id="badgeTotalFichas" class="badge-stats-count">0</span>
-    </button>
-
     <!-- Tema Oscuro -->
     <button class="theme-toggle flex-shrink-0" id="themeToggle" title="Alternar Modo Oscuro" type="button" aria-label="Alternar Modo Oscuro">
       <svg id="moonIcon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
@@ -148,15 +141,6 @@
     <button type="button" id="btnMedicosMenu" class="btn-apple w-100" style="background-color: var(--apple-input-bg); color: var(--apple-text); border: 1px solid var(--apple-border); display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 14px; font-weight: 500; box-shadow: none;" onclick="window.abrirGestionMedicos()">
       <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><polyline points="17 11 19 13 23 9"></polyline></svg>
       <span>Médicos Frecuentes</span>
-    </button>
-
-    <!-- Botón Estadísticas y Conteo de Fichas -->
-    <button type="button" id="btnStatsMenu" class="btn-apple w-100" style="background-color: var(--apple-input-bg); color: var(--apple-text); border: 1px solid var(--apple-border); display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; font-weight: 500; box-shadow: none;" onclick="window.mostrarModalEstadisticas()">
-      <div class="d-flex align-items-center gap-2">
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--apple-blue);"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
-        <span>Estadísticas de Fichas</span>
-      </div>
-      <span id="lblConteoMenu" class="badge bg-primary bg-opacity-10 text-primary fw-bold" style="font-size: 0.78rem; padding: 4px 8px; border-radius: 999px;">0 fichas</span>
     </button>
 
     <!-- Botón Instalar App (PWA) -->
@@ -2121,8 +2105,8 @@
     </button>
   </div>
 
-  <div class="developer-signature" id="devSignature" title="Toca para ver estadísticas de fichas generadas" onclick="window.mostrarModalEstadisticas()" style="cursor: pointer;">
-    Desarrollado por Jhojann Demera • <span id="lblConteoFooter" class="fw-semibold" style="color: var(--apple-blue);">0 fichas generadas</span> (Ver estadísticas)
+  <div class="developer-signature" id="devSignature" title="Desarrollado por Jhojann Demera" ondblclick="window.mostrarModalEstadisticas()" style="cursor: pointer; user-select: none;">
+    Desarrollado por Jhojann Demera
   </div>
 </div>
 

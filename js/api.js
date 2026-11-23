@@ -16,8 +16,17 @@ export function initApiListeners() {
     devSig.addEventListener('dblclick', () => {
       mostrarModalEstadisticas();
     });
-    devSig.addEventListener('click', () => {
-      mostrarModalEstadisticas();
+
+    // Soporte para doble toque rápido en pantallas táctiles / móviles
+    let lastTap = 0;
+    devSig.addEventListener('touchend', (e) => {
+      const currentTime = new Date().getTime();
+      const tapLength = currentTime - lastTap;
+      if (tapLength < 400 && tapLength > 0) {
+        e.preventDefault();
+        mostrarModalEstadisticas();
+      }
+      lastTap = currentTime;
     });
   }
 }
