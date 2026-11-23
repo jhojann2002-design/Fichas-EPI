@@ -1810,7 +1810,7 @@
           </div>
 
           <!-- Diagnósticos Secundarios (1 al 5) -->
-          <div class="row g-2 mb-2 align-items-center">
+          <div class="row g-2 mb-2 align-items-center" id="filaDiagSec1">
             <div class="col-12 col-md-3">
               <label class="text-muted" style="font-size: 0.82rem;">Diagnóstico Secundario 1:</label>
             </div>
@@ -1822,54 +1822,81 @@
             </div>
           </div>
 
-          <div class="row g-2 mb-2 align-items-center">
+          <div class="row g-2 mb-2 align-items-center" id="filaDiagSec2" style="display: none;">
             <div class="col-12 col-md-3">
               <label class="text-muted" style="font-size: 0.82rem;">Diagnóstico Secundario 2:</label>
             </div>
-            <div class="col-8 col-md-7 position-relative">
+            <div class="col-7 col-md-6 position-relative">
               <input type="text" id="epicrisis_diag_sec_2" class="form-control form-control-sm save-state cie10-search-desc" placeholder="Diagnóstico secundario 2" autocomplete="off">
             </div>
-            <div class="col-4 col-md-2 position-relative">
+            <div class="col-3 col-md-2 position-relative">
               <input type="text" id="epicrisis_cie_sec_2" class="form-control form-control-sm save-state text-uppercase text-center cie10-search-code" placeholder="CIE-10" autocomplete="off">
+            </div>
+            <div class="col-2 col-md-1 text-end">
+              <button type="button" class="btn btn-sm btn-outline-danger w-100" onclick="window.eliminarDiagnosticoSecundario(2)" title="Quitar este diagnóstico">
+                <i class="bi bi-trash"></i>
+              </button>
             </div>
           </div>
 
-          <div class="row g-2 mb-2 align-items-center">
+          <div class="row g-2 mb-2 align-items-center" id="filaDiagSec3" style="display: none;">
             <div class="col-12 col-md-3">
               <label class="text-muted" style="font-size: 0.82rem;">Diagnóstico Secundario 3:</label>
             </div>
-            <div class="col-8 col-md-7 position-relative">
+            <div class="col-7 col-md-6 position-relative">
               <input type="text" id="epicrisis_diag_sec_3" class="form-control form-control-sm save-state cie10-search-desc" placeholder="Diagnóstico secundario 3" autocomplete="off">
             </div>
-            <div class="col-4 col-md-2 position-relative">
+            <div class="col-3 col-md-2 position-relative">
               <input type="text" id="epicrisis_cie_sec_3" class="form-control form-control-sm save-state text-uppercase text-center cie10-search-code" placeholder="CIE-10" autocomplete="off">
+            </div>
+            <div class="col-2 col-md-1 text-end">
+              <button type="button" class="btn btn-sm btn-outline-danger w-100" onclick="window.eliminarDiagnosticoSecundario(3)" title="Quitar este diagnóstico">
+                <i class="bi bi-trash"></i>
+              </button>
             </div>
           </div>
 
           <!-- Diagnóstico Secundario 4 -->
-          <div class="row g-2 mb-2 align-items-center">
+          <div class="row g-2 mb-2 align-items-center" id="filaDiagSec4" style="display: none;">
             <div class="col-12 col-md-3">
               <label class="text-muted" style="font-size: 0.82rem;">Diagnóstico Secundario 4:</label>
             </div>
-            <div class="col-8 col-md-7 position-relative">
+            <div class="col-7 col-md-6 position-relative">
               <input type="text" id="epicrisis_diag_sec_4" class="form-control form-control-sm save-state cie10-search-desc" placeholder="Diagnóstico secundario 4" autocomplete="off">
             </div>
-            <div class="col-4 col-md-2 position-relative">
+            <div class="col-3 col-md-2 position-relative">
               <input type="text" id="epicrisis_cie_sec_4" class="form-control form-control-sm save-state text-uppercase text-center cie10-search-code" placeholder="CIE-10" autocomplete="off">
+            </div>
+            <div class="col-2 col-md-1 text-end">
+              <button type="button" class="btn btn-sm btn-outline-danger w-100" onclick="window.eliminarDiagnosticoSecundario(4)" title="Quitar este diagnóstico">
+                <i class="bi bi-trash"></i>
+              </button>
             </div>
           </div>
 
           <!-- Diagnóstico Secundario 5 -->
-          <div class="row g-2 mb-3 align-items-center">
+          <div class="row g-2 mb-2 align-items-center" id="filaDiagSec5" style="display: none;">
             <div class="col-12 col-md-3">
               <label class="text-muted" style="font-size: 0.82rem;">Diagnóstico Secundario 5:</label>
             </div>
-            <div class="col-8 col-md-7 position-relative">
+            <div class="col-7 col-md-6 position-relative">
               <input type="text" id="epicrisis_diag_sec_5" class="form-control form-control-sm save-state cie10-search-desc" placeholder="Diagnóstico secundario 5" autocomplete="off">
             </div>
-            <div class="col-4 col-md-2 position-relative">
+            <div class="col-3 col-md-2 position-relative">
               <input type="text" id="epicrisis_cie_sec_5" class="form-control form-control-sm save-state text-uppercase text-center cie10-search-code" placeholder="CIE-10" autocomplete="off">
             </div>
+            <div class="col-2 col-md-1 text-end">
+              <button type="button" class="btn btn-sm btn-outline-danger w-100" onclick="window.eliminarDiagnosticoSecundario(5)" title="Quitar este diagnóstico">
+                <i class="bi bi-trash"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Botón para agregar diagnóstico secundario -->
+          <div class="mb-3 mt-1" id="contenedorBtnAgregarDiagSec">
+            <button type="button" class="btn btn-sm btn-outline-primary" id="btnAgregarDiagSec" onclick="window.agregarDiagnosticoSecundario()">
+              <i class="bi bi-plus-circle me-1"></i> + Agregar Diagnóstico Secundario
+            </button>
           </div>
 
           <!-- Causa Externa -->

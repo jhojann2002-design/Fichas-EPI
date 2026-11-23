@@ -233,66 +233,89 @@ export function limpiarTextoAS400(texto) {
   // 1. Normalizar saltos de línea a \n
   str = str.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
 
-  // 2. Eliminar caracteres de control invisibles que provienen del emulador de terminal
+  // 2. Eliminar caracteres de control invisibles de emuladores de terminal
   str = str.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
 
-  // 3. Si en medio del texto hay viñetas separadas por espacios (ej: "...C/8H - DIETA BLANDA"), asegurar salto de línea antes de cada viñeta
-  str = str.replace(/[ \t]+([-*•\u2013\u2014])\s*([A-Za-z0-9áéíóúüñÁÉÍÓÚÜÑ])/gu, '\n$1 $2');
+  // 3. Convertir todos los tipos de espacios Unicode y tabs (incluyendo non-breaking spaces \u00A0) a espacio regular
+  str = str.replace(/[\t\u00A0\u1680\u2000-\u200A\u202F\u205F\u3000]/g, ' ');
 
-  // 4. Unir palabras cortadas por guion al final de línea (ej: "HIPERTEN-\nsion" -> "HIPERTENsion")
-  str = str.replace(/([A-Za-z0-9áéíóúüñÁÉÍÓÚÜÑ]{2,})-\n\s*([a-záéíóúüñ]{2,})/gu, '$1$2');
+  // 4. Unir palabras cortadas por guion al final de línea (ej: "HIPERTEN-\nSION" o "hiperten-\nsion")
+  str = str.replace(/([A-Za-z0-9áéíóúüñÁÉÍÓÚÜÑ]{2,})-[ \t]*\n[ \t]*([A-Za-z0-9áéíóúüñÁÉÍÓÚÜÑ]{2,})/gu, '$1$2');
 
-  // 5. Procesar líneas respetando viñetas como "enters" individuales y uniendo prosa partida
-  const lineas = str.split('\n');
-  const lineasProcesadas = [];
-  let bufferProsa = '';
+  // 5. Si dentro de una misma línea vienen viñetas separadas por espacios (ej: "... C/8H - DIETA BLANDA"), forzar enter
+  str = str.replace(/[ \t]+([-*•\u2013\u2014]|\d+[.)\-])[ \t]+([A-Za-z0-9áéíóúüñÁÉÍÓÚÜÑ])/gu, '\n$1 $2');
 
-  for (let i = 0; i < lineas.length; i++) {
-    let linea = lineas[i].trim();
+  // 6. Procesar líneas respetando viñetas como "enters" individuales y uniendo texto envuelto (wrap de 80 cols)
+  const lineasRaw = str.split('\n');
+  const items = [];
+  let buffer = '';
+  let bufferTipo = null; // "header", "vineta", "prosa"
+
+  for (let i = 0; i < lineasRaw.length; i++) {
+    const raw = lineasRaw[i];
+    let linea = raw.replace(/ {2,}/g, ' ').trim();
+
     if (!linea) {
-      if (bufferProsa) {
-        lineasProcesadas.push(bufferProsa);
-        bufferProsa = '';
+      if (buffer) {
+        items.push(buffer);
+        buffer = '';
+        bufferTipo = null;
       }
       continue;
     }
 
-    // Colapsar espacios múltiples horizontales
-    linea = linea.replace(/[ \t]{2,}/g, ' ');
+    // Quitar espacios huérfanos antes de signos de puntuación: " , " -> ", "
+    linea = linea.replace(/\s+([,.:;?!])/g, '$1');
 
-    // Comprobar si la línea es una viñeta (inicia con guion, asterisco, bullet o número)
-    const esVineta = /^([-*•\u2013\u2014]|\d+[.)\-])\s*/.test(linea);
-    const terminaEnDosPuntos = /:\s*$/.test(bufferProsa);
+    // Verificar si la línea es viñeta (inicia con guion, asterisco, bullet o número)
+    const matchVineta = linea.match(/^([-*•\u2013\u2014]|\d+[.)\-])\s*(.*)$/u);
+    const esVineta = Boolean(matchVineta);
+    const terminaEnDosPuntos = /:\s*$/.test(linea);
 
     if (esVineta) {
-      if (bufferProsa) {
-        lineasProcesadas.push(bufferProsa);
-        bufferProsa = '';
+      if (buffer) {
+        items.push(buffer);
       }
-      // Asegurar espacio tras el guion si viene pegado al texto
-      if (/^[-*•\u2013\u2014][A-Za-z0-9áéíóúüñÁÉÍÓÚÜÑ]/.test(linea)) {
-        linea = linea.charAt(0) + ' ' + linea.slice(1);
-      }
-      lineasProcesadas.push(linea);
+      const simbolo = matchVineta[1];
+      const resto = matchVineta[2].trim();
+      buffer = resto ? (simbolo + ' ' + resto) : simbolo;
+      bufferTipo = 'vineta';
     } else if (terminaEnDosPuntos) {
-      if (bufferProsa) {
-        lineasProcesadas.push(bufferProsa);
+      if (buffer) {
+        items.push(buffer);
       }
-      bufferProsa = linea;
+      buffer = linea;
+      bufferTipo = 'header';
     } else {
-      if (bufferProsa) {
-        bufferProsa += ' ' + linea;
+      // Línea de texto ordinario
+      if (!buffer) {
+        buffer = linea;
+        bufferTipo = 'prosa';
+      } else if (bufferTipo === 'header') {
+        items.push(buffer);
+        buffer = linea;
+        bufferTipo = 'prosa';
+      } else if (bufferTipo === 'vineta') {
+        // En AS400, si la línea previa era viñeta y esta no lo es, es continuación del texto de la viñeta
+        buffer += ' ' + linea;
       } else {
-        bufferProsa = linea;
+        // Unir líneas de prosa partida
+        buffer += ' ' + linea;
       }
     }
   }
 
-  if (bufferProsa) {
-    lineasProcesadas.push(bufferProsa);
+  if (buffer) {
+    items.push(buffer);
   }
 
-  return lineasProcesadas.join('\n').trim();
+  // Limpieza final de cada ítem: colapsar espacios y asegurar viñetas limpias
+  return items.map(it => {
+    let s = it.replace(/ {2,}/g, ' ');
+    s = s.replace(/\s+([,.:;?!])/g, '$1');
+    s = s.replace(/^([-*•\u2013\u2014]|\d+[.)\-])\s+/u, '$1 ');
+    return s.trim();
+  }).filter(Boolean).join('\n');
 }
 
 export function limpiarTextoAS400EnTextarea(id) {
@@ -998,6 +1021,78 @@ export function eliminarMedicoAdicional(num) {
 }
 
 // -------------------------------------------------------------
+// GESTIÓN DINÁMICA DE DIAGNÓSTICOS SECUNDARIOS
+// -------------------------------------------------------------
+export function actualizarBotonAgregarDiagSec() {
+  if (typeof document === 'undefined') return;
+  const btn = document.getElementById('btnAgregarDiagSec');
+  if (!btn) return;
+  const fila5 = document.getElementById('filaDiagSec5');
+  const todasVisibles = fila5 && (fila5.style.display === 'flex' || (typeof window !== 'undefined' && window.getComputedStyle && window.getComputedStyle(fila5).display !== 'none'));
+  btn.style.display = todasVisibles ? 'none' : 'inline-block';
+}
+
+export function agregarDiagnosticoSecundario() {
+  if (typeof document === 'undefined') return null;
+  for (let i = 2; i <= 5; i++) {
+    const fila = document.getElementById(`filaDiagSec${i}`);
+    if (fila && (fila.style.display === 'none' || (typeof window !== 'undefined' && window.getComputedStyle && window.getComputedStyle(fila).display === 'none'))) {
+      fila.style.display = 'flex';
+      const inputDesc = document.getElementById(`epicrisis_diag_sec_${i}`);
+      if (inputDesc) inputDesc.focus();
+      actualizarBotonAgregarDiagSec();
+      return i;
+    }
+  }
+  if (typeof Swal !== 'undefined') {
+    Swal.fire({
+      icon: 'info',
+      title: 'Límite alcanzado',
+      text: 'El Formulario 006 admite un máximo de 5 diagnósticos secundarios.'
+    });
+  }
+  return null;
+}
+
+export function eliminarDiagnosticoSecundario(num) {
+  if (typeof document === 'undefined') return;
+  const fila = document.getElementById(`filaDiagSec${num}`);
+  if (fila) {
+    fila.style.display = 'none';
+  }
+  const descEl = document.getElementById(`epicrisis_diag_sec_${num}`);
+  const cieEl = document.getElementById(`epicrisis_cie_sec_${num}`);
+  if (descEl) {
+    descEl.value = '';
+    descEl.dispatchEvent(new Event('input', { bubbles: true }));
+    descEl.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+  if (cieEl) {
+    cieEl.value = '';
+    cieEl.dispatchEvent(new Event('input', { bubbles: true }));
+    cieEl.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+  actualizarBotonAgregarDiagSec();
+}
+
+export function actualizarVisibilidadDiagnosticosSecundarios() {
+  if (typeof document === 'undefined') return;
+  for (let i = 2; i <= 5; i++) {
+    const desc = getVal(`epicrisis_diag_sec_${i}`);
+    const cie = getVal(`epicrisis_cie_sec_${i}`);
+    const fila = document.getElementById(`filaDiagSec${i}`);
+    if (fila) {
+      if (desc || cie) {
+        fila.style.display = 'flex';
+      } else {
+        fila.style.display = 'none';
+      }
+    }
+  }
+  actualizarBotonAgregarDiagSec();
+}
+
+// -------------------------------------------------------------
 // VINCULACIÓN EN TIEMPO REAL: PUNTO B -> PUNTO C
 // -------------------------------------------------------------
 let _usuarioEditoEvolucionManualmente = false;
@@ -1094,6 +1189,7 @@ export function inicializarEventosEpicrisis() {
   }
 
   inicializarBuscadorCie10Epicrisis();
+  actualizarVisibilidadDiagnosticosSecundarios();
 }
 
 // -------------------------------------------------------------
@@ -1397,4 +1493,7 @@ if (typeof window !== 'undefined') {
   window.desglosarNombreMedico = desglosarNombreMedico;
   window.agregarMedicoAdicional = agregarMedicoAdicional;
   window.eliminarMedicoAdicional = eliminarMedicoAdicional;
+  window.agregarDiagnosticoSecundario = agregarDiagnosticoSecundario;
+  window.eliminarDiagnosticoSecundario = eliminarDiagnosticoSecundario;
+  window.actualizarVisibilidadDiagnosticosSecundarios = actualizarVisibilidadDiagnosticosSecundarios;
 }

@@ -211,6 +211,14 @@ function resetearCamposBaseEnDOM(modo) {
       if (b) b.style.display = 'none';
     });
 
+    // Ocultar filas de diagnósticos secundarios adicionales (2 al 5)
+    for (let i = 2; i <= 5; i++) {
+      const fila = document.getElementById(`filaDiagSec${i}`);
+      if (fila) fila.style.display = 'none';
+    }
+    const btnDiagSec = document.getElementById('btnAgregarDiagSec');
+    if (btnDiagSec) btnDiagSec.style.display = '';
+
     const fAteEl = document.getElementById('fecha_atencion');
     if (fAteEl && !fAteEl.value) fAteEl.value = new Date().toISOString().slice(0, 10);
     const respFecha = document.getElementById('epicrisis_resp_fecha');
@@ -420,6 +428,9 @@ export function loadFormData(modoExplicito = null, desdeCambioModo = false) {
           b.style.display = tieneDatos ? 'block' : 'none';
         }
       });
+      if (typeof window.actualizarVisibilidadDiagnosticosSecundarios === 'function') {
+        window.actualizarVisibilidadDiagnosticosSecundarios();
+      }
       window.actualizarBadgeEdad?.();
     }
 

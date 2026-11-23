@@ -102,13 +102,34 @@ console.log('✓ PASS: Point F is centered in PDF and HTML');
 assert(epicrisisCode.includes("d.medico_1_periodo || d.resp_fecha"), 'Período de responsabilidad falls back to resp_fecha');
 console.log('✓ PASS: Período de responsabilidad has date fallback');
 
-// Checks AS400 cleaning preserves bullet points with newlines
-assert(epicrisisCode.includes('limpiarTextoAS400'), 'limpiarTextoAS400 exists');
-const limpiarRegexMatches = [
-  '- PRIMERA VIÑETA\n- SEGUNDA VIÑETA',
-  '• PUNTO 1\n• PUNTO 2'
-];
-console.log('✓ PASS: AS400 cleaning functionality verified');
+// Checks AS400 cleaning preserves bullet points with newlines and cleans rogue spaces
+assert(epicrisisCode.includes('export function limpiarTextoAS400'), 'limpiarTextoAS400 exists');
+
+// Extraer y evaluar limpiarTextoAS400 para pruebas unitarias directas
+const limpiarFnMatch = epicrisisCode.match(/export function limpiarTextoAS400\([\s\S]*?\n\}/);
+assert(limpiarFnMatch, 'limpiarTextoAS400 function definition found');
+const fnCode = limpiarFnMatch[0].replace('export function limpiarTextoAS400', 'function limpiarTextoAS400');
+const limpiarTestFn = new Function(`${fnCode}; return limpiarTextoAS400;`)();
+
+const as400Raw = `-   CEFTRIAXONA 1G IV   C/12H\n- \u00A0 \u00A0PARACETAMOL 1G VO  , PRN DOLOR .\n- DIETA HIPOSODICA CON\n  ABUNDANTE LIQUIDO ORAL`;
+const as400Cleaned = limpiarTestFn(as400Raw);
+assert.strictEqual(
+  as400Cleaned,
+  '- CEFTRIAXONA 1G IV C/12H\n- PARACETAMOL 1G VO, PRN DOLOR.\n- DIETA HIPOSODICA CON ABUNDANTE LIQUIDO ORAL',
+  'limpiarTextoAS400 must clean non-breaking spaces, multi-spaces, punctuation spacing, and join wrapped bullet lines'
+);
+console.log('✓ PASS: AS400 cleaning functionality verified with real-world edge cases (viñetas, NBSP, punctuation spacing)');
+
+// Checks that Diagnósticos Secundarios 2-5 are collapsible with remove buttons and dynamic add button
+assert(html.includes('id="filaDiagSec2"') && html.includes('id="filaDiagSec5"'), 'filaDiagSec2 through filaDiagSec5 exist');
+for (let i = 2; i <= 5; i++) {
+  assert(html.includes(`id="filaDiagSec${i}"`) && html.includes(`onclick="window.eliminarDiagnosticoSecundario(${i})"`), `Fila ${i} has removal button`);
+}
+assert(html.includes('id="btnAgregarDiagSec"') && html.includes('window.agregarDiagnosticoSecundario()'), 'btnAgregarDiagSec exists');
+assert(epicrisisCode.includes('function agregarDiagnosticoSecundario'), 'agregarDiagnosticoSecundario exists in epicrisis.js');
+assert(epicrisisCode.includes('function eliminarDiagnosticoSecundario'), 'eliminarDiagnosticoSecundario exists in epicrisis.js');
+assert(epicrisisCode.includes('function actualizarVisibilidadDiagnosticosSecundarios'), 'actualizarVisibilidadDiagnosticosSecundarios exists in epicrisis.js');
+console.log('✓ PASS: Dynamic secondary diagnoses (hidden 2-5 by default, add/remove buttons) verified');
 
 // Checks that agregarMedicoAdicional and eliminarMedicoAdicional exist
 assert(epicrisisCode.includes('function agregarMedicoAdicional'), 'agregarMedicoAdicional function exists');
