@@ -135,4 +135,22 @@ assert(!epicrisisContainer.includes('type="date"'), 'No duplicate date input ins
 assert(epicrisisContainer.includes('<input type="hidden" id="epicrisis_med1_periodo">'), 'med1_periodo is hidden to avoid duplicate date prompt');
 console.log('✓ PASS: Single date at top, hour/unicodigo/hoja at top, no duplicate date prompts');
 
+// 10. Verify visual and functional unification of top cards
+const mainJs = fs.readFileSync(path.resolve(__dirname, '../js/main.js'), 'utf8');
+const stylesCss = fs.readFileSync(path.resolve(__dirname, '../styles.css'), 'utf8');
+
+assert(
+  mainJs.includes("txtTituloUnidad.innerText = 'Establecimiento de Salud'"),
+  'In Epicrisis, card title must be "Establecimiento de Salud" without "notificador"'
+);
+assert(
+  !mainJs.includes("'Establecimiento Notificador (Epicrisis)'"),
+  'main.js must not contain "Establecimiento Notificador"'
+);
+assert(html.includes('id="badgeSeccionA"'), 'badgeSeccionA exists for Section A');
+assert(stylesCss.includes('.apple-card {'), '.apple-card class is formally defined in styles.css');
+assert(stylesCss.includes('body[data-modo="epicrisis"] #accordionFicha > .accordion-item:first-child .accordion-button::after'), 'Chevron is hidden on identification card in epicrisis');
+assert(html.includes('id="edad_epicrisis"') && html.includes('id="condicion_edad_epicrisis"'), 'Edad and Condicion inputs exist');
+console.log('✓ PASS: Top cards visually and functionally unified with rest of Epicrisis');
+
 console.log('\nAll Epicrisis Refinement Tests Passed Successfully!');

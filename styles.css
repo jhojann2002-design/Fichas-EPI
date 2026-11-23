@@ -957,12 +957,102 @@ body:not([data-modo="epicrisis"]) .mostrar-solo-epicrisis {
   display: none !important;
 }
 
+/* ========================================================
+   DISEÑO UNIFICADO DE TARJETAS (APPLE-CARD) Y MODO EPICRISIS
+   ======================================================== */
+.apple-card {
+  border: 1px solid var(--apple-border) !important;
+  border-radius: 18px !important;
+  background-color: var(--apple-card) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03) !important;
+  margin-bottom: 24px;
+  padding: 24px;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+body[data-modo="epicrisis"] #cardEstablecimiento {
+  border: 1px solid var(--apple-border) !important;
+  border-radius: 18px !important;
+  background-color: var(--apple-card) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03) !important;
+  margin-bottom: 24px !important;
+}
+
+body[data-modo="epicrisis"] #cardEstablecimiento .card-header-custom {
+  background: transparent !important;
+  color: var(--apple-blue) !important;
+  font-size: 1.08rem;
+  font-weight: 700;
+  padding: 22px 24px 12px !important;
+  border: none !important;
+}
+
+body[data-modo="epicrisis"] #cardEstablecimiento .card-body {
+  padding: 0 24px 24px !important;
+}
+
+body[data-modo="epicrisis"] #accordionFicha {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+body[data-modo="epicrisis"] #accordionFicha > .accordion-item:first-child {
+  border: 1px solid var(--apple-border) !important;
+  border-radius: 18px !important;
+  background-color: var(--apple-card) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03) !important;
+  margin-bottom: 24px !important;
+  overflow: visible !important;
+}
+
+body[data-modo="epicrisis"] #accordionFicha > .accordion-item:first-child .accordion-header {
+  border: none !important;
+  background: transparent !important;
+}
+
+body[data-modo="epicrisis"] #accordionFicha > .accordion-item:first-child .accordion-button {
+  background: transparent !important;
+  color: var(--apple-blue) !important;
+  font-size: 1.08rem;
+  font-weight: 700;
+  padding: 22px 24px 12px !important;
+  cursor: default !important;
+  pointer-events: none; /* Eliminar comportamiento de acordeón colapsable en Epicrisis */
+  box-shadow: none !important;
+  border: none !important;
+}
+
+body[data-modo="epicrisis"] #accordionFicha > .accordion-item:first-child .accordion-button::after {
+  display: none !important; /* Quitar flecha chevron de acordeón en Epicrisis */
+}
+
+body[data-modo="epicrisis"] #accordionFicha > .accordion-item:first-child .accordion-body {
+  border-top: none !important;
+  padding: 0 24px 24px !important;
+  background-color: var(--apple-card) !important;
+}
+
 body[data-modo="epicrisis"] #colFechaAtencion,
 body[data-modo="epicrisis"] #colHoraEpicrisis {
   flex: 0 0 auto;
   width: 25%;
 }
 @media (max-width: 767.98px) {
+  .apple-card {
+    padding: 16px;
+    border-radius: 16px;
+    margin-bottom: 16px;
+  }
+  body[data-modo="epicrisis"] #cardEstablecimiento .card-header-custom,
+  body[data-modo="epicrisis"] #accordionFicha > .accordion-item:first-child .accordion-button {
+    padding: 16px 16px 8px !important;
+    font-size: 1rem !important;
+  }
+  body[data-modo="epicrisis"] #cardEstablecimiento .card-body,
+  body[data-modo="epicrisis"] #accordionFicha > .accordion-item:first-child .accordion-body {
+    padding: 0 16px 16px !important;
+  }
   body[data-modo="epicrisis"] #colFechaAtencion,
   body[data-modo="epicrisis"] #colHoraEpicrisis {
     width: 50%;

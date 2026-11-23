@@ -753,6 +753,8 @@ export function cambiarModoApp(modo, esCargaInicial = false) {
 
     // Títulos de tarjetas
     if (txtTituloUnidad) txtTituloUnidad.innerText = 'Establecimiento de Salud (Emergencia SPPAT)';
+    const badgeASppat = document.getElementById('badgeSeccionA');
+    if (badgeASppat) badgeASppat.style.display = 'none';
     if (txtTituloIdent) txtTituloIdent.innerText = 'Datos del Paciente / Accidentado';
     const lblFechaSppat = document.getElementById('lblFechaAtencion');
     if (lblFechaSppat) lblFechaSppat.innerText = 'Fecha Atención:';
@@ -798,7 +800,9 @@ export function cambiarModoApp(modo, esCargaInicial = false) {
     }
 
     // Títulos de tarjetas
-    if (txtTituloUnidad) txtTituloUnidad.innerText = 'A. Datos del Establecimiento y Registro (Epicrisis Form. 006)';
+    if (txtTituloUnidad) txtTituloUnidad.innerText = 'Establecimiento de Salud';
+    const badgeAEpicrisis = document.getElementById('badgeSeccionA');
+    if (badgeAEpicrisis) badgeAEpicrisis.style.display = 'inline-flex';
     if (txtTituloIdent) txtTituloIdent.innerText = 'Datos del Usuario / Paciente';
     const lblFechaEpicrisis = document.getElementById('lblFechaAtencion');
     if (lblFechaEpicrisis) lblFechaEpicrisis.innerText = 'Fecha:';
@@ -843,6 +847,8 @@ export function cambiarModoApp(modo, esCargaInicial = false) {
 
     // Títulos de tarjetas
     if (txtTituloUnidad) txtTituloUnidad.innerText = 'Unidad Notificadora';
+    const badgeAEpi = document.getElementById('badgeSeccionA');
+    if (badgeAEpi) badgeAEpi.style.display = 'none';
     if (txtTituloIdent) txtTituloIdent.innerText = 'Identificación y Datos del Paciente';
     const lblFechaEpi = document.getElementById('lblFechaAtencion');
     if (lblFechaEpi) lblFechaEpi.innerText = 'Fecha Atención:';

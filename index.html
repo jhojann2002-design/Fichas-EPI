@@ -248,11 +248,15 @@
   </div>
 
   <form id="epiForm">
-    <!-- SECCIÓN UNIDAD NOTIFICADORA -->
-    <div class="card">
-      <div class="card-header-custom" id="tituloUnidadCard">
-        <svg class="me-2" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"></path><path d="M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16"></path><path d="M9 21v-4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v4"></path><path d="M10 9h4"></path><path d="M12 7v4"></path></svg>
-        <span id="txtTituloUnidadCard">Unidad Notificadora</span>
+    <!-- SECCIÓN ESTABLECIMIENTO DE SALUD / UNIDAD NOTIFICADORA -->
+    <div class="card" id="cardEstablecimiento">
+      <div class="card-header-custom d-flex align-items-center justify-content-between flex-wrap gap-2" id="tituloUnidadCard">
+        <div class="d-flex align-items-center gap-2">
+          <span class="badge bg-primary text-white rounded-circle p-1 badge-seccion-letra" id="badgeSeccionA" style="width: 22px; height: 22px; display: none; align-items: center; justify-content: center; font-size: 0.75rem;">A</span>
+          <svg class="me-1" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"></path><path d="M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16"></path><path d="M9 21v-4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v4"></path><path d="M10 9h4"></path><path d="M12 7v4"></path></svg>
+          <span id="txtTituloUnidadCard" class="fw-bold">Unidad Notificadora</span>
+        </div>
+        <span class="badge-form-mode badge-epicrisis mostrar-solo-epicrisis" style="font-size: 0.72rem; padding: 4px 10px;">Form. 006 MSP</span>
       </div>
       <div class="card-body pt-2">
         <div class="row g-4 align-items-end">
@@ -310,8 +314,8 @@
 
     <div class="accordion" id="accordionFicha">
       <!-- SECCIÓN IDENTIFICACIÓN -->
-      <div class="accordion-item">
-        <h2 class="accordion-header">
+      <div class="accordion-item" id="cardIdentificacion">
+        <h2 class="accordion-header" id="headingIdentificacion">
           <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#sec1">
   <svg class="me-2" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg><span id="txtTituloIdentificacion">Identificación y Datos del Paciente</span>
 </button>
@@ -334,7 +338,7 @@
                 </div>
                 <input type="date" id="fecha_nacimiento" class="form-control save-state">
               </div>
-              <div class="col-12 col-sm-6 col-md-3">
+              <div class="col-6 col-md-3" id="colSexoIdent">
                 <label>Sexo:</label>
                 <select id="sexo" class="form-select save-state">
                   <option value="" selected disabled>Seleccione...</option>
@@ -344,18 +348,17 @@
               </div>
 
               <!-- CAMPOS EXCLUSIVOS DE EDAD PARA EPICRISIS -->
-              <div class="col-6 col-md-3 mostrar-solo-epicrisis">
-                <label for="edad_epicrisis">Edad:</label>
-                <input type="number" id="edad_epicrisis" class="form-control save-state text-center" min="0" max="130" placeholder="Ej: 45">
-              </div>
-              <div class="col-6 col-md-3 mostrar-solo-epicrisis">
-                <label for="condicion_edad_epicrisis">Condición Edad:</label>
-                <select id="condicion_edad_epicrisis" class="form-select save-state">
-                  <option value="A" selected>AÑOS</option>
-                  <option value="M">MESES</option>
-                  <option value="D">DÍAS</option>
-                  <option value="H">HORAS</option>
-                </select>
+              <div class="col-6 col-md-3 mostrar-solo-epicrisis" id="colEdadEpicrisis">
+                <label for="edad_epicrisis">Edad y Condición:</label>
+                <div class="input-group">
+                  <input type="number" id="edad_epicrisis" class="form-control save-state text-center" min="0" max="130" placeholder="Edad" style="max-width: 80px;">
+                  <select id="condicion_edad_epicrisis" class="form-select save-state">
+                    <option value="A" selected>AÑOS</option>
+                    <option value="M">MESES</option>
+                    <option value="D">DÍAS</option>
+                    <option value="H">HORAS</option>
+                  </select>
+                </div>
               </div>
 
               <div class="col-6 col-md-3">
