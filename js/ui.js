@@ -27,12 +27,15 @@ export function enfocarElementoSeguro(elemento) {
 }
 
 export function mostrarLoader(msg) { 
-  document.getElementById('loader-text').innerText = msg || "Procesando..."; 
-  document.getElementById('loader').style.display = 'flex'; 
+  const txt = document.getElementById('loader-text');
+  if (txt) txt.innerText = msg || "Procesando..."; 
+  const ldr = document.getElementById('loader');
+  if (ldr) ldr.style.display = 'flex'; 
 }
 
 export function ocultarLoader() { 
-  document.getElementById('loader').style.display = 'none'; 
+  const ldr = document.getElementById('loader');
+  if (ldr) ldr.style.display = 'none'; 
 }
 
 export function initTheme() {

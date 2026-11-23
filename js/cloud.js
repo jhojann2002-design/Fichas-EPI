@@ -401,6 +401,8 @@ export async function cargarYDescargarPDF(cedula) {
       setTimeout(async () => {
          if (modoDestino === 'sppat' && typeof window.descargarExpedienteSppat === 'function') {
            await window.descargarExpedienteSppat();
+         } else if (modoDestino === 'epicrisis' && typeof window.descargarEpicrisisSegura === 'function') {
+           await window.descargarEpicrisisSegura('pdf');
          } else {
            await descargarFichaSegura('pdf', false);
          }

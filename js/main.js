@@ -22,11 +22,13 @@ import {
 import { recopilarDatosSppat, generarExpedienteSppatBlob } from './sppat.js';
 import { descargarFichaSegura } from './api.js';
 import { descargarEpicrisisSegura, inicializarEventosEpicrisis } from './epicrisis.js';
+import { inicializarContador, registrarFichaGenerada, mostrarModalEstadisticas } from './counter.js';
 
 // Inicializar configuración base
 initTheme();
 setupAutoSave();
 initApiListeners();
+inicializarContador();
 
 // 2. INICIAMOS LA SESIÓN EN LA NUBE
 initCloudAuth();
@@ -36,7 +38,7 @@ initCloudAuth();
 // ==========================================
 function inicializarCheckboxes() {
   const generarHTML = (arr, claseExtra, disabled = false) => arr.map(item => `
-    <div class="${claseExtra.includes('chk-vac') ? 'col-6 col-md-2' : 'form-check'}" ${disabled ? 'class="disabled-block"' : ''}>
+    <div class="${claseExtra.includes('chk-vac') ? 'col-6 col-md-2' : 'form-check'}${disabled ? ' disabled-block' : ''}">
       ${claseExtra.includes('chk-vac') ? '<div class="form-check">' : ''}
       <input class="form-check-input ${claseExtra} save-state" type="checkbox" id="${item.id}" ${disabled ? 'disabled' : ''}>
       <label class="form-check-label" for="${item.id}">${item.label}</label>
@@ -109,6 +111,7 @@ criticalFields.forEach(id => {
 function setupValidacionCedula() {
   const cedulaInput = document.getElementById('cedula');
   const nacionalidadInput = document.getElementById('nacionalidad');
+  if (!cedulaInput || !nacionalidadInput) return;
   const labelCedula = cedulaInput.previousElementSibling;
   
   let typingTimer;                
@@ -141,26 +144,36 @@ function setupValidacionCedula() {
     if (nac === 'ECUATORIANA' || nac === '') {
       if (val.length === 0) {
         cedulaInput.classList.add('input-error');
-        labelCedula.innerText = 'Cédula (Requerida):';
-        labelCedula.style.color = 'var(--apple-red)';
+        if (labelCedula) {
+          labelCedula.innerText = 'Cédula (Requerida):';
+          labelCedula.style.color = 'var(--apple-red)';
+        }
       } else if (val.length !== 10 || !validarCedulaEcuatoriana(val)) {
         cedulaInput.classList.add('input-error');
-        labelCedula.innerText = 'Cédula (Inválida):';
-        labelCedula.style.color = 'var(--apple-red)';
+        if (labelCedula) {
+          labelCedula.innerText = 'Cédula (Inválida):';
+          labelCedula.style.color = 'var(--apple-red)';
+        }
       } else {
         cedulaInput.classList.remove('input-error');
-        labelCedula.innerText = 'Cédula (Válida):';
-        labelCedula.style.color = 'var(--apple-blue)';
+        if (labelCedula) {
+          labelCedula.innerText = 'Cédula (Válida):';
+          labelCedula.style.color = 'var(--apple-blue)';
+        }
       }
     } else {
       if (val.length === 0) {
         cedulaInput.classList.add('input-error');
-        labelCedula.innerText = 'Identificación (Requerida):';
-        labelCedula.style.color = 'var(--apple-red)';
+        if (labelCedula) {
+          labelCedula.innerText = 'Identificación (Requerida):';
+          labelCedula.style.color = 'var(--apple-red)';
+        }
       } else {
         cedulaInput.classList.remove('input-error');
-        labelCedula.innerText = 'Identificación (Extranjero):';
-        labelCedula.style.color = 'var(--apple-blue)';
+        if (labelCedula) {
+          labelCedula.innerText = 'Identificación (Extranjero):';
+          labelCedula.style.color = 'var(--apple-blue)';
+        }
       }
     }
   }
@@ -181,8 +194,10 @@ function setupValidacionCedula() {
 
     // Estado Neutral mientras escribe
     cedulaInput.classList.remove('input-error');
-    labelCedula.innerText = (nac === 'ECUATORIANA' || nac === '') ? 'Cédula:' : 'Identificación:';
-    labelCedula.style.color = 'var(--apple-label)';
+    if (labelCedula) {
+      labelCedula.innerText = (nac === 'ECUATORIANA' || nac === '') ? 'Cédula:' : 'Identificación:';
+      labelCedula.style.color = 'var(--apple-label)';
+    }
 
     // Reiniciamos el temporizador
     clearTimeout(typingTimer);
@@ -1030,6 +1045,24 @@ export async function descargarExpedienteSppat() {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
     }, 2000);
+
+    // Registro seguro en contador local y sincronización
+    try {
+      registrarFichaGenerada({
+        modo: 'sppat',
+        formato: 'pdf',
+        paciente: `${apellido} ${nombre}`.trim(),
+        primer_apellido: apellido,
+        primer_nombre: nombre,
+        cedula: cedula,
+        establecimiento: document.getElementById('sppat_institucion')?.value || 'HOSPITAL GENERAL PORTOVIEJO',
+        institucion: 'IESS',
+        medico: document.getElementById('sppat_medico_apellidos')?.value || '',
+        diagnostico: document.getElementById('sppat_diag_desc')?.value || 'SPPAT ACCIDENTE'
+      });
+    } catch (eCnt) {
+      console.warn('Aviso en contador SPPAT:', eCnt);
+    }
 
     Swal.fire({
       icon: 'success',

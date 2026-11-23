@@ -8,52 +8,16 @@ import {
   PDFName, PDFRef, PDFDict, 
   pushGraphicsState, popGraphicsState, translate, drawObject 
 } from 'https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/+esm';
+import { registrarFichaGenerada, mostrarModalEstadisticas } from './counter.js';
 
 export function initApiListeners() {
   const devSig = document.getElementById('devSignature');
   if (devSig) {
-    devSig.addEventListener('dblclick', async () => {
-      try {
-        mostrarLoader("Consultando base de datos...");
-        const urlStats = API_URL + "?action=stats";
-        const res = await fetch(urlStats);
-        const data = await res.json();
-        
-        if (data.error) throw new Error(data.error);
-
-        const totalGlobal = data.totalGlobal || 0;
-        let htmlExtra = "";
-        
-        if (data.porEstablecimiento && Object.keys(data.porEstablecimiento).length > 0) {
-          const establecimientosArray = Object.entries(data.porEstablecimiento).sort((a, b) => b[1] - a[1]);
-          htmlExtra = `
-            <div style="margin-top: 15px; max-height: 250px; overflow-y: auto; text-align: left; background: var(--apple-subcard-bg); border-radius: 12px; padding: 10px; border: 1px solid var(--apple-border);">
-              <table style="width: 100%; font-size: 0.9rem;">
-                <tbody>
-          `;
-          establecimientosArray.forEach(([nombre, cantidad]) => {
-            htmlExtra += `
-                  <tr style="border-bottom: 1px solid var(--apple-border);">
-                    <td style="padding: 8px 4px; color: var(--apple-text);">${nombre}</td>
-                    <td style="padding: 8px 4px; text-align: right; font-weight: bold; color: var(--apple-blue); white-space: nowrap;">${cantidad} fichas</td>
-                  </tr>
-            `;
-          });
-          htmlExtra += `</tbody></table></div>`;
-        } else {
-          htmlExtra = `<br><br><small style="color: gray;">Aún no hay registros detallados por establecimiento.</small>`;
-        }
-
-        ocultarLoader();
-        Swal.fire({
-          title: '📊 Estadísticas Reales', 
-          html: `Total Global (Todas las unidades): <b style="font-size: 1.2rem; color: var(--apple-blue);">${totalGlobal}</b>${htmlExtra}`, 
-          icon: 'info', confirmButtonColor: 'var(--apple-blue)', width: '600px'
-        });
-      } catch(err) {
-        ocultarLoader();
-        Swal.fire('Error', 'Hubo un problema consultando el registro de Google Sheets.', 'error');
-      }
+    devSig.addEventListener('dblclick', () => {
+      mostrarModalEstadisticas();
+    });
+    devSig.addEventListener('click', () => {
+      mostrarModalEstadisticas();
     });
   }
 }
@@ -2389,6 +2353,24 @@ export async function descargarFichaSegura(formato = 'pdf', retornarBlob = false
     a.download = nFinal;
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
     URL.revokeObjectURL(url);
+
+    // Registro seguro en contador local y telemetría
+    try {
+      registrarFichaGenerada({
+        modo: 'epi',
+        formato: formato,
+        paciente: `${aApe} ${aNom}`.trim(),
+        primer_apellido: aApe,
+        primer_nombre: aNom,
+        cedula: aCed,
+        establecimiento: getVal('establecimiento') || 'HOSPITAL GENERAL PORTOVIEJO',
+        institucion: getVal('institucion') || 'IESS',
+        medico: getVal('medico_tratante') || '',
+        diagnostico: getVal('diagnostico_cie10') || ''
+      });
+    } catch (eCnt) {
+      console.warn('Aviso en contador EPI:', eCnt);
+    }
 
     ocultarLoader();
     Swal.fire({ icon: 'success', title: '¡Documento Generado!', timer: 3000, showConfirmButton: false });

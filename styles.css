@@ -153,6 +153,46 @@ body {
   transform: scale(1.05);
 }
 
+.btn-apple-stats {
+  background: var(--apple-input-bg);
+  border: 1px solid var(--apple-border);
+  color: var(--apple-text);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.btn-apple-stats:hover {
+  background: var(--apple-subcard-bg);
+  border-color: var(--apple-blue);
+  color: var(--apple-blue);
+  transform: translateY(-1px);
+}
+.btn-apple-stats:active {
+  transform: scale(0.97);
+}
+.badge-stats-count {
+  background: var(--apple-blue-tint);
+  color: var(--apple-blue);
+  border-radius: 999px;
+  padding: 1px 7px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  transition: all 0.2s ease;
+}
+.btn-apple-stats:hover .badge-stats-count {
+  background: var(--apple-blue);
+  color: #fff;
+}
+
 .disabled-block {
   opacity: 0.45;
   pointer-events: none;

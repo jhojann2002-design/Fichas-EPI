@@ -17,6 +17,7 @@ async function asegurarPdfLib() {
 }
 
 import { mostrarLoader, ocultarLoader, enfocarElementoSeguro } from './ui.js';
+import { registrarFichaGenerada } from './counter.js';
 
 function getVal(id) {
   if (typeof document === 'undefined') return '';
@@ -980,6 +981,24 @@ export async function descargarEpicrisisSegura(formato = 'excel') {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
     }, 2000);
+
+    // Registro seguro en contador local y telemetría
+    try {
+      registrarFichaGenerada({
+        modo: 'epicrisis',
+        formato: formato,
+        paciente: `${d.primer_apellido || ''} ${d.primer_nombre || ''}`.trim(),
+        primer_apellido: d.primer_apellido || '',
+        primer_nombre: d.primer_nombre || '',
+        cedula: d.archivo || d.hcu || '',
+        establecimiento: d.establecimiento || 'HOSPITAL GENERAL PORTOVIEJO',
+        institucion: 'IESS',
+        medico: d.medico_primer_apellido ? `${d.medico_primer_apellido} ${d.medico_primer_nombre || ''}`.trim() : '',
+        diagnostico: d.diag_alta_prin_desc || d.diag_ing_prin_desc || 'EPICRISIS'
+      });
+    } catch (eCnt) {
+      console.warn('Aviso en contador Epicrisis:', eCnt);
+    }
 
     ocultarLoader();
     Swal.fire({
