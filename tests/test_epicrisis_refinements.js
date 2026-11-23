@@ -174,4 +174,27 @@ assert(stylesCss.includes('body[data-modo="epicrisis"] #accordionFicha > .accord
 assert(html.includes('id="edad_epicrisis"') && html.includes('id="condicion_edad_epicrisis"'), 'Edad and Condicion inputs exist');
 console.log('✓ PASS: Top cards visually and functionally unified with rest of Epicrisis');
 
+// 11. Point F height reduction (low, single-line)
+assert(
+  html.includes('id="epicrisis_indicaciones_alta"') && html.includes('rows="1"'),
+  'Point F indicaciones_alta must have rows="1" to avoid taking excessive space'
+);
+console.log('✓ PASS: Point F is 1-line compact height (rows="1")');
+
+// 12. Dark Mode text visibility in sections G downwards
+assert(
+  stylesCss.includes('[data-theme="dark"] .text-dark') && stylesCss.includes('[data-theme="dark"] .text-muted'),
+  'styles.css must override text-dark and text-muted in dark mode to prevent black-on-black text'
+);
+assert(
+  !html.includes('class="fw-bold text-dark"'),
+  'index.html should not use text-dark in section labels'
+);
+const uiJs = fs.readFileSync(path.resolve(__dirname, '../js/ui.js'), 'utf8');
+assert(
+  uiJs.includes("data-bs-theme"),
+  'ui.js must sync data-bs-theme to keep Bootstrap components visible in dark mode'
+);
+console.log('✓ PASS: Dark mode text visibility resolved across all sections G to J');
+
 console.log('\nAll Epicrisis Refinement Tests Passed Successfully!');

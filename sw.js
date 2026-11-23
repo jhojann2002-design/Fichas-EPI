@@ -1,5 +1,5 @@
 // Service Worker para Fichas EPI - Capacidad Offline y PWA
-const CACHE_NAME = 'fichas-epi-cache-v43';
+const CACHE_NAME = 'fichas-epi-cache-v44';
 
 const STATIC_ASSETS = [
   './',

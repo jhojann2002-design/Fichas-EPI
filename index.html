@@ -24,6 +24,7 @@
       }
       if (currentTheme === 'dark') {
         document.documentElement.setAttribute('data-theme', 'dark');
+        document.documentElement.setAttribute('data-bs-theme', 'dark');
       }
     })();
   </script>
@@ -1785,7 +1786,7 @@
               </h5>
               <button type="button" class="btn btn-sm btn-outline-secondary btn-limpiar-as400" onclick="window.limpiarTextoAS400EnTextarea('epicrisis_indicaciones_alta')" title="Eliminar saltos de línea copiados del AS400">🧹 Limpiar AS400</button>
             </div>
-            <textarea id="epicrisis_indicaciones_alta" class="form-control save-state text-center" rows="5" placeholder="Recomendaciones farmacológicas al egreso, dieta, cuidados en domicilio, signos de alarma..." style="border-radius: 12px; font-size: 0.9rem; line-height: 1.4; min-height: 130px; text-align: center;">PACIENTE HEMODINAMICAMENTE INESTABLE</textarea>
+            <textarea id="epicrisis_indicaciones_alta" class="form-control save-state text-center" rows="1" placeholder="Recomendaciones farmacológicas al egreso, dieta, cuidados en domicilio, signos de alarma..." style="border-radius: 8px; font-size: 0.9rem; line-height: 1.4; min-height: 42px; height: 42px; text-align: center;">PACIENTE HEMODINAMICAMENTE INESTABLE</textarea>
           </div>
         </div>
 
@@ -1799,7 +1800,7 @@
           <!-- Diagnóstico Principal -->
           <div class="row g-2 mb-3 align-items-center">
             <div class="col-12 col-md-3">
-              <label class="fw-bold text-dark" style="font-size: 0.85rem;">Diagnóstico Principal:</label>
+              <label class="fw-bold epicrisis-label" style="font-size: 0.85rem;">Diagnóstico Principal:</label>
             </div>
             <div class="col-8 col-md-7 position-relative">
               <input type="text" id="epicrisis_diag_principal" class="form-control form-control-sm save-state cie10-search-desc" placeholder="Descripción clínica del diagnóstico principal" autocomplete="off">
@@ -1812,7 +1813,7 @@
           <!-- Diagnósticos Secundarios (1 al 5) -->
           <div class="row g-2 mb-2 align-items-center" id="filaDiagSec1">
             <div class="col-12 col-md-3">
-              <label class="text-muted" style="font-size: 0.82rem;">Diagnóstico Secundario 1:</label>
+              <label class="epicrisis-field-label">Diagnóstico Secundario 1:</label>
             </div>
             <div class="col-8 col-md-7 position-relative">
               <input type="text" id="epicrisis_diag_sec_1" class="form-control form-control-sm save-state cie10-search-desc" placeholder="Diagnóstico secundario 1" autocomplete="off">
@@ -1824,7 +1825,7 @@
 
           <div class="row g-2 mb-2 align-items-center" id="filaDiagSec2" style="display: none;">
             <div class="col-12 col-md-3">
-              <label class="text-muted" style="font-size: 0.82rem;">Diagnóstico Secundario 2:</label>
+              <label class="epicrisis-field-label">Diagnóstico Secundario 2:</label>
             </div>
             <div class="col-7 col-md-6 position-relative">
               <input type="text" id="epicrisis_diag_sec_2" class="form-control form-control-sm save-state cie10-search-desc" placeholder="Diagnóstico secundario 2" autocomplete="off">
@@ -1841,7 +1842,7 @@
 
           <div class="row g-2 mb-2 align-items-center" id="filaDiagSec3" style="display: none;">
             <div class="col-12 col-md-3">
-              <label class="text-muted" style="font-size: 0.82rem;">Diagnóstico Secundario 3:</label>
+              <label class="epicrisis-field-label">Diagnóstico Secundario 3:</label>
             </div>
             <div class="col-7 col-md-6 position-relative">
               <input type="text" id="epicrisis_diag_sec_3" class="form-control form-control-sm save-state cie10-search-desc" placeholder="Diagnóstico secundario 3" autocomplete="off">
@@ -1859,7 +1860,7 @@
           <!-- Diagnóstico Secundario 4 -->
           <div class="row g-2 mb-2 align-items-center" id="filaDiagSec4" style="display: none;">
             <div class="col-12 col-md-3">
-              <label class="text-muted" style="font-size: 0.82rem;">Diagnóstico Secundario 4:</label>
+              <label class="epicrisis-field-label">Diagnóstico Secundario 4:</label>
             </div>
             <div class="col-7 col-md-6 position-relative">
               <input type="text" id="epicrisis_diag_sec_4" class="form-control form-control-sm save-state cie10-search-desc" placeholder="Diagnóstico secundario 4" autocomplete="off">
@@ -1877,7 +1878,7 @@
           <!-- Diagnóstico Secundario 5 -->
           <div class="row g-2 mb-2 align-items-center" id="filaDiagSec5" style="display: none;">
             <div class="col-12 col-md-3">
-              <label class="text-muted" style="font-size: 0.82rem;">Diagnóstico Secundario 5:</label>
+              <label class="epicrisis-field-label">Diagnóstico Secundario 5:</label>
             </div>
             <div class="col-7 col-md-6 position-relative">
               <input type="text" id="epicrisis_diag_sec_5" class="form-control form-control-sm save-state cie10-search-desc" placeholder="Diagnóstico secundario 5" autocomplete="off">
@@ -1902,7 +1903,7 @@
           <!-- Causa Externa -->
           <div class="row g-2 align-items-center pt-2 border-top">
             <div class="col-12 col-md-3">
-              <label class="text-muted" style="font-size: 0.82rem;">Causa Externa (Opcional):</label>
+              <label class="epicrisis-field-label">Causa Externa (Opcional):</label>
             </div>
             <div class="col-8 col-md-7 position-relative">
               <input type="text" id="epicrisis_diag_causa_ext" class="form-control form-control-sm save-state cie10-search-desc" placeholder="Ej: Accidente de tránsito, caída..." autocomplete="off">
@@ -1922,14 +1923,14 @@
 
           <div class="row g-3 align-items-center mb-3">
             <div class="col-12 col-md-4">
-              <label class="form-label text-muted" style="font-size: 0.8rem; font-weight: 600;">ESTADO VITAL:</label>
+              <label class="form-label epicrisis-field-label" style="font-size: 0.8rem; font-weight: 600;">ESTADO VITAL:</label>
               <select id="epicrisis_cond_vital" class="form-select form-select-sm save-state">
                 <option value="VIVO" selected>VIVO</option>
                 <option value="FALLECIDO">FALLECIDO</option>
               </select>
             </div>
             <div class="col-12 col-md-4">
-              <label class="form-label text-muted" style="font-size: 0.8rem; font-weight: 600;">TIPO DE ALTA / CONDICIÓN:</label>
+              <label class="form-label epicrisis-field-label" style="font-size: 0.8rem; font-weight: 600;">TIPO DE ALTA / CONDICIÓN:</label>
               <select id="epicrisis_tipo_alta" class="form-select form-select-sm save-state">
                 <option value="NO_APLICA" selected>NO APLICA / NINGUNO</option>
                 <option value="ALTA_MEDICA">ALTA MÉDICA</option>
@@ -1942,11 +1943,11 @@
               </select>
             </div>
             <div class="col-6 col-md-2">
-              <label for="epicrisis_dias_estada" class="form-label text-muted" style="font-size: 0.8rem; font-weight: 600;">DÍAS DE ESTADA:</label>
+              <label for="epicrisis_dias_estada" class="form-label epicrisis-field-label" style="font-size: 0.8rem; font-weight: 600;">DÍAS DE ESTADA:</label>
               <input type="number" id="epicrisis_dias_estada" class="form-control form-control-sm save-state text-center" min="0" placeholder="0">
             </div>
             <div class="col-6 col-md-2">
-              <label for="epicrisis_dias_reposo" class="form-label text-muted" style="font-size: 0.8rem; font-weight: 600;">DÍAS DE REPOSO:</label>
+              <label for="epicrisis_dias_reposo" class="form-label epicrisis-field-label" style="font-size: 0.8rem; font-weight: 600;">DÍAS DE REPOSO:</label>
               <input type="number" id="epicrisis_dias_reposo" class="form-control form-control-sm save-state text-center" min="0" placeholder="0">
             </div>
           </div>
@@ -1965,34 +1966,34 @@
           </div>
 
           <!-- Médico Principal (Se pide por bloques y se reparte automáticamente a toda la epicrisis) -->
-          <div class="p-3 mb-3 rounded-3" style="background: var(--apple-input-bg); border: 1px solid var(--apple-border);">
-            <div class="fw-bold text-dark mb-2" style="font-size: 0.85rem;">Médico Tratante Principal:</div>
+          <div class="p-3 mb-3 rounded-3" style="background: var(--apple-subcard-bg); border: 1px solid var(--apple-border);">
+            <div class="fw-bold epicrisis-label mb-2" style="font-size: 0.85rem;">Médico Tratante Principal:</div>
             <div class="row g-2 mb-2">
               <div class="col-6 col-md-3">
-                <label for="epicrisis_med1_primer_nombre" class="form-label text-muted" style="font-size: 0.8rem; font-weight: 600;">1er NOMBRE:</label>
+                <label for="epicrisis_med1_primer_nombre" class="form-label epicrisis-field-label" style="font-size: 0.8rem; font-weight: 600;">1er NOMBRE:</label>
                 <input type="text" id="epicrisis_med1_primer_nombre" class="form-control form-control-sm save-state" placeholder="Ej: Juan">
               </div>
               <div class="col-6 col-md-3">
-                <label for="epicrisis_med1_segundo_nombre" class="form-label text-muted" style="font-size: 0.8rem; font-weight: 600;">2do NOMBRE:</label>
+                <label for="epicrisis_med1_segundo_nombre" class="form-label epicrisis-field-label" style="font-size: 0.8rem; font-weight: 600;">2do NOMBRE:</label>
                 <input type="text" id="epicrisis_med1_segundo_nombre" class="form-control form-control-sm save-state" placeholder="Ej: Carlos">
               </div>
               <div class="col-6 col-md-3">
-                <label for="epicrisis_med1_primer_ape" class="form-label text-muted" style="font-size: 0.8rem; font-weight: 600;">1er APELLIDO:</label>
+                <label for="epicrisis_med1_primer_ape" class="form-label epicrisis-field-label" style="font-size: 0.8rem; font-weight: 600;">1er APELLIDO:</label>
                 <input type="text" id="epicrisis_med1_primer_ape" class="form-control form-control-sm save-state" placeholder="Ej: Pérez">
               </div>
               <div class="col-6 col-md-3">
-                <label for="epicrisis_med1_segundo_ape" class="form-label text-muted" style="font-size: 0.8rem; font-weight: 600;">2do APELLIDO:</label>
+                <label for="epicrisis_med1_segundo_ape" class="form-label epicrisis-field-label" style="font-size: 0.8rem; font-weight: 600;">2do APELLIDO:</label>
                 <input type="text" id="epicrisis_med1_segundo_ape" class="form-control form-control-sm save-state" placeholder="Ej: Zambrano">
               </div>
             </div>
 
             <div class="row g-2 mb-2">
               <div class="col-12 col-md-6">
-                <label for="epicrisis_med1_doc" class="form-label text-muted" style="font-size: 0.8rem; font-weight: 600;">CÉDULA / IDENTIFICACIÓN:</label>
+                <label for="epicrisis_med1_doc" class="form-label epicrisis-field-label" style="font-size: 0.8rem; font-weight: 600;">CÉDULA / IDENTIFICACIÓN:</label>
                 <input type="text" id="epicrisis_med1_doc" class="form-control form-control-sm save-state" placeholder="Cédula del médico">
               </div>
               <div class="col-12 col-md-6">
-                <label for="epicrisis_med1_esp" class="form-label text-muted" style="font-size: 0.8rem; font-weight: 600;">ESPECIALIDAD:</label>
+                <label for="epicrisis_med1_esp" class="form-label epicrisis-field-label" style="font-size: 0.8rem; font-weight: 600;">ESPECIALIDAD:</label>
                 <input type="text" id="epicrisis_med1_esp" class="form-control form-control-sm save-state" placeholder="Ej: Emergencia / Cirugía">
               </div>
             </div>
@@ -2006,9 +2007,9 @@
           <!-- Contenedor para Médicos Adicionales (con botón para eliminar) -->
           <div id="contenedorMedicosAdicionales">
             <!-- Médico 2 -->
-            <div id="bloqueMedico2" class="p-3 mb-3 rounded-3" style="display: none; background: rgba(0,0,0,0.02); border: 1px dashed var(--apple-border);">
+            <div id="bloqueMedico2" class="p-3 mb-3 rounded-3" style="display: none; background: var(--apple-subcard-bg); border: 1px dashed var(--apple-border);">
               <div class="d-flex align-items-center justify-content-between mb-2">
-                <span class="fw-bold text-dark" style="font-size: 0.85rem;">Médico Tratante 2:</span>
+                <span class="fw-bold epicrisis-label" style="font-size: 0.85rem;">Médico Tratante 2:</span>
                 <button type="button" class="btn btn-sm btn-outline-danger py-0 px-2" onclick="window.eliminarMedicoAdicional(2)" style="font-size: 0.75rem;">🗑️ Quitar Médico 2</button>
               </div>
               <div class="row g-2 mb-2">
@@ -2028,9 +2029,9 @@
             </div>
 
             <!-- Médico 3 -->
-            <div id="bloqueMedico3" class="p-3 mb-3 rounded-3" style="display: none; background: rgba(0,0,0,0.02); border: 1px dashed var(--apple-border);">
+            <div id="bloqueMedico3" class="p-3 mb-3 rounded-3" style="display: none; background: var(--apple-subcard-bg); border: 1px dashed var(--apple-border);">
               <div class="d-flex align-items-center justify-content-between mb-2">
-                <span class="fw-bold text-dark" style="font-size: 0.85rem;">Médico Tratante 3:</span>
+                <span class="fw-bold epicrisis-label" style="font-size: 0.85rem;">Médico Tratante 3:</span>
                 <button type="button" class="btn btn-sm btn-outline-danger py-0 px-2" onclick="window.eliminarMedicoAdicional(3)" style="font-size: 0.75rem;">🗑️ Quitar Médico 3</button>
               </div>
               <div class="row g-2 mb-2">
@@ -2050,9 +2051,9 @@
             </div>
 
             <!-- Médico 4 -->
-            <div id="bloqueMedico4" class="p-3 mb-2 rounded-3" style="display: none; background: rgba(0,0,0,0.02); border: 1px dashed var(--apple-border);">
+            <div id="bloqueMedico4" class="p-3 mb-2 rounded-3" style="display: none; background: var(--apple-subcard-bg); border: 1px dashed var(--apple-border);">
               <div class="d-flex align-items-center justify-content-between mb-2">
-                <span class="fw-bold text-dark" style="font-size: 0.85rem;">Médico Tratante 4:</span>
+                <span class="fw-bold epicrisis-label" style="font-size: 0.85rem;">Médico Tratante 4:</span>
                 <button type="button" class="btn btn-sm btn-outline-danger py-0 px-2" onclick="window.eliminarMedicoAdicional(4)" style="font-size: 0.75rem;">🗑️ Quitar Médico 4</button>
               </div>
               <div class="row g-2">

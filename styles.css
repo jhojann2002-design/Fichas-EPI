@@ -1398,3 +1398,84 @@ body[data-modo="epi"] .app-container {
   color: var(--apple-text-muted, #8e8e93);
   text-align: center;
 }
+
+/* ========================================================
+   MODO OSCURO: COMPATIBILIDAD CON BOOTSTRAP, LABELS Y SECCIONES
+   ======================================================== */
+[data-theme="dark"] .text-dark,
+[data-bs-theme="dark"] .text-dark {
+  color: var(--apple-text) !important;
+}
+
+[data-theme="dark"] .text-muted,
+[data-bs-theme="dark"] .text-muted {
+  color: var(--apple-text-muted) !important;
+}
+
+[data-theme="dark"] .text-black,
+[data-bs-theme="dark"] .text-black {
+  color: var(--apple-text) !important;
+}
+
+[data-theme="dark"] .form-label,
+[data-bs-theme="dark"] .form-label {
+  color: var(--apple-label);
+}
+
+[data-theme="dark"] label,
+[data-bs-theme="dark"] label {
+  color: var(--apple-label);
+}
+
+[data-theme="dark"] .border-top,
+[data-theme="dark"] .border-bottom,
+[data-theme="dark"] .border-start,
+[data-theme="dark"] .border-end {
+  border-color: var(--apple-border) !important;
+}
+
+.epicrisis-label {
+  color: var(--apple-text);
+  transition: color 0.3s ease;
+}
+
+.epicrisis-field-label {
+  color: var(--apple-text-muted);
+  font-size: 0.82rem;
+  transition: color 0.3s ease;
+}
+
+[data-theme="dark"] .epicrisis-label {
+  color: #f5f5f7 !important;
+}
+
+[data-theme="dark"] .epicrisis-field-label {
+  color: #a1a1a6 !important;
+}
+
+[data-theme="dark"] .btn-outline-primary {
+  color: var(--apple-blue) !important;
+  border-color: var(--apple-blue) !important;
+}
+[data-theme="dark"] .btn-outline-primary:hover {
+  background-color: var(--apple-blue) !important;
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .btn-outline-danger {
+  color: var(--apple-red) !important;
+  border-color: var(--apple-red) !important;
+}
+[data-theme="dark"] .btn-outline-danger:hover {
+  background-color: var(--apple-red) !important;
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .btn-outline-secondary {
+  color: var(--apple-text-muted) !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+[data-theme="dark"] .btn-outline-secondary:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  color: var(--apple-text) !important;
+}
