@@ -120,6 +120,37 @@ assert.strictEqual(
 );
 console.log('✓ PASS: AS400 cleaning functionality verified with real-world edge cases (viñetas, NBSP, punctuation spacing)');
 
+// Verifica que las viñetas con letras (D., I., M., E., L., C., O.) y prescripciones médicas respeten los enters
+const as400LetrasRaw = `D. NPO
+I. CLORURO DE SODIO 0.9% PASAR IV A 32 ML CADA HORA
+M. CEFTRIAXONA 900 MG IV CADA 12 HORAS
+ONDANSETRON 3.5 MG IV PRN
+PARACETAMOL 245 MG IV PRN
+E. ECOGRAFIA DE ABDOMEN REPORTADA EN SISTEMA
+L. EN SISTEMA
+C. COMUNICAR NOVEDADES
+O. INTERCONSULTA A CIRUGIA PEDIATRICA
+OBSERVACION`;
+
+const as400LetrasCleaned = limpiarTestFn(as400LetrasRaw);
+const expectedLetras = `D. NPO
+I. CLORURO DE SODIO 0.9% PASAR IV A 32 ML CADA HORA
+M. CEFTRIAXONA 900 MG IV CADA 12 HORAS
+ONDANSETRON 3.5 MG IV PRN
+PARACETAMOL 245 MG IV PRN
+E. ECOGRAFIA DE ABDOMEN REPORTADA EN SISTEMA
+L. EN SISTEMA
+C. COMUNICAR NOVEDADES
+O. INTERCONSULTA A CIRUGIA PEDIATRICA
+OBSERVACION`;
+
+assert.strictEqual(
+  as400LetrasCleaned,
+  expectedLetras,
+  'limpiarTextoAS400 must respect enters for letter bullets (D., I., M., E., L., C., O.) and independent medical prescriptions'
+);
+console.log('✓ PASS: AS400 letter bullets (D., I., M., etc.) and medical prescriptions respect enters without joining into prose');
+
 // Checks that Diagnósticos Secundarios 2-5 are collapsible with remove buttons and dynamic add button
 assert(html.includes('id="filaDiagSec2"') && html.includes('id="filaDiagSec5"'), 'filaDiagSec2 through filaDiagSec5 exist');
 for (let i = 2; i <= 5; i++) {

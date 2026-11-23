@@ -242,14 +242,33 @@ export function limpiarTextoAS400(texto) {
   // 4. Unir palabras cortadas por guion al final de línea (ej: "HIPERTEN-\nSION" o "hiperten-\nsion")
   str = str.replace(/([A-Za-z0-9áéíóúüñÁÉÍÓÚÜÑ]{2,})-[ \t]*\n[ \t]*([A-Za-z0-9áéíóúüñÁÉÍÓÚÜÑ]{2,})/gu, '$1$2');
 
-  // 5. Si dentro de una misma línea vienen viñetas separadas por espacios (ej: "... C/8H - DIETA BLANDA"), forzar enter
-  str = str.replace(/[ \t]+([-*•\u2013\u2014]|\d+[.)\-])[ \t]+([A-Za-z0-9áéíóúüñÁÉÍÓÚÜÑ])/gu, '\n$1 $2');
+  // 5. Si dentro de una misma línea vienen viñetas separadas por espacios, forzar enter
+  // Soporta viñetas tradicionales (-, *, •), numéricas (1.), o letras (D., M., etc.)
+  str = str.replace(/[ \t]+([-*•\u2013\u2014+>]|\d+[.)\-]|[A-Za-z][.)\-])[ \t]+([A-Za-z0-9áéíóúüñÁÉÍÓÚÜÑ]{2,})/gu, '\n$1 $2');
 
-  // 6. Procesar líneas respetando viñetas como "enters" individuales y uniendo texto envuelto (wrap de 80 cols)
+  // 6. Procesar líneas respetando viñetas (símbolos, números, letras y prescripciones) como enters individuales
   const lineasRaw = str.split('\n');
   const items = [];
   let buffer = '';
-  let bufferTipo = null; // "header", "vineta", "prosa"
+  let bufferEsItem = false;
+
+  function esItemIndependiente(l) {
+    if (!l) return false;
+    // a) Viñeta tradicional o numérica (-, *, •, 1., 1), etc.)
+    if (/^([-*•\u2013\u2014+>]|\d+[.)\-])\s*/.test(l)) return true;
+    // b) Viñeta con letra médica (D., I., M., E., L., C., O., a), b., etc.) o romano (I., II.)
+    if (/^([A-Za-z]|[IVXLCDMivxlcdm]+)[.)\-]\s*/.test(l)) return true;
+    // c) Encabezados terminados en dos puntos
+    if (/:\s*$/.test(l)) return true;
+    // d) Palabras clave de secciones u órdenes médicas en línea propia
+    if (/^(OBSERVACION(ES)?|PLAN|DIETA|CUIDADOS|REPOSO|MEDICACION|LABORATORIO|EXAMENES|INTERCONSULTA(S)?|SIGNOS VITALES)$/i.test(l)) return true;
+    // e) Prescripción médica independiente (contiene dosis y vía/frecuencia)
+    const tieneDosis = /\b\d+(\.\d+)?\s*(MG|G|MCG|ML|UI|MEQ|GOTAS|PUFFS?|COMPRIMIDOS?|TABLETAS?|AMPOLLAS?|CAPSULAS?)\b/i.test(l);
+    const tieneViaOCondicion = /\b(IV|VO|IM|SC|SL|EV|PRN|STAT|BID|TID|QID|C\/\d+H?|CADA\s+\d+\s*(HORAS?|H)?)\b/i.test(l);
+    if (tieneDosis && tieneViaOCondicion) return true;
+
+    return false;
+  }
 
   for (let i = 0; i < lineasRaw.length; i++) {
     const raw = lineasRaw[i];
@@ -259,7 +278,7 @@ export function limpiarTextoAS400(texto) {
       if (buffer) {
         items.push(buffer);
         buffer = '';
-        bufferTipo = null;
+        bufferEsItem = false;
       }
       continue;
     }
@@ -267,39 +286,39 @@ export function limpiarTextoAS400(texto) {
     // Quitar espacios huérfanos antes de signos de puntuación: " , " -> ", "
     linea = linea.replace(/\s+([,.:;?!])/g, '$1');
 
-    // Verificar si la línea es viñeta (inicia con guion, asterisco, bullet o número)
-    const matchVineta = linea.match(/^([-*•\u2013\u2014]|\d+[.)\-])\s*(.*)$/u);
-    const esVineta = Boolean(matchVineta);
-    const terminaEnDosPuntos = /:\s*$/.test(linea);
+    // Normalizar viñeta si la línea comienza con una
+    const matchVineta = linea.match(/^([-*•\u2013\u2014+>]|\d+[.)\-]|[A-Za-z][.)\-])\s*(.*)$/u);
+    const esItem = esItemIndependiente(linea);
 
-    if (esVineta) {
+    if (esItem) {
       if (buffer) {
         items.push(buffer);
       }
-      const simbolo = matchVineta[1];
-      const resto = matchVineta[2].trim();
-      buffer = resto ? (simbolo + ' ' + resto) : simbolo;
-      bufferTipo = 'vineta';
-    } else if (terminaEnDosPuntos) {
-      if (buffer) {
-        items.push(buffer);
+      if (matchVineta) {
+        const simbolo = matchVineta[1];
+        const resto = matchVineta[2].trim();
+        buffer = resto ? (simbolo + ' ' + resto) : simbolo;
+      } else {
+        buffer = linea;
       }
-      buffer = linea;
-      bufferTipo = 'header';
+      bufferEsItem = true;
     } else {
-      // Línea de texto ordinario
+      // Línea ordinaria (posible continuación de viñeta o de prosa)
       if (!buffer) {
         buffer = linea;
-        bufferTipo = 'prosa';
-      } else if (bufferTipo === 'header') {
-        items.push(buffer);
-        buffer = linea;
-        bufferTipo = 'prosa';
-      } else if (bufferTipo === 'vineta') {
-        // En AS400, si la línea previa era viñeta y esta no lo es, es continuación del texto de la viñeta
-        buffer += ' ' + linea;
+        bufferEsItem = false;
+      } else if (bufferEsItem) {
+        // Si el ítem previo terminó con punto o dos puntos, la nueva línea es independiente
+        if (/[.:]\s*$/.test(buffer)) {
+          items.push(buffer);
+          buffer = linea;
+          bufferEsItem = false;
+        } else {
+          // Continuación del texto de la viñeta (wrap de 80 cols)
+          buffer += ' ' + linea;
+        }
       } else {
-        // Unir líneas de prosa partida
+        // Continuación de prosa normal
         buffer += ' ' + linea;
       }
     }
@@ -313,7 +332,7 @@ export function limpiarTextoAS400(texto) {
   return items.map(it => {
     let s = it.replace(/ {2,}/g, ' ');
     s = s.replace(/\s+([,.:;?!])/g, '$1');
-    s = s.replace(/^([-*•\u2013\u2014]|\d+[.)\-])\s+/u, '$1 ');
+    s = s.replace(/^([-*•\u2013\u2014+>]|\d+[.)\-]|[A-Za-z][.)\-])\s+/u, '$1 ');
     return s.trim();
   }).filter(Boolean).join('\n');
 }
