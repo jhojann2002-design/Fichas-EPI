@@ -667,66 +667,16 @@ export function alternarModoApp() {
   let nuevoModo = 'epi';
   if (modoAppActual === 'epi') nuevoModo = 'sppat';
   else if (modoAppActual === 'sppat') nuevoModo = 'epicrisis';
-  abrirModalCambiarFormulario(nuevoModo);
+  cambiarFormularioDirecto(nuevoModo);
+}
+
+export function cambiarFormularioDirecto(modoDestino) {
+  if (!modoDestino || modoDestino === modoAppActual) return;
+  cambiarModoApp(modoDestino, false);
 }
 
 export function abrirModalCambiarFormulario(modoDestino) {
-  const target = modoDestino || ((modoAppActual === 'epi') ? 'sppat' : (modoAppActual === 'sppat' ? 'epicrisis' : 'epi'));
-  if (target === modoAppActual) return;
-
-  let nombreDestino = 'Fichas Epidemiológicas';
-  let subtituloDestino = 'Notificación EPI y TB';
-  let iconoDestino = '📋';
-  let colorBoton = '#0071e3';
-
-  if (target === 'sppat') {
-    nombreDestino = 'Expediente SPPAT';
-    subtituloDestino = 'Accidentes de Tránsito / Emergencias';
-    iconoDestino = '🚨';
-    colorBoton = '#ff453a';
-  } else if (target === 'epicrisis') {
-    nombreDestino = 'Epicrisis (Formulario 006)';
-    subtituloDestino = 'Resumen de Egreso y Alta Hospitalaria MSP';
-    iconoDestino = '🏥';
-    colorBoton = '#30d158';
-  }
-
-  Swal.fire({
-    title: `¿Cambiar a ${nombreDestino}?`,
-    html: `
-      <div class="text-center py-2" style="color: var(--apple-text);">
-        <div style="font-size: 2.4rem; margin-bottom: 12px; line-height: 1;">${iconoDestino}</div>
-        <p style="font-size: 0.95rem; font-weight: 500; margin-bottom: 8px;">
-          Vas a ingresar al entorno de <b>${nombreDestino}</b> (${subtituloDestino}).
-        </p>
-        <p class="text-muted" style="font-size: 0.82rem; margin-bottom: 0;">
-          🔒 Cada formulario es 100% independiente. Los datos de pacientes no se transfieren entre formularios (EPI, SPPAT y Epicrisis).
-        </p>
-      </div>
-    `,
-    showCancelButton: true,
-    confirmButtonText: `Sí, cambiar a ${nombreDestino}`,
-    cancelButtonText: 'Cancelar',
-    confirmButtonColor: colorBoton,
-    cancelButtonColor: '#8e8e93',
-    reverseButtons: true,
-    focusCancel: true
-  }).then((result) => {
-    if (result.isConfirmed) {
-      cambiarModoApp(target, false);
-      const Toast = Swal.mixin({
-        toast: true,
-        position: 'top',
-        showConfirmButton: false,
-        timer: 1800,
-        timerProgressBar: false
-      });
-      Toast.fire({
-        icon: 'success',
-        title: `Modo activo: ${nombreDestino}`
-      });
-    }
-  });
+  cambiarFormularioDirecto(modoDestino);
 }
 
 export function cambiarModoApp(modo, esCargaInicial = false) {
@@ -753,6 +703,9 @@ export function cambiarModoApp(modo, esCargaInicial = false) {
   const mobileTitulo = document.getElementById('mobileTituloFormulario');
   const mobileBadge = document.getElementById('mobileBadgeModo');
   const mobileIconWrap = document.getElementById('mobileModeIconWrap');
+  const optEpiMobile = document.getElementById('optSwitchEpiMobile');
+  const optSppatMobile = document.getElementById('optSwitchSppatMobile');
+  const optEpicrisisMobile = document.getElementById('optSwitchEpicrisisMobile');
 
   // 3. Encabezados de tarjetas adaptables
   const txtTituloUnidad = document.getElementById('txtTituloUnidadCard');
@@ -773,6 +726,9 @@ export function cambiarModoApp(modo, esCargaInicial = false) {
   if (optEpi) optEpi.classList.remove('active');
   if (optSppat) optSppat.classList.remove('active');
   if (optEpicrisis) optEpicrisis.classList.remove('active');
+  if (optEpiMobile) optEpiMobile.classList.remove('active');
+  if (optSppatMobile) optSppatMobile.classList.remove('active');
+  if (optEpicrisisMobile) optEpicrisisMobile.classList.remove('active');
 
   if (modo === 'sppat') {
     // Switcher Superior Izquierdo
@@ -782,6 +738,7 @@ export function cambiarModoApp(modo, esCargaInicial = false) {
       headerBadge.className = 'badge-form-mode badge-sppat';
     }
     if (optSppat) optSppat.classList.add('active');
+    if (optSppatMobile) optSppatMobile.classList.add('active');
 
     // Switcher Móvil
     if (mobileTitulo) mobileTitulo.innerText = 'Expediente SPPAT';
@@ -825,6 +782,7 @@ export function cambiarModoApp(modo, esCargaInicial = false) {
       headerBadge.className = 'badge-form-mode badge-epicrisis';
     }
     if (optEpicrisis) optEpicrisis.classList.add('active');
+    if (optEpicrisisMobile) optEpicrisisMobile.classList.add('active');
 
     // Switcher Móvil
     if (mobileTitulo) mobileTitulo.innerText = 'Epicrisis (006)';
@@ -866,6 +824,7 @@ export function cambiarModoApp(modo, esCargaInicial = false) {
       headerBadge.className = 'badge-form-mode badge-epi';
     }
     if (optEpi) optEpi.classList.add('active');
+    if (optEpiMobile) optEpiMobile.classList.add('active');
 
     // Switcher Móvil
     if (mobileTitulo) mobileTitulo.innerText = 'Fichas EPI';
@@ -1157,6 +1116,7 @@ if (document.readyState === 'loading') {
 }
 
 // Exponer funciones al objeto global window para botones HTML onclick
+window.cambiarFormularioDirecto = cambiarFormularioDirecto;
 window.cambiarModoApp = cambiarModoApp;
 window.alternarModoApp = alternarModoApp;
 window.abrirModalCambiarFormulario = abrirModalCambiarFormulario;

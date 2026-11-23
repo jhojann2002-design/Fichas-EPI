@@ -1080,6 +1080,20 @@ body[data-modo="epi"] .ocultar-en-epi {
   align-items: center;
   margin: 6px 0 16px 0;
   padding: 0 12px;
+  position: relative;
+}
+
+.mobile-title-switcher-container .dropdown-menu {
+  margin-top: 8px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  max-width: 94vw;
+  width: 320px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15) !important;
+}
+
+.btn-mobile-title-switcher[aria-expanded="true"] .mobile-switcher-caret {
+  transform: rotate(180deg);
 }
 
 .btn-mobile-title-switcher {

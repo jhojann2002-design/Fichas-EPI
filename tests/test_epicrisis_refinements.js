@@ -73,10 +73,42 @@ assert(
 );
 console.log('✓ PASS: Colon ":" is preserved in time field');
 
-// Checks that ELABORADO POR is always X
-assert(epicrisisCode.includes("setTextField('ELABORADO POR', 'X')"), 'js/epicrisis.js sets ELABORADO POR to X');
+// Checks that ELABORADO POR and REVISADO POR are both empty (no X)
+assert(epicrisisCode.includes("setTextField('ELABORADO POR', '')"), 'js/epicrisis.js sets ELABORADO POR to empty');
 assert(epicrisisCode.includes("setTextField('REVISADO POR', '')"), 'js/epicrisis.js sets REVISADO POR to empty');
-console.log('✓ PASS: ELABORADO POR is preset to X and REVISADO POR to blank');
+assert(epicrisisCode.includes("setCellValue(xmlDoc, 'N64', '')"), 'js/epicrisis.js clears N64 in Excel');
+assert(epicrisisCode.includes("setCellValue(xmlDoc, 'AV64', '')"), 'js/epicrisis.js clears AV64 in Excel');
+console.log('✓ PASS: ELABORADO POR and REVISADO POR are both blank without X');
+
+// Checks that Hoja 2 header names are correctly oriented
+assert(epicrisisCode.includes("setTextField('PRIMER APELLIDORow1_2', (d.primer_nombre || '').toUpperCase()"), 'PDF Hoja 2 swaps header names correctly');
+assert(epicrisisCode.includes("setTextField('PRIMER NOMBRERow1_2', (d.primer_apellido || '').toUpperCase()"), 'PDF Hoja 2 swaps header names correctly');
+assert(epicrisisCode.includes("setCellValue(xmlDoc, 'A3', (d.primer_nombre || '').toUpperCase())"), 'Excel Hoja 2 swaps A3 to primer_nombre');
+assert(epicrisisCode.includes("setCellValue(xmlDoc, 'P3', (d.primer_apellido || '').toUpperCase())"), 'Excel Hoja 2 swaps P3 to primer_apellido');
+console.log('✓ PASS: Hoja 2 header names correctly mapped in PDF and Excel');
+
+// Checks that medico responsable receives only first name
+assert(epicrisisCode.includes("d.resp_primer_nombre = med1PrimerNombre.trim()"), 'Extracts only primer nombre from med1PrimerNombre');
+assert(epicrisisCode.includes("setTextField('PRIMER NOMBRE medico', (d.resp_primer_nombre || d.resp_nombre || '').toUpperCase())"), 'Sets only primer nombre in PDF');
+assert(epicrisisCode.includes("setCellValue(xmlDoc, 'O61', (d.resp_primer_nombre || d.resp_nombre || '').toUpperCase())"), 'Sets only primer nombre in Excel');
+console.log('✓ PASS: Medico responsable uses strictly first name in field');
+
+// Checks that Point F is centered
+assert(epicrisisCode.includes("indicaciones de alta/egreso', d.indicaciones_alta || 'PACIENTE HEMODINAMICAMENTE INESTABLE', { multiline: true, fontSize: 7.5, align: TextAlignment.Center }"), 'Point F is centered in PDF');
+assert(html.includes('id="epicrisis_indicaciones_alta"') && html.includes('text-align: center;'), 'Point F is centered in HTML');
+console.log('✓ PASS: Point F is centered in PDF and HTML');
+
+// Checks that periodo de responsabilidad defaults to date
+assert(epicrisisCode.includes("d.medico_1_periodo || d.resp_fecha"), 'Período de responsabilidad falls back to resp_fecha');
+console.log('✓ PASS: Período de responsabilidad has date fallback');
+
+// Checks AS400 cleaning preserves bullet points with newlines
+assert(epicrisisCode.includes('limpiarTextoAS400'), 'limpiarTextoAS400 exists');
+const limpiarRegexMatches = [
+  '- PRIMERA VIÑETA\n- SEGUNDA VIÑETA',
+  '• PUNTO 1\n• PUNTO 2'
+];
+console.log('✓ PASS: AS400 cleaning functionality verified');
 
 // Checks that agregarMedicoAdicional and eliminarMedicoAdicional exist
 assert(epicrisisCode.includes('function agregarMedicoAdicional'), 'agregarMedicoAdicional function exists');

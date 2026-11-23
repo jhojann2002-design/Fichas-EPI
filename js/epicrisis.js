@@ -236,41 +236,63 @@ export function limpiarTextoAS400(texto) {
   // 2. Eliminar caracteres de control invisibles que provienen del emulador de terminal
   str = str.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
 
-  // 3. Unir palabras separadas con guion al final de línea (ej: "HIPERTEN-\nSION" -> "HIPERTENSION")
-  str = str.replace(/([A-Za-z0-9áéíóúüñÁÉÍÓÚÜÑ]+)-\n\s*([A-Za-z0-9áéíóúüñÁÉÍÓÚÜÑ]+)/gu, '$1$2');
+  // 3. Si en medio del texto hay viñetas separadas por espacios (ej: "...C/8H - DIETA BLANDA"), asegurar salto de línea antes de cada viñeta
+  str = str.replace(/[ \t]+([-*•\u2013\u2014])\s*([A-Za-z0-9áéíóúüñÁÉÍÓÚÜÑ])/gu, '\n$1 $2');
 
-  // 4. Dividir por dobles saltos de línea para preservar párrafos reales
-  const bloques = str.split(/\n{2,}/);
+  // 4. Unir palabras cortadas por guion al final de línea (ej: "HIPERTEN-\nsion" -> "HIPERTENsion")
+  str = str.replace(/([A-Za-z0-9áéíóúüñÁÉÍÓÚÜÑ]{2,})-\n\s*([a-záéíóúüñ]{2,})/gu, '$1$2');
 
-  const bloquesLimpios = bloques.map(bloque => {
-    const lineas = bloque.split('\n');
-    let resultado = '';
+  // 5. Procesar líneas respetando viñetas como "enters" individuales y uniendo prosa partida
+  const lineas = str.split('\n');
+  const lineasProcesadas = [];
+  let bufferProsa = '';
 
-    for (let i = 0; i < lineas.length; i++) {
-      let linea = lineas[i].trim();
-      if (!linea) continue;
+  for (let i = 0; i < lineas.length; i++) {
+    let linea = lineas[i].trim();
+    if (!linea) {
+      if (bufferProsa) {
+        lineasProcesadas.push(bufferProsa);
+        bufferProsa = '';
+      }
+      continue;
+    }
 
-      // Colapsar espacios múltiples dentro de la línea
-      linea = linea.replace(/[ \t]{2,}/g, ' ');
+    // Colapsar espacios múltiples horizontales
+    linea = linea.replace(/[ \t]{2,}/g, ' ');
 
-      if (!resultado) {
-        resultado = linea;
+    // Comprobar si la línea es una viñeta (inicia con guion, asterisco, bullet o número)
+    const esVineta = /^([-*•\u2013\u2014]|\d+[.)\-])\s*/.test(linea);
+    const terminaEnDosPuntos = /:\s*$/.test(bufferProsa);
+
+    if (esVineta) {
+      if (bufferProsa) {
+        lineasProcesadas.push(bufferProsa);
+        bufferProsa = '';
+      }
+      // Asegurar espacio tras el guion si viene pegado al texto
+      if (/^[-*•\u2013\u2014][A-Za-z0-9áéíóúüñÁÉÍÓÚÜÑ]/.test(linea)) {
+        linea = linea.charAt(0) + ' ' + linea.slice(1);
+      }
+      lineasProcesadas.push(linea);
+    } else if (terminaEnDosPuntos) {
+      if (bufferProsa) {
+        lineasProcesadas.push(bufferProsa);
+      }
+      bufferProsa = linea;
+    } else {
+      if (bufferProsa) {
+        bufferProsa += ' ' + linea;
       } else {
-        // Preservar estructura si la línea anterior termina en dos puntos o la actual es viñeta/número
-        const esInicioLista = /^([0-9]+[.)\-]|[-*•])\s+/.test(linea);
-        const terminaEnDosPuntos = /:\s*$/.test(resultado);
-
-        if (esInicioLista || terminaEnDosPuntos) {
-          resultado += '\n' + linea;
-        } else {
-          resultado += ' ' + linea;
-        }
+        bufferProsa = linea;
       }
     }
-    return resultado;
-  });
+  }
 
-  return bloquesLimpios.filter(Boolean).join('\n\n').trim();
+  if (bufferProsa) {
+    lineasProcesadas.push(bufferProsa);
+  }
+
+  return lineasProcesadas.join('\n').trim();
 }
 
 export function limpiarTextoAS400EnTextarea(id) {
@@ -397,26 +419,30 @@ export function recopilarDatosEpicrisis() {
 
   const medicoDoc = getVal('epicrisis_med1_doc') || getVal('epicrisis_medico_doc');
   const medicoEsp = getVal('epicrisis_med1_esp') || getVal('epicrisis_medico_esp');
-  const medicoPeriodo = getVal('epicrisis_med1_periodo') || getVal('epicrisis_medico_periodo');
+  const respFecha = getVal('epicrisis_resp_fecha') || new Date().toISOString().slice(0, 10);
+  const medicoPeriodo = getVal('epicrisis_med1_periodo') || getVal('epicrisis_medico_periodo') || respFecha;
 
   d.medico_1_nombre = medicoNombre;
   d.medico_1_esp = medicoEsp;
   d.medico_1_doc = medicoDoc;
   d.medico_1_periodo = medicoPeriodo;
 
-  // Desglosar nombres para campos individuales de responsable
+  // Desglosar nombres para campos individuales de responsable (solo primer nombre en primer nombre)
   if (med1PrimerNombre || med1PrimerApe) {
+    d.resp_primer_nombre = med1PrimerNombre.trim();
     d.resp_nombre = [med1PrimerNombre, med1SegundoNombre].filter(Boolean).join(' ').trim();
-    d.resp_primer_ape = med1PrimerApe;
-    d.resp_segundo_ape = med1SegundoApe;
+    d.resp_primer_ape = med1PrimerApe.trim();
+    d.resp_segundo_ape = (med1SegundoApe || '').trim();
   } else {
     const desglosado = desglosarNombreMedico(medicoNombre);
+    const primerNomDesg = (desglosado.primerNombre || '').split(' ')[0] || '';
+    d.resp_primer_nombre = primerNomDesg;
     d.resp_nombre = getVal('epicrisis_resp_nombre') || desglosado.primerNombre;
-    d.resp_primer_ape = getVal('epicrisis_resp_primer_ape') || desglosado.primerApellido;
-    d.resp_segundo_ape = getVal('epicrisis_resp_segundo_ape') || desglosado.segundoApellido;
+    d.resp_primer_ape = (getVal('epicrisis_resp_primer_ape') || desglosado.primerApellido || '').trim();
+    d.resp_segundo_ape = (getVal('epicrisis_resp_segundo_ape') || desglosado.segundoApellido || '').trim();
   }
   d.resp_doc = getVal('epicrisis_resp_doc') || medicoDoc;
-  d.resp_fecha = getVal('epicrisis_resp_fecha') || new Date().toISOString().slice(0, 10);
+  d.resp_fecha = respFecha;
   d.resp_hora = getVal('epicrisis_resp_hora') || new Date().toTimeString().slice(0, 5);
   d.resp_rol = 'ELABORADO';
 
@@ -591,8 +617,8 @@ export async function procesarEpicrisisExcelLocalmente(d) {
       const xmlDoc = parser.parseFromString(decoder.decode(xmlBytes), 'application/xml');
 
       // Encabezado Hoja 2
-      setCellValue(xmlDoc, 'A3', (d.primer_apellido || '').toUpperCase());
-      setCellValue(xmlDoc, 'P3', (d.primer_nombre || '').toUpperCase());
+      setCellValue(xmlDoc, 'A3', (d.primer_nombre || '').toUpperCase());
+      setCellValue(xmlDoc, 'P3', (d.primer_apellido || '').toUpperCase());
       setCellValue(xmlDoc, 'AF3', d.edad || '');
       setCellValue(xmlDoc, 'AJ3', d.hcu || '');
       setCellValue(xmlDoc, 'BD3', d.archivo || '');
@@ -642,7 +668,7 @@ export async function procesarEpicrisisExcelLocalmente(d) {
       setCellValue(xmlDoc, 'B54', (d.medico_1_nombre || '').toUpperCase());
       setCellValue(xmlDoc, 'AD54', (d.medico_1_esp || '').toUpperCase());
       setCellValue(xmlDoc, 'AO54', d.medico_1_doc || '');
-      setCellValue(xmlDoc, 'BC54', d.medico_1_periodo || '');
+      setCellValue(xmlDoc, 'BC54', d.medico_1_periodo || d.resp_fecha || '');
 
       setCellValue(xmlDoc, 'B55', (d.medico_2_nombre || '').toUpperCase());
       setCellValue(xmlDoc, 'AD55', (d.medico_2_esp || '').toUpperCase());
@@ -662,12 +688,12 @@ export async function procesarEpicrisisExcelLocalmente(d) {
       // J. Profesional responsable
       setCellValue(xmlDoc, 'A61', d.resp_fecha || '');
       setCellValue(xmlDoc, 'I61', d.resp_hora || '');
-      setCellValue(xmlDoc, 'O61', (d.resp_nombre || '').toUpperCase());
+      setCellValue(xmlDoc, 'O61', (d.resp_primer_nombre || d.resp_nombre || '').toUpperCase());
       setCellValue(xmlDoc, 'AI61', (d.resp_primer_ape || '').toUpperCase());
       setCellValue(xmlDoc, 'BA61', (d.resp_segundo_ape || '').toUpperCase());
       setCellValue(xmlDoc, 'A63', d.resp_doc || '');
 
-      setCellValue(xmlDoc, 'N64', 'X');
+      setCellValue(xmlDoc, 'N64', '');
       setCellValue(xmlDoc, 'AV64', '');
 
       const modifiedXml = serializer.serializeToString(xmlDoc);
@@ -791,15 +817,15 @@ export async function generarEpicrisisPdf(d) {
   setTextField('hallazgos relevantes de examenes', d.hallazgos || '', { multiline: true, fontSize: 7.5 });
 
   // 3. Hoja 2 - Encabezado
-  setTextField('PRIMER APELLIDORow1_2', (d.primer_apellido || '').toUpperCase(), { bold: true });
-  setTextField('PRIMER NOMBRERow1_2', (d.primer_nombre || '').toUpperCase(), { bold: true });
+  setTextField('PRIMER APELLIDORow1_2', (d.primer_nombre || '').toUpperCase(), { bold: true });
+  setTextField('PRIMER NOMBRERow1_2', (d.primer_apellido || '').toUpperCase(), { bold: true });
   setTextField('EDADRow1_2', d.edad || '', { bold: true });
   setTextField('NÚMERO DE HISTORIA CLÍNICA ÚNICARow1_2', d.hcu || '', { bold: true });
   setTextField('NÚMERO DE ARCHIVORow1_2', d.archivo || '', { bold: true });
 
   // 4. Hoja 2 - Tratamiento e Indicaciones
   setTextField('resumen de tratamiento', d.tratamiento || '', { multiline: true, fontSize: 7.5 });
-  setTextField('indicaciones de alta/egreso', d.indicaciones_alta || 'PACIENTE HEMODINAMICAMENTE INESTABLE', { multiline: true, fontSize: 7.5 });
+  setTextField('indicaciones de alta/egreso', d.indicaciones_alta || 'PACIENTE HEMODINAMICAMENTE INESTABLE', { multiline: true, fontSize: 7.5, align: TextAlignment.Center });
 
   // 5. Hoja 2 - Diagnósticos y CIE-10
   setTextField('DIAGNÓSTICO PRINCIPAL', (d.diag_principal || '').toUpperCase(), { align: TextAlignment.Left });
@@ -831,7 +857,7 @@ export async function generarEpicrisisPdf(d) {
   setTextField('medico tratante_1_nombre', (d.medico_1_nombre || '').toUpperCase(), { align: TextAlignment.Left });
   setTextField('medico tratante_1_especialidad', (d.medico_1_esp || '').toUpperCase());
   setTextField('medico tratante_1_cedula', d.medico_1_doc || '');
-  setTextField('medico tratante_1_periodo responsabilidad', d.medico_1_periodo || '');
+  setTextField('medico tratante_1_periodo responsabilidad', d.medico_1_periodo || d.resp_fecha || '');
 
   setTextField('medico tratante_2_nombre', (d.medico_2_nombre || '').toUpperCase(), { align: TextAlignment.Left });
   setTextField('medico tratante_2_especialidad', (d.medico_2_esp || '').toUpperCase());
@@ -851,11 +877,11 @@ export async function generarEpicrisisPdf(d) {
   // 8. Hoja 2 - Profesional Responsable
   setTextField('FECHA aaaammddRow1', d.resp_fecha || '');
   setTextField('HORA hhmmRow1', d.resp_hora || '');
-  setTextField('PRIMER NOMBRE medico', (d.resp_nombre || '').toUpperCase());
+  setTextField('PRIMER NOMBRE medico', (d.resp_primer_nombre || d.resp_nombre || '').toUpperCase());
   setTextField('PRIMER apellido medico', (d.resp_primer_ape || '').toUpperCase());
   setTextField('segundo apellido medico', (d.resp_segundo_ape || '').toUpperCase());
   setTextField('NÚMERO DE DOCUMENTO DE IDENTIFICACIÓN medico', d.resp_doc || '');
-  setTextField('ELABORADO POR', 'X');
+  setTextField('ELABORADO POR', '');
   setTextField('REVISADO POR', '');
 
   // Aplanar formulario para máxima fidelidad visual oficial

@@ -54,7 +54,7 @@
       <ul class="dropdown-menu dropdown-menu-apple shadow-lg" aria-labelledby="dropdownFormSwitcher">
         <li><h6 class="dropdown-header text-uppercase" style="font-size: 0.68rem; font-weight: 700; letter-spacing: 0.5px;">Seleccionar Formulario</h6></li>
         <li>
-          <a class="dropdown-item d-flex align-items-center gap-3 py-2 px-3 rounded-3 active" id="optSwitchEpi" href="javascript:void(0)" onclick="window.solicitarCambioModo('epi')">
+          <a class="dropdown-item d-flex align-items-center gap-3 py-2 px-3 rounded-3 active" id="optSwitchEpi" href="javascript:void(0)" onclick="window.cambiarFormularioDirecto('epi')">
             <div class="icon-wrap-switch text-primary bg-primary bg-opacity-10 p-2 rounded-circle">
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
             </div>
@@ -66,7 +66,7 @@
         </li>
         <li><hr class="dropdown-divider my-1 opacity-25"></li>
         <li>
-          <a class="dropdown-item d-flex align-items-center gap-3 py-2 px-3 rounded-3" id="optSwitchSppat" href="javascript:void(0)" onclick="window.solicitarCambioModo('sppat')">
+          <a class="dropdown-item d-flex align-items-center gap-3 py-2 px-3 rounded-3" id="optSwitchSppat" href="javascript:void(0)" onclick="window.cambiarFormularioDirecto('sppat')">
             <div class="icon-wrap-switch text-danger bg-danger bg-opacity-10 p-2 rounded-circle">
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="m4.93 4.93 4.24 4.24"></path><path d="m14.83 9.17 4.24-4.24"></path><path d="m14.83 14.83 4.24 4.24"></path><path d="m9.17 14.83-4.24 4.24"></path><circle cx="12" cy="12" r="4"></circle></svg>
             </div>
@@ -78,7 +78,7 @@
         </li>
         <li><hr class="dropdown-divider my-1 opacity-25"></li>
         <li>
-          <a class="dropdown-item d-flex align-items-center gap-3 py-2 px-3 rounded-3" id="optSwitchEpicrisis" href="javascript:void(0)" onclick="window.solicitarCambioModo('epicrisis')">
+          <a class="dropdown-item d-flex align-items-center gap-3 py-2 px-3 rounded-3" id="optSwitchEpicrisis" href="javascript:void(0)" onclick="window.cambiarFormularioDirecto('epicrisis')">
             <div class="icon-wrap-switch text-success bg-success bg-opacity-10 p-2 rounded-circle">
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
             </div>
@@ -193,28 +193,13 @@
       </div>
     </div>
 
-    <!-- Sección Respaldo de Archivo JSON -->
-    <div>
-      <small class="text-uppercase fw-bold text-muted" style="font-size: 0.72rem; letter-spacing: 0.05em;">Respaldo de Datos</small>
-      <div class="d-flex gap-2 mt-2">
-        <button type="button" class="btn-apple flex-grow-1" style="background-color: var(--apple-subcard-bg); color: var(--apple-text); border: 1px solid var(--apple-border); display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px 8px; font-size: 0.84rem; box-shadow: none;" onclick="exportarRespaldoJSON()" title="Exportar ficha actual como archivo JSON">
-          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-          Exportar JSON
-        </button>
-        <button type="button" class="btn-apple flex-grow-1" style="background-color: var(--apple-subcard-bg); color: var(--apple-text); border: 1px solid var(--apple-border); display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px 8px; font-size: 0.84rem; box-shadow: none;" onclick="document.getElementById('inputImportarJSON').click()" title="Cargar ficha desde archivo JSON">
-          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-          Importar JSON
-        </button>
-        <input type="file" id="inputImportarJSON" accept=".json,application/json" style="display: none;" onchange="importarRespaldoJSON(event)">
-      </div>
-    </div>
   </div>
 </div>
 
 <div class="container-fluid app-container py-2">
-  <!-- Selector de Formulario en Móvil (Apple Navigation Pill) -->
-  <div class="d-md-none mobile-title-switcher-container">
-    <button type="button" class="btn-mobile-title-switcher" onclick="window.abrirModalCambiarFormulario()" title="Toca para cambiar de formulario">
+  <!-- Selector de Formulario en Móvil (Apple Navigation Pill con Dropdown Desplegable) -->
+  <div class="d-md-none mobile-title-switcher-container dropdown">
+    <button type="button" class="btn-mobile-title-switcher" id="dropdownMobileSwitcher" data-bs-toggle="dropdown" aria-expanded="false" title="Toca para cambiar de formulario">
       <span class="mobile-switcher-icon-wrap icon-epi" id="mobileModeIconWrap">
         <svg id="svgMobileEpi" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
       </span>
@@ -222,6 +207,44 @@
       <span class="badge-form-mode badge-epi" id="mobileBadgeModo">EPI / TB</span>
       <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="mobile-switcher-caret"><polyline points="6 9 12 15 18 9"></polyline></svg>
     </button>
+    <ul class="dropdown-menu dropdown-menu-apple shadow-lg dropdown-menu-center" aria-labelledby="dropdownMobileSwitcher">
+      <li><h6 class="dropdown-header text-uppercase" style="font-size: 0.68rem; font-weight: 700; letter-spacing: 0.5px;">Seleccionar Formulario</h6></li>
+      <li>
+        <a class="dropdown-item d-flex align-items-center gap-3 py-2 px-3 rounded-3 active" id="optSwitchEpiMobile" href="javascript:void(0)" onclick="window.cambiarFormularioDirecto('epi')">
+          <div class="icon-wrap-switch text-primary bg-primary bg-opacity-10 p-2 rounded-circle">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+          </div>
+          <div>
+            <div class="fw-bold" style="font-size: 0.95rem;">Fichas Epidemiológicas</div>
+            <small class="text-muted" style="font-size: 0.78rem;">Notificación EPI y Tuberculosis (TB)</small>
+          </div>
+        </a>
+      </li>
+      <li><hr class="dropdown-divider my-1 opacity-25"></li>
+      <li>
+        <a class="dropdown-item d-flex align-items-center gap-3 py-2 px-3 rounded-3" id="optSwitchSppatMobile" href="javascript:void(0)" onclick="window.cambiarFormularioDirecto('sppat')">
+          <div class="icon-wrap-switch text-danger bg-danger bg-opacity-10 p-2 rounded-circle">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="m4.93 4.93 4.24 4.24"></path><path d="m14.83 9.17 4.24-4.24"></path><path d="m14.83 14.83 4.24 4.24"></path><path d="m9.17 14.83-4.24 4.24"></path><circle cx="12" cy="12" r="4"></circle></svg>
+          </div>
+          <div>
+            <div class="fw-bold" style="font-size: 0.95rem;">Expediente SPPAT</div>
+            <small class="text-muted" style="font-size: 0.78rem;">Accidentes de Tránsito / Emergencias</small>
+          </div>
+        </a>
+      </li>
+      <li><hr class="dropdown-divider my-1 opacity-25"></li>
+      <li>
+        <a class="dropdown-item d-flex align-items-center gap-3 py-2 px-3 rounded-3" id="optSwitchEpicrisisMobile" href="javascript:void(0)" onclick="window.cambiarFormularioDirecto('epicrisis')">
+          <div class="icon-wrap-switch text-success bg-success bg-opacity-10 p-2 rounded-circle">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
+          </div>
+          <div>
+            <div class="fw-bold" style="font-size: 0.95rem;">Epicrisis (Form. 006)</div>
+            <small class="text-muted" style="font-size: 0.78rem;">Resumen de Alta y Egreso Hospitalario</small>
+          </div>
+        </a>
+      </li>
+    </ul>
   </div>
 
   <form id="epiForm">
@@ -1766,7 +1789,7 @@
               </h5>
               <button type="button" class="btn btn-sm btn-outline-secondary btn-limpiar-as400" onclick="window.limpiarTextoAS400EnTextarea('epicrisis_indicaciones_alta')" title="Eliminar saltos de línea copiados del AS400">🧹 Limpiar AS400</button>
             </div>
-            <textarea id="epicrisis_indicaciones_alta" class="form-control save-state" rows="5" placeholder="Recomendaciones farmacológicas al egreso, dieta, cuidados en domicilio, signos de alarma..." style="border-radius: 12px; font-size: 0.9rem; line-height: 1.4; min-height: 130px;">PACIENTE HEMODINAMICAMENTE INESTABLE</textarea>
+            <textarea id="epicrisis_indicaciones_alta" class="form-control save-state text-center" rows="5" placeholder="Recomendaciones farmacológicas al egreso, dieta, cuidados en domicilio, signos de alarma..." style="border-radius: 12px; font-size: 0.9rem; line-height: 1.4; min-height: 130px; text-align: center;">PACIENTE HEMODINAMICAMENTE INESTABLE</textarea>
           </div>
         </div>
 
@@ -1950,8 +1973,8 @@
                 <input type="text" id="epicrisis_med1_esp" class="form-control form-control-sm save-state" placeholder="Ej: Emergencia / Cirugía">
               </div>
               <div class="col-6 col-md-4">
-                <label for="epicrisis_med1_periodo" class="form-label text-muted" style="font-size: 0.8rem; font-weight: 600;">PERÍODO / SERVICIO:</label>
-                <input type="text" id="epicrisis_med1_periodo" class="form-control form-control-sm save-state" placeholder="Ej: Hospitalización">
+                <label for="epicrisis_med1_periodo" class="form-label text-muted" style="font-size: 0.8rem; font-weight: 600;">PERÍODO / FECHA:</label>
+                <input type="text" id="epicrisis_med1_periodo" class="form-control form-control-sm save-state" placeholder="Ej: 2026-11-23">
               </div>
             </div>
 

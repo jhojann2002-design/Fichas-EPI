@@ -65,6 +65,23 @@ export function saveFormData(modoExplicito) {
   localStorage.setItem(storageKey, JSON.stringify(data));
 }
 
+export function establecerPredeterminadosHospitalEpicrisis() {
+  const instSelect = document.getElementById('institucion');
+  if (instSelect) {
+    instSelect.value = 'Instituto Ecuatoriano de Seguridad Social';
+    instSelect.dispatchEvent(new Event('change'));
+    const estabSelect = document.getElementById('establecimiento');
+    if (estabSelect) {
+      estabSelect.value = 'HOSPITAL GENERAL PORTOVIEJO';
+      estabSelect.dispatchEvent(new Event('change'));
+    }
+  }
+  const unicodigoEl = document.getElementById('epicrisis_unicodigo');
+  if (unicodigoEl && !unicodigoEl.value) {
+    unicodigoEl.value = '13D01';
+  }
+}
+
 function resetearCamposBaseEnDOM(modo) {
   const form = document.getElementById('epiForm');
   if (form) form.reset();
@@ -148,10 +165,7 @@ function resetearCamposBaseEnDOM(modo) {
       badgeEdad.innerHTML = '';
     }
 
-    const inst = document.getElementById('institucion');
-    if (inst) inst.value = '';
-    const estab = document.getElementById('establecimiento');
-    if (estab) estab.value = '';
+    establecerPredeterminadosHospitalEpicrisis();
 
     const camposEpicrisis = [
       'epicrisis_unicodigo', 'epicrisis_hcu', 'epicrisis_archivo', 'epicrisis_num_hoja',
@@ -201,6 +215,8 @@ function resetearCamposBaseEnDOM(modo) {
     if (respFecha) respFecha.value = new Date().toISOString().slice(0, 10);
     const respHora = document.getElementById('epicrisis_resp_hora');
     if (respHora) respHora.value = new Date().toTimeString().slice(0, 5);
+    const med1PeriodoEl = document.getElementById('epicrisis_med1_periodo');
+    if (med1PeriodoEl) med1PeriodoEl.value = new Date().toISOString().slice(0, 10);
   } else {
     const tbody = document.getElementById('contactsBody');
     if (tbody) {
@@ -233,6 +249,9 @@ export function loadFormData(modoExplicito = null, desdeCambioModo = false) {
   resetearCamposBaseEnDOM(modo);
 
   if (!savedData) {
+    if (modo === 'epicrisis') {
+      establecerPredeterminadosHospitalEpicrisis();
+    }
     if (!desdeCambioModo && typeof window.cambiarModoApp === 'function') {
       window.cambiarModoApp(modo, true);
     }
