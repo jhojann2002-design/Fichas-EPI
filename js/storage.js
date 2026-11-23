@@ -211,12 +211,14 @@ function resetearCamposBaseEnDOM(modo) {
       if (b) b.style.display = 'none';
     });
 
+    const fAteEl = document.getElementById('fecha_atencion');
+    if (fAteEl && !fAteEl.value) fAteEl.value = new Date().toISOString().slice(0, 10);
     const respFecha = document.getElementById('epicrisis_resp_fecha');
-    if (respFecha) respFecha.value = new Date().toISOString().slice(0, 10);
+    if (respFecha) respFecha.value = fAteEl ? fAteEl.value : new Date().toISOString().slice(0, 10);
     const respHora = document.getElementById('epicrisis_resp_hora');
     if (respHora) respHora.value = new Date().toTimeString().slice(0, 5);
     const med1PeriodoEl = document.getElementById('epicrisis_med1_periodo');
-    if (med1PeriodoEl) med1PeriodoEl.value = new Date().toISOString().slice(0, 10);
+    if (med1PeriodoEl) med1PeriodoEl.value = fAteEl ? fAteEl.value : new Date().toISOString().slice(0, 10);
   } else {
     const tbody = document.getElementById('contactsBody');
     if (tbody) {
@@ -251,6 +253,10 @@ export function loadFormData(modoExplicito = null, desdeCambioModo = false) {
   if (!savedData) {
     if (modo === 'epicrisis') {
       establecerPredeterminadosHospitalEpicrisis();
+      const fAte = document.getElementById('fecha_atencion');
+      if (fAte && !fAte.value) fAte.value = new Date().toISOString().slice(0, 10);
+      const rHora = document.getElementById('epicrisis_resp_hora');
+      if (rHora && !rHora.value) rHora.value = new Date().toTimeString().slice(0, 5);
     }
     if (!desdeCambioModo && typeof window.cambiarModoApp === 'function') {
       window.cambiarModoApp(modo, true);

@@ -419,7 +419,8 @@ export function recopilarDatosEpicrisis() {
 
   const medicoDoc = getVal('epicrisis_med1_doc') || getVal('epicrisis_medico_doc');
   const medicoEsp = getVal('epicrisis_med1_esp') || getVal('epicrisis_medico_esp');
-  const respFecha = getVal('epicrisis_resp_fecha') || new Date().toISOString().slice(0, 10);
+  const respFecha = getVal('fecha_atencion') || getVal('epicrisis_resp_fecha') || new Date().toISOString().slice(0, 10);
+  const respHora = getVal('epicrisis_resp_hora') || new Date().toTimeString().slice(0, 5);
   const medicoPeriodo = getVal('epicrisis_med1_periodo') || getVal('epicrisis_medico_periodo') || respFecha;
 
   d.medico_1_nombre = medicoNombre;
@@ -443,7 +444,7 @@ export function recopilarDatosEpicrisis() {
   }
   d.resp_doc = getVal('epicrisis_resp_doc') || medicoDoc;
   d.resp_fecha = respFecha;
-  d.resp_hora = getVal('epicrisis_resp_hora') || new Date().toTimeString().slice(0, 5);
+  d.resp_hora = respHora;
   d.resp_rol = 'ELABORADO';
 
   // Médicos opcionales adicionales
@@ -1076,6 +1077,21 @@ export function inicializarEventosEpicrisis() {
       el.addEventListener('input', () => { el.dataset.edited = 'true'; });
     }
   });
+
+  // Sincronizar fecha única superior con campos internos de fecha de epicrisis
+  const fAteEl = document.getElementById('fecha_atencion');
+  const respFechaEl = document.getElementById('epicrisis_resp_fecha');
+  const medPeriodoEl = document.getElementById('epicrisis_med1_periodo');
+  if (fAteEl) {
+    const sincronizarFechaEpicrisis = () => {
+      const val = fAteEl.value;
+      if (respFechaEl) respFechaEl.value = val;
+      if (medPeriodoEl) medPeriodoEl.value = val;
+    };
+    fAteEl.addEventListener('input', sincronizarFechaEpicrisis);
+    fAteEl.addEventListener('change', sincronizarFechaEpicrisis);
+    sincronizarFechaEpicrisis();
+  }
 
   inicializarBuscadorCie10Epicrisis();
 }

@@ -754,6 +754,8 @@ export function cambiarModoApp(modo, esCargaInicial = false) {
     // Títulos de tarjetas
     if (txtTituloUnidad) txtTituloUnidad.innerText = 'Establecimiento de Salud (Emergencia SPPAT)';
     if (txtTituloIdent) txtTituloIdent.innerText = 'Datos del Paciente / Accidentado';
+    const lblFechaSppat = document.getElementById('lblFechaAtencion');
+    if (lblFechaSppat) lblFechaSppat.innerText = 'Fecha Atención:';
 
     // Visibilidad de secciones
     if (contEpi) contEpi.style.display = 'none';
@@ -796,8 +798,10 @@ export function cambiarModoApp(modo, esCargaInicial = false) {
     }
 
     // Títulos de tarjetas
-    if (txtTituloUnidad) txtTituloUnidad.innerText = 'Establecimiento Notificador (Epicrisis)';
+    if (txtTituloUnidad) txtTituloUnidad.innerText = 'A. Datos del Establecimiento y Registro (Epicrisis Form. 006)';
     if (txtTituloIdent) txtTituloIdent.innerText = 'Datos del Usuario / Paciente';
+    const lblFechaEpicrisis = document.getElementById('lblFechaAtencion');
+    if (lblFechaEpicrisis) lblFechaEpicrisis.innerText = 'Fecha:';
 
     // Visibilidad de secciones
     if (contEpi) contEpi.style.display = 'none';
@@ -840,6 +844,8 @@ export function cambiarModoApp(modo, esCargaInicial = false) {
     // Títulos de tarjetas
     if (txtTituloUnidad) txtTituloUnidad.innerText = 'Unidad Notificadora';
     if (txtTituloIdent) txtTituloIdent.innerText = 'Identificación y Datos del Paciente';
+    const lblFechaEpi = document.getElementById('lblFechaAtencion');
+    if (lblFechaEpi) lblFechaEpi.innerText = 'Fecha Atención:';
 
     // Visibilidad de secciones
     if (contEpi) contEpi.style.display = 'block';

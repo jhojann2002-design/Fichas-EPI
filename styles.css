@@ -957,6 +957,18 @@ body:not([data-modo="epicrisis"]) .mostrar-solo-epicrisis {
   display: none !important;
 }
 
+body[data-modo="epicrisis"] #colFechaAtencion,
+body[data-modo="epicrisis"] #colHoraEpicrisis {
+  flex: 0 0 auto;
+  width: 25%;
+}
+@media (max-width: 767.98px) {
+  body[data-modo="epicrisis"] #colFechaAtencion,
+  body[data-modo="epicrisis"] #colHoraEpicrisis {
+    width: 50%;
+  }
+}
+
 .btn-limpiar-as400 {
   font-size: 0.75rem;
   font-weight: 500;

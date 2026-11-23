@@ -121,4 +121,18 @@ assert(storageCode.includes("unicodigoEl.value = '13D01'"), 'storage.js resets u
 assert(storageCode.includes("tipoAlta.value = 'NO_APLICA'"), 'storage.js resets tipo_alta to NO_APLICA');
 console.log('✓ PASS: storage.js resets unicodigo to 13D01 and tipo_alta to NO_APLICA');
 
+// 9. Verify single date at top, hour at top, unicodigo & num_hoja at top, no duplicate date in epicrisis
+const topCardMatch = html.match(/<div class="card-body pt-2">[\s\S]*?id="colFechaAtencion"[\s\S]*?<\/div>\s*<\/div>\s*<\/div>/);
+assert(topCardMatch, 'Top card exists');
+const topCardContent = topCardMatch[0];
+assert(topCardContent.includes('id="epicrisis_unicodigo"'), 'Unicodigo is placed in the top card');
+assert(topCardContent.includes('id="epicrisis_num_hoja"'), 'Num hoja is placed in the top card');
+assert(topCardContent.includes('id="fecha_atencion"'), 'Fecha is placed in the top card');
+assert(topCardContent.includes('id="epicrisis_resp_hora"'), 'Hora is placed in the top card');
+
+const epicrisisContainer = html.substring(html.indexOf('id="contenedorEpicrisis"'));
+assert(!epicrisisContainer.includes('type="date"'), 'No duplicate date input inside contenedorEpicrisis');
+assert(epicrisisContainer.includes('<input type="hidden" id="epicrisis_med1_periodo">'), 'med1_periodo is hidden to avoid duplicate date prompt');
+console.log('✓ PASS: Single date at top, hour/unicodigo/hoja at top, no duplicate date prompts');
+
 console.log('\nAll Epicrisis Refinement Tests Passed Successfully!');

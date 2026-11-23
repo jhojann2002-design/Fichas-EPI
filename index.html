@@ -282,12 +282,27 @@
             <input type="text" id="parroquia_establecimiento" class="form-control" readonly>
           </div>
 
-          <div class="col-12 col-md-4">
+          <!-- Campos específicos de Epicrisis colocados hasta arriba -->
+          <div class="col-6 col-md-3 mostrar-solo-epicrisis">
+            <label for="epicrisis_unicodigo" class="form-label mb-1" style="font-size: 0.85rem; font-weight: 600;">Unicódigo:</label>
+            <input type="text" id="epicrisis_unicodigo" class="form-control save-state" value="13D01" placeholder="Ej: 13D01">
+          </div>
+          <div class="col-6 col-md-3 mostrar-solo-epicrisis">
+            <label for="epicrisis_num_hoja" class="form-label mb-1" style="font-size: 0.85rem; font-weight: 600;">No. Hoja:</label>
+            <input type="text" id="epicrisis_num_hoja" class="form-control save-state" value="1">
+          </div>
+
+          <div class="col-12 col-md-4" id="colFechaAtencion">
             <div class="d-flex justify-content-between align-items-center mb-1">
-              <label class="mb-0" for="fecha_atencion">Fecha Atención:</label>
+              <label class="mb-0" for="fecha_atencion" id="lblFechaAtencion">Fecha Atención:</label>
               <button type="button" class="btn-fecha-hoy" onclick="establecerFechaHoy('fecha_atencion')" title="Poner fecha actual">Hoy</button>
             </div>
             <input type="date" id="fecha_atencion" class="form-control save-state" onchange="calcDiasSintomas()" oninput="calcDiasSintomas()">
+          </div>
+
+          <div class="col-6 col-md-3 mostrar-solo-epicrisis" id="colHoraEpicrisis">
+            <label for="epicrisis_resp_hora" class="form-label mb-1" style="font-size: 0.85rem; font-weight: 600;">Hora (hh:mm):</label>
+            <input type="time" id="epicrisis_resp_hora" class="form-control save-state">
           </div>
         </div>
       </div>
@@ -1700,31 +1715,9 @@
       <!-- CONTENEDOR 3: FORMULARIO EPICRISIS (SNS-MSP/HCU-form.006)    -->
       <!-- ============================================================ -->
       <div id="contenedorEpicrisis" style="display: none;">
-        
-        <!-- TARJETA ADICIONAL: IDENTIFICACIÓN ESPECÍFICA EPICRISIS -->
-        <div class="apple-card mb-4">
-          <div class="d-flex align-items-center justify-content-between mb-3">
-            <h5 class="fw-bold mb-0 text-success d-flex align-items-center gap-2">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-              A. Datos del Establecimiento y Registro Epicrisis
-            </h5>
-            <span class="badge-form-mode badge-epicrisis">Form. 006 MSP</span>
-          </div>
-
-          <div class="row g-3">
-            <div class="col-6 col-md-6">
-              <label for="epicrisis_unicodigo" class="form-label text-muted" style="font-size: 0.8rem; font-weight: 600;">UNICÓDIGO (PREDETERMINADO IESS PORTOVIEJO):</label>
-              <input type="text" id="epicrisis_unicodigo" class="form-control form-control-sm save-state" value="13D01" placeholder="Ej: 13D01">
-            </div>
-            <div class="col-6 col-md-6">
-              <label for="epicrisis_num_hoja" class="form-label text-muted" style="font-size: 0.8rem; font-weight: 600;">No. HOJA:</label>
-              <input type="text" id="epicrisis_num_hoja" class="form-control form-control-sm save-state" value="1">
-            </div>
-            <!-- Inputs ocultos para compatibilidad sin duplicar preguntas al usuario -->
-            <input type="hidden" id="epicrisis_hcu">
-            <input type="hidden" id="epicrisis_archivo">
-          </div>
-        </div>
+        <!-- Inputs ocultos para compatibilidad sin duplicar preguntas al usuario -->
+        <input type="hidden" id="epicrisis_hcu">
+        <input type="hidden" id="epicrisis_archivo">
 
         <!-- TARJETA HOJA 1: RESUMEN CLÍNICO (B, C, D) -->
         <div class="apple-card mb-4">
@@ -1964,31 +1957,19 @@
             </div>
 
             <div class="row g-2 mb-2">
-              <div class="col-12 col-md-4">
+              <div class="col-12 col-md-6">
                 <label for="epicrisis_med1_doc" class="form-label text-muted" style="font-size: 0.8rem; font-weight: 600;">CÉDULA / IDENTIFICACIÓN:</label>
                 <input type="text" id="epicrisis_med1_doc" class="form-control form-control-sm save-state" placeholder="Cédula del médico">
               </div>
-              <div class="col-6 col-md-4">
+              <div class="col-12 col-md-6">
                 <label for="epicrisis_med1_esp" class="form-label text-muted" style="font-size: 0.8rem; font-weight: 600;">ESPECIALIDAD:</label>
                 <input type="text" id="epicrisis_med1_esp" class="form-control form-control-sm save-state" placeholder="Ej: Emergencia / Cirugía">
               </div>
-              <div class="col-6 col-md-4">
-                <label for="epicrisis_med1_periodo" class="form-label text-muted" style="font-size: 0.8rem; font-weight: 600;">PERÍODO / FECHA:</label>
-                <input type="text" id="epicrisis_med1_periodo" class="form-control form-control-sm save-state" placeholder="Ej: 2026-11-23">
-              </div>
             </div>
 
-            <div class="row g-2 align-items-center pt-2 border-top">
-              <div class="col-6 col-md-4">
-                <label for="epicrisis_resp_fecha" class="form-label text-muted" style="font-size: 0.8rem; font-weight: 600;">FECHA:</label>
-                <input type="date" id="epicrisis_resp_fecha" class="form-control form-control-sm save-state">
-              </div>
-              <div class="col-6 col-md-4">
-                <label for="epicrisis_resp_hora" class="form-label text-muted" style="font-size: 0.8rem; font-weight: 600;">HORA (hh:mm):</label>
-                <input type="time" id="epicrisis_resp_hora" class="form-control form-control-sm save-state">
-              </div>
-            </div>
-            <!-- Campo oculto para unión y compatibilidad -->
+            <!-- Campos ocultos para compatibilidad y auto-asignación desde la fecha/hora superior -->
+            <input type="hidden" id="epicrisis_med1_periodo">
+            <input type="hidden" id="epicrisis_resp_fecha">
             <input type="hidden" id="epicrisis_med1_nombre">
           </div>
 
