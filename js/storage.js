@@ -166,23 +166,36 @@ function resetearCamposBaseEnDOM(modo) {
       'epicrisis_diag_sec_4', 'epicrisis_cie_sec_4',
       'epicrisis_diag_sec_5', 'epicrisis_cie_sec_5',
       'epicrisis_diag_causa_ext', 'epicrisis_cie_causa_ext',
-      'epicrisis_med1_nombre', 'epicrisis_med1_periodo',
-      'epicrisis_med2_nombre', 'epicrisis_med2_periodo',
-      'epicrisis_resp_profesional', 'epicrisis_resp_codigo'
+      'epicrisis_med1_primer_nombre', 'epicrisis_med1_segundo_nombre',
+      'epicrisis_med1_primer_ape', 'epicrisis_med1_segundo_ape',
+      'epicrisis_med1_nombre', 'epicrisis_med1_esp', 'epicrisis_med1_doc', 'epicrisis_med1_periodo',
+      'epicrisis_med2_nombre', 'epicrisis_med2_esp', 'epicrisis_med2_doc', 'epicrisis_med2_periodo',
+      'epicrisis_med3_nombre', 'epicrisis_med3_esp', 'epicrisis_med3_doc', 'epicrisis_med3_periodo',
+      'epicrisis_med4_nombre', 'epicrisis_med4_esp', 'epicrisis_med4_doc', 'epicrisis_med4_periodo',
+      'epicrisis_resp_nombre', 'epicrisis_resp_primer_ape', 'epicrisis_resp_segundo_ape', 'epicrisis_resp_doc'
     ];
     camposEpicrisis.forEach(id => {
       const el = document.getElementById(id);
       if (el) el.value = '';
     });
 
+    const unicodigoEl = document.getElementById('epicrisis_unicodigo');
+    if (unicodigoEl) unicodigoEl.value = '13D01';
+
     const condVital = document.getElementById('epicrisis_cond_vital');
     if (condVital) condVital.value = 'VIVO';
     const tipoAlta = document.getElementById('epicrisis_tipo_alta');
-    if (tipoAlta) tipoAlta.value = 'ALTA_MEDICA';
+    if (tipoAlta) tipoAlta.value = 'NO_APLICA';
     const numHojaEl = document.getElementById('epicrisis_num_hoja');
     if (numHojaEl) numHojaEl.value = '1';
     const indAlta = document.getElementById('epicrisis_indicaciones_alta');
     if (indAlta) indAlta.value = 'PACIENTE HEMODINAMICAMENTE INESTABLE';
+
+    // Ocultar bloques adicionales de médicos
+    ['bloqueMedico2', 'bloqueMedico3', 'bloqueMedico4'].forEach(bId => {
+      const b = document.getElementById(bId);
+      if (b) b.style.display = 'none';
+    });
 
     const respFecha = document.getElementById('epicrisis_resp_fecha');
     if (respFecha) respFecha.value = new Date().toISOString().slice(0, 10);
@@ -374,6 +387,14 @@ export function loadFormData(modoExplicito = null, desdeCambioModo = false) {
       window.alternarQuienFirmaSppat?.(quienFirma);
       window.sincronizarChipsRx?.();
     } else if (modo === 'epicrisis') {
+      ['bloqueMedico2', 'bloqueMedico3', 'bloqueMedico4'].forEach((bId, idx) => {
+        const medNum = idx + 2;
+        const b = document.getElementById(bId);
+        if (b) {
+          const tieneDatos = Boolean(data[`epicrisis_med${medNum}_nombre`] || data[`epicrisis_med${medNum}_doc`]);
+          b.style.display = tieneDatos ? 'block' : 'none';
+        }
+      });
       window.actualizarBadgeEdad?.();
     }
 

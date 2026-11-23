@@ -153,7 +153,8 @@ function runTier4Tests() {
     assert.strictEqual(payload.hcu, '1312345678');
     assert.strictEqual(payload.primer_apellido, 'ZAMBRANO');
     assert.strictEqual(payload.primer_nombre, 'JUAN');
-    assert.strictEqual(payload.unicodigo, '', 'unicodigo must NOT inherit sppat_unicodigo');
+    assert.strictEqual(payload.unicodigo, '13D01', 'unicodigo defaults to 13D01 for IESS Portoviejo');
+    assert.notStrictEqual(payload.unicodigo, 'SPPAT_UNICO_LEAK', 'unicodigo must NOT inherit sppat_unicodigo');
 
     assert.strictEqual(payload.diag_principal, 'Apendicitis aguda no especificada');
     assert.strictEqual(payload.cie_principal, 'K35.8');

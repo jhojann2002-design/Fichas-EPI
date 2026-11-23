@@ -1689,22 +1689,17 @@
           </div>
 
           <div class="row g-3">
-            <div class="col-6 col-md-3">
-              <label for="epicrisis_unicodigo" class="form-label text-muted" style="font-size: 0.8rem; font-weight: 600;">UNICÓDIGO:</label>
-              <input type="text" id="epicrisis_unicodigo" class="form-control form-control-sm save-state" placeholder="Ej: 13D01">
+            <div class="col-6 col-md-6">
+              <label for="epicrisis_unicodigo" class="form-label text-muted" style="font-size: 0.8rem; font-weight: 600;">UNICÓDIGO (PREDETERMINADO IESS PORTOVIEJO):</label>
+              <input type="text" id="epicrisis_unicodigo" class="form-control form-control-sm save-state" value="13D01" placeholder="Ej: 13D01">
             </div>
-            <div class="col-6 col-md-3">
+            <div class="col-6 col-md-6">
               <label for="epicrisis_num_hoja" class="form-label text-muted" style="font-size: 0.8rem; font-weight: 600;">No. HOJA:</label>
               <input type="text" id="epicrisis_num_hoja" class="form-control form-control-sm save-state" value="1">
             </div>
-            <div class="col-6 col-md-3">
-              <label for="epicrisis_hcu" class="form-label text-muted" style="font-size: 0.8rem; font-weight: 600;">No. HISTORIA CLÍNICA (HCU):</label>
-              <input type="text" id="epicrisis_hcu" class="form-control form-control-sm save-state" placeholder="HCU / Cédula">
-            </div>
-            <div class="col-6 col-md-3">
-              <label for="epicrisis_archivo" class="form-label text-muted" style="font-size: 0.8rem; font-weight: 600;">No. ARCHIVO:</label>
-              <input type="text" id="epicrisis_archivo" class="form-control form-control-sm save-state" placeholder="No. Archivo">
-            </div>
+            <!-- Inputs ocultos para compatibilidad sin duplicar preguntas al usuario -->
+            <input type="hidden" id="epicrisis_hcu">
+            <input type="hidden" id="epicrisis_archivo">
           </div>
         </div>
 
@@ -1890,7 +1885,8 @@
             <div class="col-12 col-md-4">
               <label class="form-label text-muted" style="font-size: 0.8rem; font-weight: 600;">TIPO DE ALTA / CONDICIÓN:</label>
               <select id="epicrisis_tipo_alta" class="form-select form-select-sm save-state">
-                <option value="ALTA_MEDICA" selected>ALTA MÉDICA</option>
+                <option value="NO_APLICA" selected>NO APLICA / NINGUNO</option>
+                <option value="ALTA_MEDICA">ALTA MÉDICA</option>
                 <option value="ALTA_VOLUNTARIA">ALTA VOLUNTARIA</option>
                 <option value="ASINTOMATICO">ASINTOMÁTICO</option>
                 <option value="DISCAPACIDAD">DISCAPACIDAD</option>
@@ -1917,67 +1913,73 @@
               <span class="badge bg-primary text-white rounded-circle p-1" style="width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem;">I</span>
               Médico Tratante y Profesional Responsable
             </h5>
-            <button class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMedicosOpcionales" aria-expanded="false" aria-controls="collapseMedicosOpcionales" style="font-size: 0.8rem;">
-              <span>➕ Agregar más médicos tratantes (opcional)</span>
+            <button class="btn btn-sm btn-outline-primary d-flex align-items-center gap-1" type="button" id="btnAgregarMedico" onclick="window.agregarMedicoAdicional()" style="font-size: 0.8rem;">
+              <span>➕ Agregar médico tratante adicional</span>
             </button>
           </div>
 
-          <!-- Médico Principal (Se reparte a todo el documento automáticamente) -->
+          <!-- Médico Principal (Se pide por bloques y se reparte automáticamente a toda la epicrisis) -->
           <div class="p-3 mb-3 rounded-3" style="background: var(--apple-input-bg); border: 1px solid var(--apple-border);">
+            <div class="fw-bold text-dark mb-2" style="font-size: 0.85rem;">Médico Tratante Principal:</div>
             <div class="row g-2 mb-2">
-              <div class="col-12 col-md-5">
-                <label for="epicrisis_med1_nombre" class="form-label text-muted" style="font-size: 0.8rem; font-weight: 600;">NOMBRES Y APELLIDOS DEL MÉDICO:</label>
-                <input type="text" id="epicrisis_med1_nombre" class="form-control form-control-sm save-state" placeholder="Ej: Dr. Juan Carlos Pérez Zambrano">
+              <div class="col-6 col-md-3">
+                <label for="epicrisis_med1_primer_nombre" class="form-label text-muted" style="font-size: 0.8rem; font-weight: 600;">1er NOMBRE:</label>
+                <input type="text" id="epicrisis_med1_primer_nombre" class="form-control form-control-sm save-state" placeholder="Ej: Juan">
               </div>
               <div class="col-6 col-md-3">
+                <label for="epicrisis_med1_segundo_nombre" class="form-label text-muted" style="font-size: 0.8rem; font-weight: 600;">2do NOMBRE:</label>
+                <input type="text" id="epicrisis_med1_segundo_nombre" class="form-control form-control-sm save-state" placeholder="Ej: Carlos">
+              </div>
+              <div class="col-6 col-md-3">
+                <label for="epicrisis_med1_primer_ape" class="form-label text-muted" style="font-size: 0.8rem; font-weight: 600;">1er APELLIDO:</label>
+                <input type="text" id="epicrisis_med1_primer_ape" class="form-control form-control-sm save-state" placeholder="Ej: Pérez">
+              </div>
+              <div class="col-6 col-md-3">
+                <label for="epicrisis_med1_segundo_ape" class="form-label text-muted" style="font-size: 0.8rem; font-weight: 600;">2do APELLIDO:</label>
+                <input type="text" id="epicrisis_med1_segundo_ape" class="form-control form-control-sm save-state" placeholder="Ej: Zambrano">
+              </div>
+            </div>
+
+            <div class="row g-2 mb-2">
+              <div class="col-12 col-md-4">
                 <label for="epicrisis_med1_doc" class="form-label text-muted" style="font-size: 0.8rem; font-weight: 600;">CÉDULA / IDENTIFICACIÓN:</label>
                 <input type="text" id="epicrisis_med1_doc" class="form-control form-control-sm save-state" placeholder="Cédula del médico">
               </div>
-              <div class="col-6 col-md-2">
+              <div class="col-6 col-md-4">
                 <label for="epicrisis_med1_esp" class="form-label text-muted" style="font-size: 0.8rem; font-weight: 600;">ESPECIALIDAD:</label>
                 <input type="text" id="epicrisis_med1_esp" class="form-control form-control-sm save-state" placeholder="Ej: Emergencia / Cirugía">
               </div>
-              <div class="col-12 col-md-2">
+              <div class="col-6 col-md-4">
                 <label for="epicrisis_med1_periodo" class="form-label text-muted" style="font-size: 0.8rem; font-weight: 600;">PERÍODO / SERVICIO:</label>
                 <input type="text" id="epicrisis_med1_periodo" class="form-control form-control-sm save-state" placeholder="Ej: Hospitalización">
               </div>
             </div>
 
             <div class="row g-2 align-items-center pt-2 border-top">
-              <div class="col-6 col-md-3">
+              <div class="col-6 col-md-4">
                 <label for="epicrisis_resp_fecha" class="form-label text-muted" style="font-size: 0.8rem; font-weight: 600;">FECHA:</label>
                 <input type="date" id="epicrisis_resp_fecha" class="form-control form-control-sm save-state">
               </div>
-              <div class="col-6 col-md-3">
-                <label for="epicrisis_resp_hora" class="form-label text-muted" style="font-size: 0.8rem; font-weight: 600;">HORA:</label>
+              <div class="col-6 col-md-4">
+                <label for="epicrisis_resp_hora" class="form-label text-muted" style="font-size: 0.8rem; font-weight: 600;">HORA (hh:mm):</label>
                 <input type="time" id="epicrisis_resp_hora" class="form-control form-control-sm save-state">
               </div>
-              <div class="col-12 col-md-6">
-                <label class="form-label text-muted" style="font-size: 0.8rem; font-weight: 600;">ROL EN EL FORMULARIO:</label>
-                <select id="epicrisis_resp_rol" class="form-select form-select-sm save-state">
-                  <option value="ELABORADO" selected>ELABORADO POR</option>
-                  <option value="REVISADO">REVISADO POR</option>
-                </select>
-              </div>
             </div>
+            <!-- Campo oculto para unión y compatibilidad -->
+            <input type="hidden" id="epicrisis_med1_nombre">
           </div>
 
-          <!-- Campos desglosados (se auto-llenan solos al escribir el nombre del médico arriba) -->
-          <div class="row g-2 mb-2 d-none">
-            <input type="hidden" id="epicrisis_resp_nombre">
-            <input type="hidden" id="epicrisis_resp_primer_ape">
-            <input type="hidden" id="epicrisis_resp_segundo_ape">
-            <input type="hidden" id="epicrisis_resp_doc">
-          </div>
-
-          <!-- Médicos adicionales colapsados (opcional, no ocupa espacio por defecto) -->
-          <div class="collapse mt-2" id="collapseMedicosOpcionales">
-            <div class="p-3 rounded-3" style="background: rgba(0,0,0,0.02); border: 1px dashed var(--apple-border);">
-              <div class="text-muted fw-bold mb-2" style="font-size: 0.82rem;">Médicos Tratantes Adicionales:</div>
-              <!-- Médico 2 -->
+          <!-- Contenedor para Médicos Adicionales (con botón para eliminar) -->
+          <div id="contenedorMedicosAdicionales">
+            <!-- Médico 2 -->
+            <div id="bloqueMedico2" class="p-3 mb-3 rounded-3" style="display: none; background: rgba(0,0,0,0.02); border: 1px dashed var(--apple-border);">
+              <div class="d-flex align-items-center justify-content-between mb-2">
+                <span class="fw-bold text-dark" style="font-size: 0.85rem;">Médico Tratante 2:</span>
+                <button type="button" class="btn btn-sm btn-outline-danger py-0 px-2" onclick="window.eliminarMedicoAdicional(2)" style="font-size: 0.75rem;">🗑️ Quitar Médico 2</button>
+              </div>
               <div class="row g-2 mb-2">
                 <div class="col-12 col-md-4">
-                  <input type="text" id="epicrisis_med2_nombre" class="form-control form-control-sm save-state" placeholder="Médico 2: Nombres y Apellidos">
+                  <input type="text" id="epicrisis_med2_nombre" class="form-control form-control-sm save-state" placeholder="Nombres y Apellidos">
                 </div>
                 <div class="col-6 col-md-3">
                   <input type="text" id="epicrisis_med2_esp" class="form-control form-control-sm save-state" placeholder="Especialidad">
@@ -1989,10 +1991,17 @@
                   <input type="text" id="epicrisis_med2_periodo" class="form-control form-control-sm save-state" placeholder="Período">
                 </div>
               </div>
-              <!-- Médico 3 -->
+            </div>
+
+            <!-- Médico 3 -->
+            <div id="bloqueMedico3" class="p-3 mb-3 rounded-3" style="display: none; background: rgba(0,0,0,0.02); border: 1px dashed var(--apple-border);">
+              <div class="d-flex align-items-center justify-content-between mb-2">
+                <span class="fw-bold text-dark" style="font-size: 0.85rem;">Médico Tratante 3:</span>
+                <button type="button" class="btn btn-sm btn-outline-danger py-0 px-2" onclick="window.eliminarMedicoAdicional(3)" style="font-size: 0.75rem;">🗑️ Quitar Médico 3</button>
+              </div>
               <div class="row g-2 mb-2">
                 <div class="col-12 col-md-4">
-                  <input type="text" id="epicrisis_med3_nombre" class="form-control form-control-sm save-state" placeholder="Médico 3: Nombres y Apellidos">
+                  <input type="text" id="epicrisis_med3_nombre" class="form-control form-control-sm save-state" placeholder="Nombres y Apellidos">
                 </div>
                 <div class="col-6 col-md-3">
                   <input type="text" id="epicrisis_med3_esp" class="form-control form-control-sm save-state" placeholder="Especialidad">
@@ -2004,10 +2013,17 @@
                   <input type="text" id="epicrisis_med3_periodo" class="form-control form-control-sm save-state" placeholder="Período">
                 </div>
               </div>
-              <!-- Médico 4 -->
+            </div>
+
+            <!-- Médico 4 -->
+            <div id="bloqueMedico4" class="p-3 mb-2 rounded-3" style="display: none; background: rgba(0,0,0,0.02); border: 1px dashed var(--apple-border);">
+              <div class="d-flex align-items-center justify-content-between mb-2">
+                <span class="fw-bold text-dark" style="font-size: 0.85rem;">Médico Tratante 4:</span>
+                <button type="button" class="btn btn-sm btn-outline-danger py-0 px-2" onclick="window.eliminarMedicoAdicional(4)" style="font-size: 0.75rem;">🗑️ Quitar Médico 4</button>
+              </div>
               <div class="row g-2">
                 <div class="col-12 col-md-4">
-                  <input type="text" id="epicrisis_med4_nombre" class="form-control form-control-sm save-state" placeholder="Médico 4: Nombres y Apellidos">
+                  <input type="text" id="epicrisis_med4_nombre" class="form-control form-control-sm save-state" placeholder="Nombres y Apellidos">
                 </div>
                 <div class="col-6 col-md-3">
                   <input type="text" id="epicrisis_med4_esp" class="form-control form-control-sm save-state" placeholder="Especialidad">

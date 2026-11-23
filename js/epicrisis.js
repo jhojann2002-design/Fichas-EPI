@@ -327,11 +327,15 @@ export function recopilarDatosEpicrisis() {
   const d = {};
 
   // 1. Datos Generales (Predeterminados IESS y Hospital Portoviejo)
-  d.institucion = getVal('institucion') || 'IESS';
+  let inst = getVal('institucion') || 'IESS';
+  if (/instituto\s+ecuatoriano\s+de\s+seguridad\s+social/i.test(inst) || /iess/i.test(inst)) {
+    inst = 'IESS';
+  }
+  d.institucion = inst;
   d.establecimiento = getVal('establecimiento') || 'HOSPITAL GENERAL PORTOVIEJO';
-  d.unicodigo = getVal('epicrisis_unicodigo') || '';
-  d.hcu = getVal('epicrisis_hcu') || getVal('historia_clinica') || getVal('cedula');
-  d.archivo = getVal('epicrisis_archivo') || getVal('historia_clinica') || getVal('cedula');
+  d.unicodigo = getVal('epicrisis_unicodigo') || '13D01';
+  d.archivo = getVal('cedula') || getVal('historia_clinica') || getVal('epicrisis_archivo');
+  d.hcu = getVal('historia_clinica') || getVal('cedula') || getVal('epicrisis_hcu');
   d.numero_hoja = getVal('epicrisis_num_hoja') || '1';
 
   d.primer_apellido = getVal('primer_apellido');
@@ -376,12 +380,21 @@ export function recopilarDatosEpicrisis() {
   d.cond_vivo = condVital === 'VIVO';
   d.cond_fallecido = condVital === 'FALLECIDO';
 
-  d.tipo_alta = getVal('epicrisis_tipo_alta') || 'ALTA_MEDICA';
+  d.tipo_alta = getVal('epicrisis_tipo_alta') || 'NO_APLICA';
   d.dias_estada = getVal('epicrisis_dias_estada') || '';
   d.dias_reposo = getVal('epicrisis_dias_reposo') || '';
 
-  // 6. Médico Tratante Principal (repartido automáticamente)
-  const medicoNombre = getVal('epicrisis_med1_nombre') || getVal('epicrisis_medico_nombre') || getVal('medico_tratante');
+  // 6. Médico Tratante Principal (repartido automáticamente y pedido por bloques)
+  const med1PrimerNombre = getVal('epicrisis_med1_primer_nombre');
+  const med1SegundoNombre = getVal('epicrisis_med1_segundo_nombre');
+  const med1PrimerApe = getVal('epicrisis_med1_primer_ape');
+  const med1SegundoApe = getVal('epicrisis_med1_segundo_ape');
+
+  let medicoNombre = [med1PrimerNombre, med1SegundoNombre, med1PrimerApe, med1SegundoApe].filter(Boolean).join(' ').trim();
+  if (!medicoNombre) {
+    medicoNombre = getVal('epicrisis_med1_nombre') || getVal('epicrisis_medico_nombre') || getVal('medico_tratante');
+  }
+
   const medicoDoc = getVal('epicrisis_med1_doc') || getVal('epicrisis_medico_doc');
   const medicoEsp = getVal('epicrisis_med1_esp') || getVal('epicrisis_medico_esp');
   const medicoPeriodo = getVal('epicrisis_med1_periodo') || getVal('epicrisis_medico_periodo');
@@ -392,14 +405,20 @@ export function recopilarDatosEpicrisis() {
   d.medico_1_periodo = medicoPeriodo;
 
   // Desglosar nombres para campos individuales de responsable
-  const desglosado = desglosarNombreMedico(medicoNombre);
-  d.resp_nombre = getVal('epicrisis_resp_nombre') || desglosado.primerNombre;
-  d.resp_primer_ape = getVal('epicrisis_resp_primer_ape') || desglosado.primerApellido;
-  d.resp_segundo_ape = getVal('epicrisis_resp_segundo_ape') || desglosado.segundoApellido;
+  if (med1PrimerNombre || med1PrimerApe) {
+    d.resp_nombre = [med1PrimerNombre, med1SegundoNombre].filter(Boolean).join(' ').trim();
+    d.resp_primer_ape = med1PrimerApe;
+    d.resp_segundo_ape = med1SegundoApe;
+  } else {
+    const desglosado = desglosarNombreMedico(medicoNombre);
+    d.resp_nombre = getVal('epicrisis_resp_nombre') || desglosado.primerNombre;
+    d.resp_primer_ape = getVal('epicrisis_resp_primer_ape') || desglosado.primerApellido;
+    d.resp_segundo_ape = getVal('epicrisis_resp_segundo_ape') || desglosado.segundoApellido;
+  }
   d.resp_doc = getVal('epicrisis_resp_doc') || medicoDoc;
   d.resp_fecha = getVal('epicrisis_resp_fecha') || new Date().toISOString().slice(0, 10);
   d.resp_hora = getVal('epicrisis_resp_hora') || new Date().toTimeString().slice(0, 5);
-  d.resp_rol = getVal('epicrisis_resp_rol') || 'ELABORADO';
+  d.resp_rol = 'ELABORADO';
 
   // Médicos opcionales adicionales
   d.medico_2_nombre = getVal('epicrisis_med2_nombre');
@@ -648,11 +667,8 @@ export async function procesarEpicrisisExcelLocalmente(d) {
       setCellValue(xmlDoc, 'BA61', (d.resp_segundo_ape || '').toUpperCase());
       setCellValue(xmlDoc, 'A63', d.resp_doc || '');
 
-      if (d.resp_rol === 'REVISADO') {
-        setCellValue(xmlDoc, 'AV64', 'X');
-      } else {
-        setCellValue(xmlDoc, 'N64', 'X');
-      }
+      setCellValue(xmlDoc, 'N64', 'X');
+      setCellValue(xmlDoc, 'AV64', '');
 
       const modifiedXml = serializer.serializeToString(xmlDoc);
       entry.rawBytes = encoder.encode(modifiedXml);
@@ -833,16 +849,14 @@ export async function generarEpicrisisPdf(d) {
   setTextField('medico tratante_4_periodo responsabilidad', d.medico_4_periodo || '');
 
   // 8. Hoja 2 - Profesional Responsable
-  const fechaFmt = d.resp_fecha ? d.resp_fecha.replace(/-/g, '') : '';
-  const horaFmt = d.resp_hora ? d.resp_hora.replace(':', '') : '';
-  setTextField('FECHA aaaammddRow1', fechaFmt);
-  setTextField('HORA hhmmRow1', horaFmt);
+  setTextField('FECHA aaaammddRow1', d.resp_fecha || '');
+  setTextField('HORA hhmmRow1', d.resp_hora || '');
   setTextField('PRIMER NOMBRE medico', (d.resp_nombre || '').toUpperCase());
   setTextField('PRIMER apellido medico', (d.resp_primer_ape || '').toUpperCase());
   setTextField('segundo apellido medico', (d.resp_segundo_ape || '').toUpperCase());
   setTextField('NÚMERO DE DOCUMENTO DE IDENTIFICACIÓN medico', d.resp_doc || '');
-  setTextField('ELABORADO POR', d.resp_rol === 'ELABORADO' ? 'X' : '');
-  setTextField('REVISADO POR', d.resp_rol === 'REVISADO' ? 'X' : '');
+  setTextField('ELABORADO POR', 'X');
+  setTextField('REVISADO POR', '');
 
   // Aplanar formulario para máxima fidelidad visual oficial
   try {
@@ -918,6 +932,45 @@ export async function descargarEpicrisisSegura(formato = 'excel') {
 }
 
 // -------------------------------------------------------------
+// GESTIÓN DE MÉDICOS TRATANTES ADICIONALES
+// -------------------------------------------------------------
+export function agregarMedicoAdicional() {
+  const bloques = [
+    document.getElementById('bloqueMedico2'),
+    document.getElementById('bloqueMedico3'),
+    document.getElementById('bloqueMedico4')
+  ];
+  for (const b of bloques) {
+    if (b && (b.style.display === 'none' || (typeof window !== 'undefined' && window.getComputedStyle && window.getComputedStyle(b).display === 'none'))) {
+      b.style.display = 'block';
+      const inp = b.querySelector('input');
+      if (inp) inp.focus();
+      return;
+    }
+  }
+  if (typeof Swal !== 'undefined') {
+    Swal.fire({
+      icon: 'info',
+      title: 'Límite alcanzado',
+      text: 'El Formulario 006 admite un máximo de 4 médicos tratantes.'
+    });
+  }
+}
+
+export function eliminarMedicoAdicional(num) {
+  const b = document.getElementById(`bloqueMedico${num}`);
+  if (b) {
+    b.style.display = 'none';
+    const inputs = b.querySelectorAll('input');
+    inputs.forEach(inp => {
+      inp.value = '';
+      inp.dispatchEvent(new Event('input', { bubbles: true }));
+      inp.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+  }
+}
+
+// -------------------------------------------------------------
 // VINCULACIÓN EN TIEMPO REAL: PUNTO B -> PUNTO C
 // -------------------------------------------------------------
 let _usuarioEditoEvolucionManualmente = false;
@@ -940,10 +993,45 @@ export function inicializarEventosEpicrisis() {
     });
   }
 
-  // Sincronización automática de médico tratante principal hacia datos del médico
+  // Sincronización automática de médico tratante principal desde bloques
+  const pNomEl = document.getElementById('epicrisis_med1_primer_nombre');
+  const sNomEl = document.getElementById('epicrisis_med1_segundo_nombre');
+  const pApeEl = document.getElementById('epicrisis_med1_primer_ape');
+  const sApeEl = document.getElementById('epicrisis_med1_segundo_ape');
+  const medDocEl = document.getElementById('epicrisis_med1_doc');
+
+  function sincronizarMedicoPrincipalDesdeBloques() {
+    const pNom = (pNomEl?.value || '').trim();
+    const sNom = (sNomEl?.value || '').trim();
+    const pApe = (pApeEl?.value || '').trim();
+    const sApe = (sApeEl?.value || '').trim();
+    const nombreCompleto = [pNom, sNom, pApe, sApe].filter(Boolean).join(' ');
+
+    const hiddenMed1 = document.getElementById('epicrisis_med1_nombre');
+    if (hiddenMed1) hiddenMed1.value = nombreCompleto;
+
+    const respNom = document.getElementById('epicrisis_resp_nombre');
+    const respApe1 = document.getElementById('epicrisis_resp_primer_ape');
+    const respApe2 = document.getElementById('epicrisis_resp_segundo_ape');
+    if (respNom && !respNom.dataset.edited) respNom.value = [pNom, sNom].filter(Boolean).join(' ');
+    if (respApe1 && !respApe1.dataset.edited) respApe1.value = pApe;
+    if (respApe2 && !respApe2.dataset.edited) respApe2.value = sApe;
+  }
+
+  [pNomEl, sNomEl, pApeEl, sApeEl].forEach(el => {
+    if (el) el.addEventListener('input', sincronizarMedicoPrincipalDesdeBloques);
+  });
+
+  if (medDocEl) {
+    medDocEl.addEventListener('input', () => {
+      const respDoc = document.getElementById('epicrisis_resp_doc');
+      if (respDoc && !respDoc.dataset.edited) respDoc.value = medDocEl.value;
+    });
+  }
+
+  // Sincronización fallback en caso de med1_nombre unificado
   const medNombre = document.getElementById('epicrisis_med1_nombre');
-  const medDoc = document.getElementById('epicrisis_med1_doc');
-  if (medNombre) {
+  if (medNombre && !pNomEl && !pApeEl) {
     medNombre.addEventListener('input', () => {
       const { primerNombre, primerApellido, segundoApellido } = desglosarNombreMedico(medNombre.value);
       const respNom = document.getElementById('epicrisis_resp_nombre');
@@ -952,12 +1040,6 @@ export function inicializarEventosEpicrisis() {
       if (respNom && !respNom.dataset.edited) respNom.value = primerNombre;
       if (respApe1 && !respApe1.dataset.edited) respApe1.value = primerApellido;
       if (respApe2 && !respApe2.dataset.edited) respApe2.value = segundoApellido;
-    });
-  }
-  if (medDoc) {
-    medDoc.addEventListener('input', () => {
-      const respDoc = document.getElementById('epicrisis_resp_doc');
-      if (respDoc && !respDoc.dataset.edited) respDoc.value = medDoc.value;
     });
   }
 
@@ -1271,4 +1353,6 @@ if (typeof window !== 'undefined') {
   window.limpiarTextoAS400 = limpiarTextoAS400;
   window.limpiarTextoAS400EnTextarea = limpiarTextoAS400EnTextarea;
   window.desglosarNombreMedico = desglosarNombreMedico;
+  window.agregarMedicoAdicional = agregarMedicoAdicional;
+  window.eliminarMedicoAdicional = eliminarMedicoAdicional;
 }
