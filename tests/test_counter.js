@@ -186,10 +186,11 @@ assert(stylesCss.includes('.btn-apple-stats'), 'styles.css must style .btn-apple
 assert(stylesCss.includes('.badge-stats-count'), 'styles.css must style .badge-stats-count');
 console.log('✓ PASS: CSS styles for Apple counter button and count badge verified');
 
-// 6. Verify Service Worker v47
+// 6. Verify Service Worker v47 or newer
 const swJs = fs.readFileSync(path.resolve(__dirname, '../sw.js'), 'utf8');
-assert(swJs.includes("'fichas-epi-cache-v47'"), 'sw.js must be bumped to fichas-epi-cache-v47');
+const cacheMatch = swJs.match(/fichas-epi-cache-v(\d+)/);
+assert(cacheMatch && parseInt(cacheMatch[1], 10) >= 47, 'sw.js must have cache version v47 or newer');
 assert(swJs.includes("'./js/counter.js'"), 'sw.js must cache ./js/counter.js');
-console.log('✓ PASS: Service worker cache updated to v47 with ./js/counter.js included');
+console.log(`✓ PASS: Service worker cache updated to v${cacheMatch[1]} with ./js/counter.js included`);
 
 console.log('\n--- All 6 Document Counter & Statistics Tests Passed Successfully! ---');

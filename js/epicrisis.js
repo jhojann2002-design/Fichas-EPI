@@ -243,9 +243,16 @@ export function limpiarTextoAS400(texto) {
   // 4. Unir palabras cortadas por guion al final de línea (ej: "HIPERTEN-\nSION" o "hiperten-\nsion")
   str = str.replace(/([A-Za-z0-9áéíóúüñÁÉÍÓÚÜÑ]{2,})-[ \t]*\n[ \t]*([A-Za-z0-9áéíóúüñÁÉÍÓÚÜÑ]{2,})/gu, '$1$2');
 
-  // 5. Si dentro de una misma línea vienen viñetas separadas por espacios, forzar enter
-  // Soporta viñetas tradicionales (-, *, •), numéricas (1.), o letras (D., M., etc.)
-  str = str.replace(/[ \t]+([-*•\u2013\u2014+>]|\d+[.)\-]|[A-Za-z][.)\-])[ \t]+([A-Za-z0-9áéíóúüñÁÉÍÓÚÜÑ]{2,})/gu, '\n$1 $2');
+  // 5. Si dentro de una misma línea vienen viñetas separadas por espacios, forzar enter.
+  // Soporta viñetas compuestas ("1. -", "A. -"), numéricas ("1."), letras ("D.") o símbolos ("-", "*").
+  // Si un símbolo ("-") está precedido por un número o letra ("1.", "D."), es una viñeta combinada y NO debe separarse.
+  str = str.replace(/(\S+)[ \t]+((?:(?:\d+|[A-Za-z])[.)\-][ \t]*[-*•\u2013\u2014+>]|[-*•\u2013\u2014+>]|(?:\d+|[A-Za-z])[.)\-])[ \t]+([A-Za-z0-9áéíóúüñÁÉÍÓÚÜÑ]{2,}))/gu, (match, prev, bulletWithWord, nextWord) => {
+    // Si prev es un prefijo de viñeta (ej: "1.", "A.", "1)") y lo que sigue es un símbolo ("-", "*"), no separar
+    if (/^(?:\d+|[A-Za-z])[.)\-]$/u.test(prev) && /^[-*•\u2013\u2014+>]/u.test(bulletWithWord)) {
+      return match;
+    }
+    return prev + '\n' + bulletWithWord;
+  });
 
   // 6. Procesar líneas respetando viñetas (símbolos, números, letras y prescripciones) como enters individuales
   const lineasRaw = str.split('\n');
@@ -255,8 +262,8 @@ export function limpiarTextoAS400(texto) {
 
   function esItemIndependiente(l) {
     if (!l) return false;
-    // a) Viñeta tradicional o numérica (-, *, •, 1., 1), etc.)
-    if (/^([-*•\u2013\u2014+>]|\d+[.)\-])\s*/.test(l)) return true;
+    // a) Viñeta compuesta, numérica o símbolo tradicional ("1. -", "1.-", "1.", "-", "*", etc.)
+    if (/^((?:\d+|[A-Za-z])[.)\-][ \t]*[-*•\u2013\u2014+>]|[-*•\u2013\u2014+>]|\d+[.)\-])\s*/u.test(l)) return true;
     // b) Viñeta con letra médica (D., I., M., E., L., C., O., a), b., etc.) o romano (I., II.)
     if (/^([A-Za-z]|[IVXLCDMivxlcdm]+)[.)\-]\s*/.test(l)) return true;
     // c) Encabezados terminados en dos puntos
@@ -287,8 +294,8 @@ export function limpiarTextoAS400(texto) {
     // Quitar espacios huérfanos antes de signos de puntuación: " , " -> ", "
     linea = linea.replace(/\s+([,.:;?!])/g, '$1');
 
-    // Normalizar viñeta si la línea comienza con una
-    const matchVineta = linea.match(/^([-*•\u2013\u2014+>]|\d+[.)\-]|[A-Za-z][.)\-])\s*(.*)$/u);
+    // Normalizar viñeta si la línea comienza con una (soporta compuestas como "1. -", "A. -", "1.-")
+    const matchVineta = linea.match(/^((?:\d+|[A-Za-z])[.)\-][ \t]*[-*•\u2013\u2014+>]|[-*•\u2013\u2014+>]|\d+[.)\-]|[A-Za-z][.)\-])\s*(.*)$/u);
     const esItem = esItemIndependiente(linea);
 
     if (esItem) {
@@ -296,7 +303,7 @@ export function limpiarTextoAS400(texto) {
         items.push(buffer);
       }
       if (matchVineta) {
-        const simbolo = matchVineta[1];
+        const simbolo = matchVineta[1].trim();
         const resto = matchVineta[2].trim();
         buffer = resto ? (simbolo + ' ' + resto) : simbolo;
       } else {
@@ -333,7 +340,7 @@ export function limpiarTextoAS400(texto) {
   return items.map(it => {
     let s = it.replace(/ {2,}/g, ' ');
     s = s.replace(/\s+([,.:;?!])/g, '$1');
-    s = s.replace(/^([-*•\u2013\u2014+>]|\d+[.)\-]|[A-Za-z][.)\-])\s+/u, '$1 ');
+    s = s.replace(/^((?:\d+|[A-Za-z])[.)\-][ \t]*[-*•\u2013\u2014+>]|[-*•\u2013\u2014+>]|\d+[.)\-]|[A-Za-z][.)\-])\s+/u, '$1 ');
     return s.trim();
   }).filter(Boolean).join('\n');
 }

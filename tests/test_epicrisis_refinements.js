@@ -154,6 +154,35 @@ assert.strictEqual(
 );
 console.log('✓ PASS: AS400 letter bullets (D., I., M., etc.) and medical prescriptions respect enters without joining into prose');
 
+// Verifica que las viñetas compuestas con número y guión (1. - , 2. - , 11. -) NO se dividan en líneas separadas
+const as400CompuestoRaw = `PLAN INICIAL:
+1. - CONTROL DE SIGNOS VITALES
+2. - CUIDADOS DE ENFERMERIA
+3. - MONITORIZACION CONTINUA
+4. EVITAR RUIDOS Y LUZ INTENSA
+5. MANIPULACION MINIMA
+6- NADA POR VIA ORAL MAS SOGA
+7. - PHP 6/0/0 FB: 4.1 DEXTRO0A AL 10% 152MILILITROS
++ PASAR A 6.3 ML/HORA
+6. OXIGENOTERAPIA CPAP FIO2 30 %
+7. - AMPICILINA 253 MILIGRAMOS ENDOVENOSO CADA 12 HORAS (1)
+8. - GENTAMICINA 10 MILIGRAMOS ENDOVENOSO CADA 24 HORAS (1)
+9. EXAMENES DE LABORATORIOS, BIOMETRIA, PCR, PROCALCITONINA, EMO, URO HEMOX2 CALCIO. ELECTROLITOS, CALCIO, AST, ALT.
+10. EXAMENES TORCH PARTICULAR
+11. - REPORTAR NOVEDADES`;
+
+const as400CompuestoCleaned = limpiarTestFn(as400CompuestoRaw);
+assert(!as400CompuestoCleaned.includes('1.\n-'), '1. must not be isolated on a separate line from -');
+assert(!as400CompuestoCleaned.includes('2.\n-'), '2. must not be isolated on a separate line from -');
+assert(!as400CompuestoCleaned.includes('3.\n-'), '3. must not be isolated on a separate line from -');
+assert(!as400CompuestoCleaned.includes('7.\n-'), '7. must not be isolated on a separate line from -');
+assert(!as400CompuestoCleaned.includes('8.\n-'), '8. must not be isolated on a separate line from -');
+assert(!as400CompuestoCleaned.includes('11.\n-'), '11. must not be isolated on a separate line from -');
+assert(as400CompuestoCleaned.includes('1. - CONTROL DE SIGNOS VITALES'), 'Preserves 1. - CONTROL DE SIGNOS VITALES');
+assert(as400CompuestoCleaned.includes('2. - CUIDADOS DE ENFERMERIA'), 'Preserves 2. - CUIDADOS DE ENFERMERIA');
+assert(as400CompuestoCleaned.includes('11. - REPORTAR NOVEDADES'), 'Preserves 11. - REPORTAR NOVEDADES');
+console.log('✓ PASS: AS400 combined bullets (1. - , 2. - , 11. -) preserved intact without creating orphan number lines');
+
 // Checks that Diagnósticos Secundarios 2-5 are collapsible with remove buttons and dynamic add button
 assert(html.includes('id="filaDiagSec2"') && html.includes('id="filaDiagSec5"'), 'filaDiagSec2 through filaDiagSec5 exist');
 for (let i = 2; i <= 5; i++) {
