@@ -208,16 +208,49 @@ assert(stylesCss.includes('body[data-modo="epicrisis"] #accordionFicha > .accord
 assert(html.includes('id="edad_epicrisis"') && html.includes('id="condicion_edad_epicrisis"'), 'Edad and Condicion inputs exist');
 console.log('✓ PASS: Top cards visually and functionally unified with rest of Epicrisis');
 
-// 11. Point F ample space in template & web form
+// 11. Point F multiline indications in PDF and Excel
 assert(
   html.includes('id="epicrisis_indicaciones_alta"'),
   'Point F indicaciones_alta must exist'
 );
 assert(
-  epicrisisCode.includes("rNum <= 36") || epicrisisCode.includes("setCellValue(xmlDoc, `A${rNum}`, lin)"),
-  'Excel sheet2 distributes multiline indications across Point F rows 25 to 36'
+  epicrisisCode.includes("w.setRectangle({") && epicrisisCode.includes("110.478"),
+  'PDF synchronizes indicaciones de alta/egreso widget rectangle to expanded 110.48pt box'
 );
-console.log('✓ PASS: Point F has ample space in template and web form with multiline distribution in Excel');
+assert(
+  epicrisisCode.includes("w.dict.set(PDFName.of('Ff'), PDFNumber.of(4096))"),
+  'PDF ensures multiline flag (Ff 4096) is active on field and widgets'
+);
+assert(
+  epicrisisCode.includes("setCellValue(xmlDoc, 'A25', textoInd)"),
+  'Excel writes complete multiline text into merged cell A25'
+);
+assert(
+  epicrisisCode.includes("cellA25.setAttribute('s', '106')") && epicrisisCode.includes("cellA25.setAttribute('s', '120')"),
+  'Excel applies top-align wrapText style 106 for multiline and style 120 for hemodinamico'
+);
+assert(
+  epicrisisCode.includes("for (let r = 26; r <= 36; r++)") && epicrisisCode.includes("setCellValue(xmlDoc, `A${r}`, '')"),
+  'Excel clears collapsed/hidden rows 26 to 36'
+);
+
+// Verify plantilla_epicrisis.xlsx has wrapText="1" on style 120
+const { execSync } = require('child_process');
+const pyCheck = execSync(`python3 -c "
+import zipfile, xml.etree.ElementTree as ET
+with zipfile.ZipFile('plantilla_epicrisis.xlsx', 'r') as z:
+    content = z.read('xl/styles.xml')
+root = ET.fromstring(content)
+ns = {'main': 'http://schemas.openxmlformats.org/spreadsheetml/2006/main'}
+xfs = root.find('.//main:cellXfs', ns)
+xf120 = xfs.findall('main:xf', ns)[120]
+align = xf120.find('main:alignment', ns)
+assert align.attrib.get('wrapText') == '1', 'wrapText must be 1 on style 120'
+print('OK')
+"`).toString().trim();
+assert.strictEqual(pyCheck, 'OK', 'plantilla_epicrisis.xlsx style 120 must have wrapText=1');
+
+console.log('✓ PASS: Point F has ample space and renders complete multiline content in both PDF and Excel without clipping');
 
 // 12. Dark Mode text visibility in sections G downwards
 assert(

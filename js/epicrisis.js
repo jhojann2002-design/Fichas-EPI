@@ -681,16 +681,28 @@ export async function procesarEpicrisisExcelLocalmente(d) {
       // E y F
       setCellValue(xmlDoc, 'A6', d.tratamiento || '');
       
-      // F. Indicaciones de alta / egreso (distribuir en filas 25 a 36 si es multilínea)
-      const textoInd = d.indicaciones_alta || 'PACIENTE HEMODINAMICAMENTE INESTABLE';
-      const lineasInd = textoInd.split('\n');
-      if (lineasInd.length === 1) {
-        setCellValue(xmlDoc, 'A25', lineasInd[0]);
-      } else {
-        lineasInd.forEach((lin, idx) => {
-          const rNum = 25 + idx;
-          if (rNum <= 36) setCellValue(xmlDoc, `A${rNum}`, lin);
-        });
+      // F. Indicaciones de alta / egreso (la celda combinada A25:BO25 tiene altura 180)
+      const rawInd = d.indicaciones_alta || 'PACIENTE HEMODINAMICAMENTE INESTABLE';
+      const textoInd = rawInd.replace(/\r\n/g, '\n').replace(/\r/g, '\n').trim();
+      const esHemodinamico = /hemodin[aá]micamente/i.test(textoInd);
+      const numLineasInd = textoInd.split('\n').length;
+
+      // Escribir el bloque multilínea completo en A25
+      setCellValue(xmlDoc, 'A25', textoInd);
+      const cellA25 = getOrCreateCell(xmlDoc, 'A25');
+      if (cellA25) {
+        if (!esHemodinamico || numLineasInd > 1) {
+          // Estilo 106 tiene alineación vertical top y wrapText="1"
+          cellA25.setAttribute('s', '106');
+        } else {
+          // Estilo 120 tiene alineación centrada y wrapText="1"
+          cellA25.setAttribute('s', '120');
+        }
+      }
+
+      // Limpiar filas 26 a 36 para evitar textos residuales en filas colapsadas u ocultas
+      for (let r = 26; r <= 36; r++) {
+        setCellValue(xmlDoc, `A${r}`, '');
       }
 
       // G. Diagnósticos
@@ -764,6 +776,17 @@ export async function procesarEpicrisisExcelLocalmente(d) {
 
       const modifiedXml = serializer.serializeToString(xmlDoc);
       entry.rawBytes = encoder.encode(modifiedXml);
+    } else if (entry.name === 'xl/styles.xml') {
+      const xmlBytes = entry.method === 8 ? await inflateRawBytes(entry.compData) : entry.compData;
+      const xmlDoc = parser.parseFromString(decoder.decode(xmlBytes), 'application/xml');
+      const xfs = xmlDoc.getElementsByTagNameNS(NS, 'xf');
+      if (xfs.length > 120) {
+        const xf120 = xfs[120];
+        const align = xf120.getElementsByTagNameNS(NS, 'alignment')[0];
+        if (align) align.setAttribute('wrapText', '1');
+      }
+      const modifiedXml = serializer.serializeToString(xmlDoc);
+      entry.rawBytes = encoder.encode(modifiedXml);
     }
   }
 
@@ -790,7 +813,7 @@ export async function generarEpicrisisPdf(d) {
     try {
       const field = form.getTextField(name);
       if (!field) return;
-      const strVal = String(val ?? '');
+      const strVal = String(val ?? '').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
       if (typeof field.disableCombing === 'function') field.disableCombing();
       if (field.acroField?.dict) {
         field.acroField.dict.delete(PDFName.of('MaxLen'));
@@ -799,6 +822,9 @@ export async function generarEpicrisisPdf(d) {
       const isMulti = options.multiline || false;
       if (isMulti) {
         if (typeof field.enableMultiline === 'function') field.enableMultiline();
+        if (field.acroField?.dict) {
+          field.acroField.dict.set(PDFName.of('Ff'), PDFNumber.of(4096));
+        }
       }
 
       const align = options.align || (isMulti ? TextAlignment.Left : TextAlignment.Center);
@@ -811,6 +837,18 @@ export async function generarEpicrisisPdf(d) {
         widgets.forEach(w => {
           try {
             w.dict.delete(PDFName.of('MaxLen'));
+            if (isMulti) {
+              w.dict.set(PDFName.of('Ff'), PDFNumber.of(4096));
+            }
+            if (name === 'indicaciones de alta/egreso') {
+              // Forzar siempre el rectángulo al tamaño de la caja expandida en la plantilla oficial
+              w.setRectangle({
+                x: 20.7039,
+                y: 404.139,
+                width: 552.801,
+                height: 110.478
+              });
+            }
             const r = w.getRectangle();
             if (r && r.width > 0 && r.height > 0) {
               if (r.width < minW) minW = r.width;
@@ -891,11 +929,22 @@ export async function generarEpicrisisPdf(d) {
 
   // 4. Hoja 2 - Tratamiento e Indicaciones
   setTextField('resumen de tratamiento', d.tratamiento || '', { multiline: true, fontSize: 7.5 });
-  const esHemodinamico = /hemodin[aá]micamente/i.test(d.indicaciones_alta || '');
-  setTextField('indicaciones de alta/egreso', d.indicaciones_alta || 'PACIENTE HEMODINAMICAMENTE INESTABLE', {
+
+  const rawInd = d.indicaciones_alta || 'PACIENTE HEMODINAMICAMENTE INESTABLE';
+  const textoInd = rawInd.replace(/\r\n/g, '\n').replace(/\r/g, '\n').trim();
+  const esHemodinamico = /hemodin[aá]micamente/i.test(textoInd);
+  const numLineasInd = textoInd.split('\n').length;
+
+  let fsInd = 7.5;
+  if (numLineasInd > 14 || textoInd.length > 400) fsInd = 5.2;
+  else if (numLineasInd > 11 || textoInd.length > 280) fsInd = 5.8;
+  else if (numLineasInd > 8 || textoInd.length > 180) fsInd = 6.4;
+  else if (numLineasInd > 5 || textoInd.length > 100) fsInd = 7.0;
+
+  setTextField('indicaciones de alta/egreso', textoInd, {
     multiline: true,
-    fontSize: (d.indicaciones_alta && d.indicaciones_alta.length > 80) ? 6.5 : 7.5,
-    align: esHemodinamico ? TextAlignment.Center : TextAlignment.Left
+    fontSize: fsInd,
+    align: (esHemodinamico && numLineasInd === 1) ? TextAlignment.Center : TextAlignment.Left
   });
 
   // 5. Hoja 2 - Diagnósticos y CIE-10
@@ -1285,6 +1334,23 @@ export function inicializarEventosEpicrisis() {
     fAteEl.addEventListener('input', sincronizarFechaEpicrisis);
     fAteEl.addEventListener('change', sincronizarFechaEpicrisis);
     sincronizarFechaEpicrisis();
+  }
+
+  // Sincronización dinámica de alineación para Indicaciones de Alta / Egreso
+  const indAltaEl = document.getElementById('epicrisis_indicaciones_alta');
+  if (indAltaEl) {
+    const sincronizarAlineacionIndicaciones = () => {
+      const v = indAltaEl.value || '';
+      const esHem = /hemodin[aá]micamente/i.test(v);
+      if (esHem && !v.includes('\n')) {
+        indAltaEl.style.textAlign = 'center';
+      } else {
+        indAltaEl.style.textAlign = 'left';
+      }
+    };
+    indAltaEl.addEventListener('input', sincronizarAlineacionIndicaciones);
+    indAltaEl.addEventListener('change', sincronizarAlineacionIndicaciones);
+    sincronizarAlineacionIndicaciones();
   }
 
   inicializarBuscadorCie10Epicrisis();
