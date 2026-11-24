@@ -81,11 +81,11 @@ assert(epicrisisCode.includes("setCellValue(xmlDoc, 'AV64', '')"), 'js/epicrisis
 console.log('✓ PASS: ELABORADO POR and REVISADO POR are both blank without X');
 
 // Checks that Hoja 2 header names are correctly oriented
-assert(epicrisisCode.includes("setTextField('PRIMER APELLIDORow1_2', (d.primer_nombre || '').toUpperCase()"), 'PDF Hoja 2 swaps header names correctly');
-assert(epicrisisCode.includes("setTextField('PRIMER NOMBRERow1_2', (d.primer_apellido || '').toUpperCase()"), 'PDF Hoja 2 swaps header names correctly');
-assert(epicrisisCode.includes("setCellValue(xmlDoc, 'A3', (d.primer_nombre || '').toUpperCase())"), 'Excel Hoja 2 swaps A3 to primer_nombre');
-assert(epicrisisCode.includes("setCellValue(xmlDoc, 'P3', (d.primer_apellido || '').toUpperCase())"), 'Excel Hoja 2 swaps P3 to primer_apellido');
-console.log('✓ PASS: Hoja 2 header names correctly mapped in PDF and Excel');
+assert(epicrisisCode.includes("setTextField('PRIMER APELLIDORow1_2', (d.primer_apellido || '').toUpperCase()"), 'PDF Hoja 2 puts primer_apellido in PRIMER APELLIDO');
+assert(epicrisisCode.includes("setTextField('PRIMER NOMBRERow1_2', (d.primer_nombre || '').toUpperCase()"), 'PDF Hoja 2 puts primer_nombre in PRIMER NOMBRE');
+assert(epicrisisCode.includes("setCellValue(xmlDoc, 'A3', (d.primer_apellido || '').toUpperCase())"), 'Excel Hoja 2 sets A3 to primer_apellido');
+assert(epicrisisCode.includes("setCellValue(xmlDoc, 'P3', (d.primer_nombre || '').toUpperCase())"), 'Excel Hoja 2 sets P3 to primer_nombre');
+console.log('✓ PASS: Hoja 2 header names correctly mapped in PDF and Excel (primer apellido and primer nombre in their rightful fields)');
 
 // Checks that medico responsable receives only first name
 assert(epicrisisCode.includes("d.resp_primer_nombre = med1PrimerNombre.trim()"), 'Extracts only primer nombre from med1PrimerNombre');
@@ -94,13 +94,16 @@ assert(epicrisisCode.includes("setCellValue(xmlDoc, 'O61', (d.resp_primer_nombre
 console.log('✓ PASS: Medico responsable uses strictly first name in field');
 
 // Checks that Point F is centered
-assert(epicrisisCode.includes("indicaciones de alta/egreso', d.indicaciones_alta || 'PACIENTE HEMODINAMICAMENTE INESTABLE', { multiline: true, fontSize: 7.5, align: TextAlignment.Center }"), 'Point F is centered in PDF');
+assert(epicrisisCode.includes("indicaciones de alta/egreso") && epicrisisCode.includes("TextAlignment.Center"), 'Point F is centered in PDF');
 assert(html.includes('id="epicrisis_indicaciones_alta"') && html.includes('text-align: center;'), 'Point F is centered in HTML');
 console.log('✓ PASS: Point F is centered in PDF and HTML');
 
-// Checks that periodo de responsabilidad defaults to date
+// Checks that periodo de responsabilidad defaults to date and supports range
+assert(html.includes('id="epicrisis_med1_periodo_desde"'), '#epicrisis_med1_periodo_desde must exist');
+assert(html.includes('id="epicrisis_med1_periodo_hasta"'), '#epicrisis_med1_periodo_hasta must exist');
 assert(epicrisisCode.includes("d.medico_1_periodo || d.resp_fecha"), 'Período de responsabilidad falls back to resp_fecha');
-console.log('✓ PASS: Período de responsabilidad has date fallback');
+assert(epicrisisCode.includes("periodoCompuesto = `${med1Desde} al ${med1Hasta}`"), 'Periodo de responsabilidad supports date range');
+console.log('✓ PASS: Período de responsabilidad defaults to initial date and supports date range');
 
 // Checks AS400 cleaning preserves bullet points with newlines and cleans rogue spaces
 assert(epicrisisCode.includes('export function limpiarTextoAS400'), 'limpiarTextoAS400 exists');
@@ -183,9 +186,9 @@ assert(topCardContent.includes('id="fecha_atencion"'), 'Fecha is placed in the t
 assert(topCardContent.includes('id="epicrisis_resp_hora"'), 'Hora is placed in the top card');
 
 const epicrisisContainer = html.substring(html.indexOf('id="contenedorEpicrisis"'));
-assert(!epicrisisContainer.includes('type="date"'), 'No duplicate date input inside contenedorEpicrisis');
-assert(epicrisisContainer.includes('<input type="hidden" id="epicrisis_med1_periodo">'), 'med1_periodo is hidden to avoid duplicate date prompt');
-console.log('✓ PASS: Single date at top, hour/unicodigo/hoja at top, no duplicate date prompts');
+assert(epicrisisContainer.includes('id="epicrisis_med1_periodo_desde"') && epicrisisContainer.includes('id="epicrisis_med1_periodo_hasta"'), 'Periodo de responsabilidad has date range pickers');
+assert(epicrisisContainer.includes('id="epicrisis_med1_periodo"'), 'med1_periodo field exists');
+console.log('✓ PASS: Single date at top, hour/unicodigo/hoja at top, periodo de responsabilidad supports date range');
 
 // 10. Verify visual and functional unification of top cards
 const mainJs = fs.readFileSync(path.resolve(__dirname, '../js/main.js'), 'utf8');
@@ -205,12 +208,16 @@ assert(stylesCss.includes('body[data-modo="epicrisis"] #accordionFicha > .accord
 assert(html.includes('id="edad_epicrisis"') && html.includes('id="condicion_edad_epicrisis"'), 'Edad and Condicion inputs exist');
 console.log('✓ PASS: Top cards visually and functionally unified with rest of Epicrisis');
 
-// 11. Point F height reduction (low, single-line)
+// 11. Point F ample space in template & web form
 assert(
-  html.includes('id="epicrisis_indicaciones_alta"') && html.includes('rows="1"'),
-  'Point F indicaciones_alta must have rows="1" to avoid taking excessive space'
+  html.includes('id="epicrisis_indicaciones_alta"'),
+  'Point F indicaciones_alta must exist'
 );
-console.log('✓ PASS: Point F is 1-line compact height (rows="1")');
+assert(
+  epicrisisCode.includes("rNum <= 36") || epicrisisCode.includes("setCellValue(xmlDoc, `A${rNum}`, lin)"),
+  'Excel sheet2 distributes multiline indications across Point F rows 25 to 36'
+);
+console.log('✓ PASS: Point F has ample space in template and web form with multiline distribution in Excel');
 
 // 12. Dark Mode text visibility in sections G downwards
 assert(

@@ -1786,7 +1786,7 @@
               </h5>
               <button type="button" class="btn btn-sm btn-outline-secondary btn-limpiar-as400" onclick="window.limpiarTextoAS400EnTextarea('epicrisis_indicaciones_alta')" title="Eliminar saltos de línea copiados del AS400">🧹 Limpiar AS400</button>
             </div>
-            <textarea id="epicrisis_indicaciones_alta" class="form-control save-state text-center" rows="1" placeholder="Recomendaciones farmacológicas al egreso, dieta, cuidados en domicilio, signos de alarma..." style="border-radius: 8px; font-size: 0.9rem; line-height: 1.4; min-height: 42px; height: 42px; text-align: center;">PACIENTE HEMODINAMICAMENTE INESTABLE</textarea>
+            <textarea id="epicrisis_indicaciones_alta" class="form-control save-state text-center" rows="3" placeholder="Recomendaciones farmacológicas al egreso, dieta, cuidados en domicilio, signos de alarma..." style="border-radius: 8px; font-size: 0.9rem; line-height: 1.4; min-height: 75px; text-align: center;">PACIENTE HEMODINAMICAMENTE INESTABLE</textarea>
           </div>
         </div>
 
@@ -1987,21 +1987,32 @@
               </div>
             </div>
 
-            <div class="row g-2 mb-2">
-              <div class="col-12 col-md-6">
+            <div class="row g-2 mb-2 align-items-end">
+              <div class="col-12 col-md-4">
                 <label for="epicrisis_med1_doc" class="form-label epicrisis-field-label" style="font-size: 0.8rem; font-weight: 600;">CÉDULA / IDENTIFICACIÓN:</label>
                 <input type="text" id="epicrisis_med1_doc" class="form-control form-control-sm save-state" placeholder="Cédula del médico">
               </div>
-              <div class="col-12 col-md-6">
+              <div class="col-12 col-md-4">
                 <label for="epicrisis_med1_esp" class="form-label epicrisis-field-label" style="font-size: 0.8rem; font-weight: 600;">ESPECIALIDAD:</label>
                 <input type="text" id="epicrisis_med1_esp" class="form-control form-control-sm save-state" placeholder="Ej: Emergencia / Cirugía">
               </div>
+              <div class="col-12 col-md-4">
+                <label class="form-label epicrisis-field-label d-flex justify-content-between align-items-center mb-1" style="font-size: 0.8rem; font-weight: 600;">
+                  <span>PERÍODO DE RESPONSABILIDAD:</span>
+                  <span class="text-muted fw-normal" style="font-size: 0.7rem;">(Fecha o Rango)</span>
+                </label>
+                <div class="input-group input-group-sm">
+                  <input type="date" id="epicrisis_med1_periodo_desde" class="form-control form-control-sm save-state" title="Fecha inicio (predeterminada de la atención)">
+                  <span class="input-group-text px-1 text-muted" style="font-size: 0.75rem;">al</span>
+                  <input type="date" id="epicrisis_med1_periodo_hasta" class="form-control form-control-sm save-state" title="Fecha fin (opcional, para rango de fechas)">
+                </div>
+              </div>
             </div>
 
-            <!-- Campos ocultos para compatibilidad y auto-asignación desde la fecha/hora superior -->
-            <input type="hidden" id="epicrisis_med1_periodo">
-            <input type="hidden" id="epicrisis_resp_fecha">
-            <input type="hidden" id="epicrisis_med1_nombre">
+            <!-- Campos ocultos para compatibilidad y auto-asignación -->
+            <input type="hidden" id="epicrisis_med1_periodo" class="save-state">
+            <input type="hidden" id="epicrisis_resp_fecha" class="save-state">
+            <input type="hidden" id="epicrisis_med1_nombre" class="save-state">
           </div>
 
           <!-- Contenedor para Médicos Adicionales (con botón para eliminar) -->
@@ -2136,6 +2147,6 @@
 <!-- Tom Select JS -->
 <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
 <!-- Tu lógica separada -->
-<script type="module" src="./js/main.js?v=6.3"></script>
+<script type="module" src="./js/main.js?v=6.4"></script>
 </body>
 </html>

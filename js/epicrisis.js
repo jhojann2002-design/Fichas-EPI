@@ -464,12 +464,23 @@ export function recopilarDatosEpicrisis() {
   const medicoEsp = getVal('epicrisis_med1_esp') || getVal('epicrisis_medico_esp');
   const respFecha = getVal('fecha_atencion') || getVal('epicrisis_resp_fecha') || new Date().toISOString().slice(0, 10);
   const respHora = getVal('epicrisis_resp_hora') || new Date().toTimeString().slice(0, 5);
-  const medicoPeriodo = getVal('epicrisis_med1_periodo') || getVal('epicrisis_medico_periodo') || respFecha;
+
+  const med1Desde = getVal('epicrisis_med1_periodo_desde') || respFecha;
+  const med1Hasta = getVal('epicrisis_med1_periodo_hasta');
+  let periodoCompuesto = '';
+  if (med1Desde && med1Hasta && med1Desde !== med1Hasta) {
+    periodoCompuesto = `${med1Desde} al ${med1Hasta}`;
+  } else {
+    periodoCompuesto = med1Desde || respFecha;
+  }
+  const medicoPeriodo = getVal('epicrisis_med1_periodo') || periodoCompuesto || respFecha;
 
   d.medico_1_nombre = medicoNombre;
   d.medico_1_esp = medicoEsp;
   d.medico_1_doc = medicoDoc;
   d.medico_1_periodo = medicoPeriodo;
+  d.medico_1_periodo_desde = med1Desde;
+  d.medico_1_periodo_hasta = med1Hasta;
 
   // Desglosar nombres para campos individuales de responsable (solo primer nombre en primer nombre)
   if (med1PrimerNombre || med1PrimerApe) {
@@ -661,15 +672,26 @@ export async function procesarEpicrisisExcelLocalmente(d) {
       const xmlDoc = parser.parseFromString(decoder.decode(xmlBytes), 'application/xml');
 
       // Encabezado Hoja 2
-      setCellValue(xmlDoc, 'A3', (d.primer_nombre || '').toUpperCase());
-      setCellValue(xmlDoc, 'P3', (d.primer_apellido || '').toUpperCase());
+      setCellValue(xmlDoc, 'A3', (d.primer_apellido || '').toUpperCase());
+      setCellValue(xmlDoc, 'P3', (d.primer_nombre || '').toUpperCase());
       setCellValue(xmlDoc, 'AF3', d.edad || '');
       setCellValue(xmlDoc, 'AJ3', d.hcu || '');
       setCellValue(xmlDoc, 'BD3', d.archivo || '');
 
       // E y F
       setCellValue(xmlDoc, 'A6', d.tratamiento || '');
-      setCellValue(xmlDoc, 'A25', d.indicaciones_alta || 'PACIENTE HEMODINAMICAMENTE INESTABLE');
+      
+      // F. Indicaciones de alta / egreso (distribuir en filas 25 a 36 si es multilínea)
+      const textoInd = d.indicaciones_alta || 'PACIENTE HEMODINAMICAMENTE INESTABLE';
+      const lineasInd = textoInd.split('\n');
+      if (lineasInd.length === 1) {
+        setCellValue(xmlDoc, 'A25', lineasInd[0]);
+      } else {
+        lineasInd.forEach((lin, idx) => {
+          const rNum = 25 + idx;
+          if (rNum <= 36) setCellValue(xmlDoc, `A${rNum}`, lin);
+        });
+      }
 
       // G. Diagnósticos
       setCellValue(xmlDoc, 'P38', (d.diag_principal || '').toUpperCase());
@@ -861,15 +883,20 @@ export async function generarEpicrisisPdf(d) {
   setTextField('hallazgos relevantes de examenes', d.hallazgos || '', { multiline: true, fontSize: 7.5 });
 
   // 3. Hoja 2 - Encabezado
-  setTextField('PRIMER APELLIDORow1_2', (d.primer_nombre || '').toUpperCase(), { bold: true });
-  setTextField('PRIMER NOMBRERow1_2', (d.primer_apellido || '').toUpperCase(), { bold: true });
+  setTextField('PRIMER APELLIDORow1_2', (d.primer_apellido || '').toUpperCase(), { bold: true });
+  setTextField('PRIMER NOMBRERow1_2', (d.primer_nombre || '').toUpperCase(), { bold: true });
   setTextField('EDADRow1_2', d.edad || '', { bold: true });
   setTextField('NÚMERO DE HISTORIA CLÍNICA ÚNICARow1_2', d.hcu || '', { bold: true });
   setTextField('NÚMERO DE ARCHIVORow1_2', d.archivo || '', { bold: true });
 
   // 4. Hoja 2 - Tratamiento e Indicaciones
   setTextField('resumen de tratamiento', d.tratamiento || '', { multiline: true, fontSize: 7.5 });
-  setTextField('indicaciones de alta/egreso', d.indicaciones_alta || 'PACIENTE HEMODINAMICAMENTE INESTABLE', { multiline: true, fontSize: 7.5, align: TextAlignment.Center });
+  const esHemodinamico = /hemodin[aá]micamente/i.test(d.indicaciones_alta || '');
+  setTextField('indicaciones de alta/egreso', d.indicaciones_alta || 'PACIENTE HEMODINAMICAMENTE INESTABLE', {
+    multiline: true,
+    fontSize: (d.indicaciones_alta && d.indicaciones_alta.length > 80) ? 6.5 : 7.5,
+    align: esHemodinamico ? TextAlignment.Center : TextAlignment.Left
+  });
 
   // 5. Hoja 2 - Diagnósticos y CIE-10
   setTextField('DIAGNÓSTICO PRINCIPAL', (d.diag_principal || '').toUpperCase(), { align: TextAlignment.Left });
@@ -901,7 +928,10 @@ export async function generarEpicrisisPdf(d) {
   setTextField('medico tratante_1_nombre', (d.medico_1_nombre || '').toUpperCase(), { align: TextAlignment.Left });
   setTextField('medico tratante_1_especialidad', (d.medico_1_esp || '').toUpperCase());
   setTextField('medico tratante_1_cedula', d.medico_1_doc || '');
-  setTextField('medico tratante_1_periodo responsabilidad', d.medico_1_periodo || d.resp_fecha || '');
+  const periodo1Str = d.medico_1_periodo || d.resp_fecha || '';
+  setTextField('medico tratante_1_periodo responsabilidad', periodo1Str, {
+    fontSize: periodo1Str.length > 15 ? 6.2 : 7.2
+  });
 
   setTextField('medico tratante_2_nombre', (d.medico_2_nombre || '').toUpperCase(), { align: TextAlignment.Left });
   setTextField('medico tratante_2_especialidad', (d.medico_2_esp || '').toUpperCase());
@@ -1211,15 +1241,46 @@ export function inicializarEventosEpicrisis() {
     }
   });
 
-  // Sincronizar fecha única superior con campos internos de fecha de epicrisis
+  // Sincronizar fecha única superior con campos internos de fecha de epicrisis y período
   const fAteEl = document.getElementById('fecha_atencion');
   const respFechaEl = document.getElementById('epicrisis_resp_fecha');
   const medPeriodoEl = document.getElementById('epicrisis_med1_periodo');
+  const medDesdeEl = document.getElementById('epicrisis_med1_periodo_desde');
+  const medHastaEl = document.getElementById('epicrisis_med1_periodo_hasta');
+
+  const actualizarPeriodoResponsabilidad = () => {
+    const dVal = medDesdeEl ? medDesdeEl.value : '';
+    const hVal = medHastaEl ? medHastaEl.value : '';
+    if (dVal && hVal && dVal !== hVal) {
+      if (medPeriodoEl) medPeriodoEl.value = `${dVal} al ${hVal}`;
+    } else {
+      if (medPeriodoEl) medPeriodoEl.value = dVal || (fAteEl ? fAteEl.value : '');
+    }
+  };
+
+  if (medDesdeEl) {
+    medDesdeEl.addEventListener('input', () => {
+      medDesdeEl.dataset.edited = 'true';
+      actualizarPeriodoResponsabilidad();
+    });
+    medDesdeEl.addEventListener('change', () => {
+      medDesdeEl.dataset.edited = 'true';
+      actualizarPeriodoResponsabilidad();
+    });
+  }
+  if (medHastaEl) {
+    medHastaEl.addEventListener('input', actualizarPeriodoResponsabilidad);
+    medHastaEl.addEventListener('change', actualizarPeriodoResponsabilidad);
+  }
+
   if (fAteEl) {
     const sincronizarFechaEpicrisis = () => {
       const val = fAteEl.value;
       if (respFechaEl) respFechaEl.value = val;
-      if (medPeriodoEl) medPeriodoEl.value = val;
+      if (medDesdeEl && (!medDesdeEl.value || !medDesdeEl.dataset.edited)) {
+        medDesdeEl.value = val;
+      }
+      actualizarPeriodoResponsabilidad();
     };
     fAteEl.addEventListener('input', sincronizarFechaEpicrisis);
     fAteEl.addEventListener('change', sincronizarFechaEpicrisis);

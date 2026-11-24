@@ -183,6 +183,7 @@ function resetearCamposBaseEnDOM(modo) {
       'epicrisis_med1_primer_nombre', 'epicrisis_med1_segundo_nombre',
       'epicrisis_med1_primer_ape', 'epicrisis_med1_segundo_ape',
       'epicrisis_med1_nombre', 'epicrisis_med1_esp', 'epicrisis_med1_doc', 'epicrisis_med1_periodo',
+      'epicrisis_med1_periodo_desde', 'epicrisis_med1_periodo_hasta',
       'epicrisis_med2_nombre', 'epicrisis_med2_esp', 'epicrisis_med2_doc', 'epicrisis_med2_periodo',
       'epicrisis_med3_nombre', 'epicrisis_med3_esp', 'epicrisis_med3_doc', 'epicrisis_med3_periodo',
       'epicrisis_med4_nombre', 'epicrisis_med4_esp', 'epicrisis_med4_doc', 'epicrisis_med4_periodo',
@@ -227,6 +228,10 @@ function resetearCamposBaseEnDOM(modo) {
     if (respHora) respHora.value = new Date().toTimeString().slice(0, 5);
     const med1PeriodoEl = document.getElementById('epicrisis_med1_periodo');
     if (med1PeriodoEl) med1PeriodoEl.value = fAteEl ? fAteEl.value : new Date().toISOString().slice(0, 10);
+    const med1DesdeEl = document.getElementById('epicrisis_med1_periodo_desde');
+    if (med1DesdeEl) med1DesdeEl.value = fAteEl ? fAteEl.value : new Date().toISOString().slice(0, 10);
+    const med1HastaEl = document.getElementById('epicrisis_med1_periodo_hasta');
+    if (med1HastaEl) med1HastaEl.value = '';
   } else {
     const tbody = document.getElementById('contactsBody');
     if (tbody) {
